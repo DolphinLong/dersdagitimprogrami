@@ -5,7 +5,6 @@ School type selection dialog for the Class Scheduling Program
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QFrame
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from init_grade_data import get_school_rules
 
 class SchoolTypeDialog(QDialog):
     """Dialog for selecting school type with modern design"""
@@ -249,23 +248,11 @@ class SchoolTypeDialog(QDialog):
         Initialize lessons based on the curriculum rules for the selected school type.
         This function creates mandatory lessons according to the official curriculum.
         """
-        # Get curriculum rules for the selected school type
-        if school_type == "Anadolu Lisesi":
-            rules = get_school_rules("anatolian")
-        elif school_type == "Sosyal Bilimler Lisesi":
-            rules = get_school_rules("social_sciences")
-        else:
-            # For other school types, use the existing subject list
-            subjects = self.get_subjects_for_school_type(school_type)
-            for subject in subjects:
+        # For all school types, use the predefined subject list
+        subjects = self.get_subjects_for_school_type(school_type)
+        for subject in subjects:
+            # Check if lesson already exists
+            existing_lesson = db_manager.get_lesson_by_name(subject)
+            if not existing_lesson:
                 # Create a basic lesson with 2 weekly hours (can be adjusted later)
                 db_manager.add_lesson(subject, 2)
-            return
-        
-        # For Anatolian High School and Social Sciences High School, use detailed curriculum rules
-        # We'll create lessons for 9th grade as an example (can be extended for all grades)
-        mandatory_courses = rules["mandatory_courses"][9]  # 9th grade
-        
-        for course_name, weekly_hours in mandatory_courses.items():
-            if weekly_hours > 0:  # Only create lessons for courses with allocated hours
-                db_manager.add_lesson(course_name, weekly_hours)

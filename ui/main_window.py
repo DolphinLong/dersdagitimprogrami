@@ -17,7 +17,6 @@ from ui.dialogs.teacher_list_dialog import TeacherListDialog
 from ui.dialogs.lesson_dialog import LessonDialog
 from ui.dialogs.lesson_list_dialog import LessonListDialog
 from ui.school_type_dialog import SchoolTypeDialog
-from init_curriculum import initialize_curriculum_for_school_type, create_sample_classes
 from ui.dialogs.backup_restore_dialog import BackupRestoreDialog
 
 class MainWindow(QMainWindow):
@@ -444,11 +443,11 @@ class MainWindow(QMainWindow):
                 # Only initialize curriculum if no lessons exist yet
                 existing_lessons = db_manager.get_all_lessons()
                 if not existing_lessons:
-                    # Initialize curriculum based on selected school type
-                    initialize_curriculum_for_school_type(db_manager, selected_type)
+                    # Initialize lessons using school_type_dialog
+                    school_dialog.initialize_lessons_for_school_type(db_manager, selected_type)
                     
-                    # Create sample classes
-                    create_sample_classes(db_manager, selected_type)
+                    # Create sample classes based on school type
+                    self._create_sample_classes(selected_type)
                 
                 self.notification_manager.show_message(
                     "Okul Türü Seçildi", 
@@ -458,4 +457,27 @@ class MainWindow(QMainWindow):
             # If user cancels, we can either close the application or set a default
             if not db_manager.get_school_type():
                 db_manager.set_school_type("Lise")  # Set default
+    
+    def _create_sample_classes(self, school_type):
+        """Create sample classes based on school type"""
+        # Define grade ranges for each school type
+        grade_ranges = {
+            "İlkokul": (1, 4),
+            "Ortaokul": (5, 8),
+            "Lise": (9, 12),
+            "Anadolu Lisesi": (9, 12),
+            "Fen Lisesi": (9, 12),
+            "Sosyal Bilimler Lisesi": (9, 12)
+        }
+        
+        start_grade, end_grade = grade_ranges.get(school_type, (9, 12))
+        
+        # Create classes for each grade (A, B, C sections)
+        for grade in range(start_grade, end_grade + 1):
+            for section in ['A', 'B', 'C']:
+                class_name = f"{grade}-{section}"
+                # Check if class already exists
+                existing_classes = db_manager.get_all_classes()
+                if not any(c.name == class_name for c in existing_classes):
+                    db_manager.add_class(class_name, grade)
     
