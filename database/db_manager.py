@@ -281,12 +281,13 @@ class DatabaseManager:
             return None
 
     def get_all_lessons(self) -> List[Lesson]:
-        """Get all unique lessons."""
+        """Get all unique lessons for the current school type."""
         if not self._ensure_connection(): return []
+        school_type = self._get_current_school_type()
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM lessons ORDER BY name")
+            cursor.execute("SELECT * FROM lessons WHERE school_type = ? ORDER BY name", (school_type,))
             rows = cursor.fetchall()
             return [Lesson(row['lesson_id'], row['name'], row['weekly_hours']) for row in rows]
         except sqlite3.Error as e:
@@ -461,13 +462,14 @@ class DatabaseManager:
             return None
     
     def get_lesson_by_name(self, name: str) -> Optional[Lesson]:
-        """Get a lesson by its name"""
+        """Get a lesson by its name for the current school type"""
         if not self._ensure_connection():
             return None
+        school_type = self._get_current_school_type()
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM lessons WHERE name = ?", (name,))
+            cursor.execute("SELECT * FROM lessons WHERE name = ? AND school_type = ?", (name, school_type))
             row = cursor.fetchone()
             return Lesson(row['lesson_id'], row['name'], row['weekly_hours']) if row else None
         except sqlite3.Error as e:
