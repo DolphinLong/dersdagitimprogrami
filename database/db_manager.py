@@ -177,9 +177,10 @@ class DatabaseManager:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS lessons (
                     lesson_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
                     weekly_hours INTEGER DEFAULT 0,
-                    school_type TEXT NOT NULL
+                    school_type TEXT NOT NULL,
+                    UNIQUE(name, school_type)
                 )
             """)
 
