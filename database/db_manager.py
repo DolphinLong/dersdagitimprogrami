@@ -446,6 +446,20 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logging.error(f"Error getting lesson by ID: {e}")
             return None
+    
+    def get_lesson_by_name(self, name: str) -> Optional[Lesson]:
+        """Get a lesson by its name"""
+        if not self._ensure_connection():
+            return None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM lessons WHERE name = ?", (name,))
+            row = cursor.fetchone()
+            return Lesson(row['lesson_id'], row['name'], row['weekly_hours']) if row else None
+        except sqlite3.Error as e:
+            logging.error(f"Error getting lesson by name: {e}")
+            return None
 
     def get_teacher_by_id(self, teacher_id: int) -> Optional[Teacher]:
         """Get a teacher by its ID"""
