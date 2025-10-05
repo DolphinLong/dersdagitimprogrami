@@ -263,16 +263,25 @@ class DatabaseManager:
             return None
 
     def add_lesson(self, name: str, weekly_hours: int = 0) -> Optional[int]:
-        """Add a new unique lesson name."""
+        """Add a new unique lesson name for the current school type."""
         if not self._ensure_connection(): return None
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
             school_type = self._get_current_school_type()
+            
+            # Check if lesson already exists for this school type
+            cursor.execute("SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?", (name, school_type))
+            existing = cursor.fetchone()
+            if existing:
+                logging.info(f"Lesson '{name}' already exists for school type '{school_type}'")
+                return None  # Lesson already exists for this school type
+            
+            # Insert new lesson
             cursor.execute("INSERT INTO lessons (name, weekly_hours, school_type) VALUES (?, ?, ?)", (name, weekly_hours, school_type))
             lesson_id = None
             if self._safe_commit(): 
-                cursor.execute("SELECT lesson_id FROM lessons WHERE name = ?", (name,))
+                cursor.execute("SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?", (name, school_type))
                 row = cursor.fetchone()
                 lesson_id = row['lesson_id'] if row else None
             return lesson_id
