@@ -312,7 +312,20 @@ class DatabaseManager:
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
+            
+            # Delete in proper order to avoid foreign key constraint errors
+            # 1. Delete from schedule_program (generated schedules)
+            cursor.execute("DELETE FROM schedule_program WHERE lesson_id = ?", (lesson_id,))
+            
+            # 2. Delete from schedule (lesson assignments)
+            cursor.execute("DELETE FROM schedule WHERE lesson_id = ?", (lesson_id,))
+            
+            # 3. Delete from curriculum (lesson curriculum data)
+            cursor.execute("DELETE FROM curriculum WHERE lesson_id = ?", (lesson_id,))
+            
+            # 4. Finally delete the lesson itself
             cursor.execute("DELETE FROM lessons WHERE lesson_id = ?", (lesson_id,))
+            
             result = cursor.rowcount > 0
             return self._safe_commit() and result
         except sqlite3.Error as e:
