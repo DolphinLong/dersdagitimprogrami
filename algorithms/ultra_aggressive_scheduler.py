@@ -98,7 +98,29 @@ class UltraAggressiveScheduler:
         # Sonuç raporu
         self._print_final_report(initial_coverage, final_coverage, elapsed_time)
         
-        # 5. AŞAMA: Veritabanına kaydet
+        # 5. AŞAMA: Final Validation - Çakışma Kontrolü
+        print("\n🔍 AŞAMA 5: Final çakışma kontrolü...")
+        conflicts = self._validate_no_conflicts()
+        
+        if conflicts:
+            print(f"   ⚠️  {len(conflicts)} çakışma tespit edildi!")
+            for conflict in conflicts[:5]:  # İlk 5'ini göster
+                print(f"      • {conflict}")
+            
+            # Çakışmaları temizle
+            print("   🔧 Çakışmalar temizleniyor...")
+            self.schedule_entries = self._remove_conflicts(self.schedule_entries)
+            
+            # Tekrar kontrol et
+            conflicts_after = self._validate_no_conflicts()
+            if conflicts_after:
+                print(f"   ⚠️  Hala {len(conflicts_after)} çakışma var (temizlenemedi)")
+            else:
+                print("   ✅ Tüm çakışmalar temizlendi!")
+        else:
+            print("   ✅ Çakışma yok!")
+        
+        # 6. AŞAMA: Veritabanına kaydet
         self._save_to_database()
         
         self._report_progress("Tamamlandı!", 100)
@@ -286,7 +308,11 @@ class UltraAggressiveScheduler:
     
     def _fill_empty_cells(self, schedule: List[Dict], 
                           coverage: Dict, config: Dict) -> List[Dict]:
-        """Boş hücreleri doldurmaya çalış"""
+        """
+        Boş hücreleri doldurmaya çalış
+        
+        GÜÇLENDIRILMIŞ: Çakışma kontrolü ile
+        """
         
         # Rastgele bir sınıf seç (kapsama düşük olanları tercih et)
         class_priorities = sorted(
@@ -304,6 +330,19 @@ class UltraAggressiveScheduler:
             
             # Rastgele bir boş slot seç
             day, slot = random.choice(empty_slots)
+            
+            # ÇAKIŞMA KONTROLÜ: Bu slot gerçekten boş mu?
+            is_occupied = False
+            for entry in schedule:
+                if (entry['class_id'] == class_id and
+                    entry['day'] == day and
+                    entry['time_slot'] == slot):
+                    is_occupied = True
+                    break
+            
+            if is_occupied:
+                # Bu slot zaten dolu, atlayalım
+                continue
             
             # Bu slota ders yerleştirmeye çalış
             success = self._try_place_lesson_in_slot(
@@ -368,29 +407,39 @@ class UltraAggressiveScheduler:
     def _can_place_at_slot(self, schedule: List[Dict],
                           class_id: int, teacher_id: int,
                           day: int, slot: int) -> bool:
-        """Bu slota yerleştirme yapılabilir mi?"""
+        """
+        Bu slota yerleştirme yapılabilir mi?
         
-        # Sınıf çakışması
+        GÜÇLENDIRILMIŞ ÇAKIŞMA KONTROLÜ:
+        1. Sınıf çakışması (ZORUNLU)
+        2. Öğretmen çakışması (ZORUNLU)
+        3. Öğretmen uygunluğu (İlk 100 iterasyon ZORUNLU)
+        """
+        
+        # 1. SINIF ÇAKIŞMASI KONTROLÜ (ZORUNLU - ASLA ESNETILMEZ!)
         for entry in schedule:
             if (entry['class_id'] == class_id and 
                 entry['day'] == day and 
                 entry['time_slot'] == slot):
+                # Bu slotta bu sınıfın zaten dersi var!
                 return False
         
-        # Öğretmen çakışması
+        # 2. ÖĞRETMEN ÇAKIŞMASI KONTROLÜ (ZORUNLU - ASLA ESNETILMEZ!)
         for entry in schedule:
             if (entry['teacher_id'] == teacher_id and 
                 entry['day'] == day and 
                 entry['time_slot'] == slot):
+                # Bu slotta bu öğretmenin zaten dersi var!
                 return False
         
-        # Öğretmen uygunluğu (esnetilebilir - son çare)
+        # 3. ÖĞRETMEN UYGUNLUĞU KONTROLÜ (İlk turda zorunlu)
         try:
             if not self.db_manager.is_teacher_available(teacher_id, day, slot):
-                # İlk turda uygunluk zorunlu
+                # İlk 100 iterasyonda uygunluk ZORUNLU
                 if self.iteration < 100:
                     return False
-                # Sonra esnetilebilir (düşük iterasyon için)
+                # Sonraki iterasyonlarda esnetilebilir (kontrollü)
+                # Ama çakışma asla kabul edilmez!
         except:
             pass
         
@@ -507,6 +556,96 @@ class UltraAggressiveScheduler:
                 saved += 1
         
         print(f"✅ {saved}/{len(self.schedule_entries)} kayıt tamamlandı")
+    
+    def _validate_no_conflicts(self) -> List[str]:
+        """
+        Çakışma kontrolü yap
+        
+        Returns:
+            List[str]: Çakışma mesajları (boş liste = çakışma yok)
+        """
+        conflicts = []
+        
+        # Sınıf bazlı çakışma kontrolü
+        class_slots = {}
+        for entry in self.schedule_entries:
+            key = (entry['class_id'], entry['day'], entry['time_slot'])
+            if key in class_slots:
+                class_slots[key].append(entry)
+            else:
+                class_slots[key] = [entry]
+        
+        for key, entries in class_slots.items():
+            if len(entries) > 1:
+                class_id, day, slot = key
+                days_tr = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
+                day_name = days_tr[day] if day < 5 else f"Gün {day}"
+                
+                lessons = []
+                for entry in entries:
+                    lesson = self.db_manager.get_lesson_by_id(entry['lesson_id'])
+                    lesson_name = lesson.name if lesson else "?"
+                    lessons.append(lesson_name)
+                
+                conflict_msg = f"Sınıf ID {class_id} - {day_name} {slot+1}. saat: {', '.join(lessons)}"
+                conflicts.append(conflict_msg)
+        
+        # Öğretmen bazlı çakışma kontrolü
+        teacher_slots = {}
+        for entry in self.schedule_entries:
+            key = (entry['teacher_id'], entry['day'], entry['time_slot'])
+            if key in teacher_slots:
+                teacher_slots[key].append(entry)
+            else:
+                teacher_slots[key] = [entry]
+        
+        for key, entries in teacher_slots.items():
+            if len(entries) > 1:
+                teacher_id, day, slot = key
+                days_tr = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
+                day_name = days_tr[day] if day < 5 else f"Gün {day}"
+                
+                teacher = self.db_manager.get_teacher_by_id(teacher_id)
+                teacher_name = teacher.name if teacher else "?"
+                
+                lessons = []
+                for entry in entries:
+                    lesson = self.db_manager.get_lesson_by_id(entry['lesson_id'])
+                    lesson_name = lesson.name if lesson else "?"
+                    lessons.append(lesson_name)
+                
+                conflict_msg = f"Öğretmen {teacher_name} - {day_name} {slot+1}. saat: {', '.join(lessons)}"
+                conflicts.append(conflict_msg)
+        
+        return conflicts
+    
+    def _remove_conflicts(self, schedule: List[Dict]) -> List[Dict]:
+        """
+        Çakışmaları temizle
+        
+        Strateji: Aynı slotta birden fazla ders varsa, sadece BİRİNİ tut
+        """
+        # Sınıf bazlı deduplicate
+        seen_slots = set()
+        cleaned_schedule = []
+        
+        for entry in schedule:
+            key = (entry['class_id'], entry['day'], entry['time_slot'])
+            if key not in seen_slots:
+                cleaned_schedule.append(entry)
+                seen_slots.add(key)
+        
+        # Öğretmen bazlı deduplicate
+        teacher_seen_slots = set()
+        final_schedule = []
+        
+        for entry in cleaned_schedule:
+            key = (entry['teacher_id'], entry['day'], entry['time_slot'])
+            if key not in teacher_seen_slots:
+                final_schedule.append(entry)
+                teacher_seen_slots.add(key)
+        
+        return final_schedule
     
     def _report_progress(self, message: str, percentage: float):
         """Progress callback'e bildir"""

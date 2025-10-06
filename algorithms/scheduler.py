@@ -77,15 +77,15 @@ class Scheduler:
         self.use_strict = STRICT_SCHEDULER_AVAILABLE
         self.use_advanced = use_advanced and ADVANCED_SCHEDULER_AVAILABLE
         
-        # TEMPORARILY DISABLED - Has conflict issues
         # Initialize ultra aggressive scheduler if available (HIGHEST priority!)
-        # if self.use_ultra:
-        #     self.ultra_scheduler = UltraAggressiveScheduler(db_manager, progress_callback)
-        #     print("💪 ULTRA AGGRESSIVE SCHEDULER Aktif - %100 Doluluk Hedefli!")
-        #     print("   ✅ İteratif iyileştirme + Boş hücre kalmayana kadar deneme")
-        # # Fallback to hybrid optimal scheduler
+        # NOW FIXED: Güçlendirilmiş çakışma kontrolü + Final validation
+        if self.use_ultra:
+            self.ultra_scheduler = UltraAggressiveScheduler(db_manager, progress_callback)
+            print("💪 ULTRA AGGRESSIVE SCHEDULER Aktif - %100 Doluluk Hedefli!")
+            print("   ✅ İteratif iyileştirme + Boş hücre kalmayana kadar deneme")
+            print("   ✅ Güçlendirilmiş çakışma kontrolü + Final validation")
         # Fallback to hybrid optimal scheduler
-        if self.use_hybrid:
+        elif self.use_hybrid:
             self.hybrid_scheduler = HybridOptimalScheduler(db_manager)
             print("🚀 HYBRID OPTIMAL SCHEDULER Aktif - En Güçlü Algoritma!")
             print("   ✅ Arc Consistency + Soft Constraints + Simulated Annealing")
@@ -132,10 +132,10 @@ class Scheduler:
         Generate a schedule automatically using lesson assignments
         Returns a list of schedule entries
         """
-        # TEMPORARILY DISABLED - Ultra aggressive has conflict issues
         # Use ultra aggressive scheduler if available (HIGHEST priority!)
-        # if self.use_ultra and self.ultra_scheduler:
-        #     return self.ultra_scheduler.generate_schedule()
+        # NOW FIXED: Güçlendirilmiş çakışma kontrolü
+        if self.use_ultra and self.ultra_scheduler:
+            return self.ultra_scheduler.generate_schedule()
         
         # Fallback to hybrid optimal scheduler
         if self.use_hybrid and self.hybrid_scheduler:

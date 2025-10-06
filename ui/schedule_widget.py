@@ -616,18 +616,37 @@ class ScheduleWidget(QWidget):
 
         # Update statistics
         QTimer.singleShot(500, self.load_statistics)
-
-        # Success message
-        QMessageBox.information(
-            self,
-            "🎉 Başarılı!",
-            "✅ Program başarıyla oluşturuldu!\n\n"
-            f"📊 Toplam: {len(schedule_entries)} ders yerleştirildi\n"
-            "✨ 2+2+1 akıllı dağılım uygulandı\n"
-            "🎯 Çakışmalar otomatik çözüldü\n"
-            "💾 Veritabanına kaydedildi\n\n"
-            "📋 'Sınıf Programı' veya 'Öğretmen Programı' menülerinden programı görüntüleyebilirsiniz."
-        )
+        
+        # ÇAKIŞMA KONTROLÜ
+        self.add_log("🔍 Çakışma kontrolü yapılıyor...")
+        conflicts = self._detect_conflicts()
+        
+        if conflicts > 0:
+            self.add_log(f"⚠️  {conflicts} çakışma tespit edildi!")
+            # Warning message
+            QMessageBox.warning(
+                self,
+                "⚠️ Çakışma Tespit Edildi",
+                f"Program oluşturuldu ancak {conflicts} çakışma tespit edildi!\n\n"
+                "🔧 Öneriler:\n"
+                "• Programı yeniden oluşturmayı deneyin\n"
+                "• Öğretmen uygunluğunu kontrol edin\n"
+                "• 'Boşlukları Doldur' özelliğini kullanın\n\n"
+                "Detaylar için terminal loglarını kontrol edin."
+            )
+        else:
+            self.add_log("✅ Çakışma yok!")
+            # Success message
+            QMessageBox.information(
+                self,
+                "🎉 Başarılı!",
+                "✅ Program başarıyla oluşturuldu!\n\n"
+                f"📊 Toplam: {len(schedule_entries)} ders yerleştirildi\n"
+                "✨ 2+2+1 akıllı dağılım uygulandı\n"
+                "🎯 Çakışma yok - Mükemmel!\n"
+                "💾 Veritabanına kaydedildi\n\n"
+                "📋 'Sınıf Programı' veya 'Öğretmen Programı' menülerinden programı görüntüleyebilirsiniz."
+            )
 
         # Hide progress after delay
         QTimer.singleShot(3000, lambda: self.progress_section.setVisible(False))
@@ -647,6 +666,49 @@ class ScheduleWidget(QWidget):
     def add_log(self, message):
         """Add message to log"""
         self.log_text.append(message)
+    
+    def _detect_conflicts(self) -> int:
+        """
+        Çakışmaları tespit et
+        
+        Returns:
+            int: Toplam çakışma sayısı
+        """
+        schedule = db_manager.get_schedule_program_by_school_type()
+        if not schedule:
+            return 0
+        
+        total_conflicts = 0
+        
+        # Sınıf çakışmaları
+        class_slots = {}
+        for entry in schedule:
+            key = (entry.class_id, entry.day, entry.time_slot)
+            if key not in class_slots:
+                class_slots[key] = []
+            class_slots[key].append(entry)
+        
+        for key, entries in class_slots.items():
+            if len(entries) > 1:
+                total_conflicts += 1
+                self.add_log(f"   ❌ Sınıf çakışması: {len(entries)} ders aynı slotta")
+        
+        # Öğretmen çakışmaları
+        teacher_slots = {}
+        for entry in schedule:
+            key = (entry.teacher_id, entry.day, entry.time_slot)
+            if key not in teacher_slots:
+                teacher_slots[key] = []
+            teacher_slots[key].append(entry)
+        
+        for key, entries in teacher_slots.items():
+            if len(entries) > 1:
+                total_conflicts += 1
+                teacher = db_manager.get_teacher_by_id(entries[0].teacher_id)
+                teacher_name = teacher.name if teacher else "?"
+                self.add_log(f"   ❌ Öğretmen çakışması: {teacher_name} - {len(entries)} sınıfta aynı anda")
+        
+        return total_conflicts
     
     def toggle_log(self):
         """Toggle log visibility"""
