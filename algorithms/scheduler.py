@@ -4,6 +4,13 @@ Automatic scheduling algorithm for the Class Scheduling Program
 
 import random
 
+# Import hybrid optimal scheduler (NEW - Most Powerful!)
+try:
+    from algorithms.hybrid_optimal_scheduler import HybridOptimalScheduler
+    HYBRID_OPTIMAL_SCHEDULER_AVAILABLE = True
+except ImportError:
+    HYBRID_OPTIMAL_SCHEDULER_AVAILABLE = False
+
 # Import simple perfect scheduler (BEST - Pragmatic and Effective)
 try:
     from algorithms.simple_perfect_scheduler import SimplePerfectScheduler
@@ -52,35 +59,46 @@ class Scheduler:
         "Sosyal Bilimler Lisesi": 8
     }
     
-    def __init__(self, db_manager, use_advanced=True):
+    def __init__(self, db_manager, use_advanced=True, use_hybrid=True):
         self.db_manager = db_manager
+        self.use_hybrid = use_hybrid and HYBRID_OPTIMAL_SCHEDULER_AVAILABLE
         self.use_simple_perfect = SIMPLE_PERFECT_SCHEDULER_AVAILABLE
         self.use_ultimate = ULTIMATE_SCHEDULER_AVAILABLE
         self.use_enhanced_strict = ENHANCED_STRICT_SCHEDULER_AVAILABLE
         self.use_strict = STRICT_SCHEDULER_AVAILABLE
         self.use_advanced = use_advanced and ADVANCED_SCHEDULER_AVAILABLE
         
-        # Initialize simple perfect scheduler if available (HIGHEST priority)
-        if self.use_simple_perfect:
+        # Initialize hybrid optimal scheduler if available (HIGHEST priority!)
+        if self.use_hybrid:
+            self.hybrid_scheduler = HybridOptimalScheduler(db_manager)
+            print("🚀 HYBRID OPTIMAL SCHEDULER Aktif - En Güçlü Algoritma!")
+            print("   ✅ Arc Consistency + Soft Constraints + Simulated Annealing")
+        # Fallback to simple perfect scheduler
+        elif self.use_simple_perfect:
+            self.hybrid_scheduler = None
             self.simple_perfect_scheduler = SimplePerfectScheduler(db_manager)
             print("🎯 SIMPLE PERFECT SCHEDULER Aktif - Pragmatik ve %100 Etkili")
         # Fallback to ultimate scheduler
         elif self.use_ultimate:
+            self.hybrid_scheduler = None
             self.simple_perfect_scheduler = None
             self.ultimate_scheduler = UltimateScheduler(db_manager)
             print("🎯 ULTIMATE SCHEDULER Aktif - Gerçek Backtracking + CSP + Forward Checking")
         # Fallback to enhanced strict scheduler
         elif self.use_enhanced_strict:
+            self.hybrid_scheduler = None
             self.ultimate_scheduler = None
             self.enhanced_strict_scheduler = EnhancedStrictScheduler(db_manager)
             print("🚀 ENHANCED STRICT SCHEDULER Aktif - Backtracking + %100 Kapsama Hedefi")
         # Fallback to strict scheduler
         elif self.use_strict:
+            self.hybrid_scheduler = None
             self.ultimate_scheduler = None
             self.enhanced_strict_scheduler = None
             self.strict_scheduler = StrictScheduler(db_manager)
             print("🎯 STRICT SCHEDULER Aktif - Tam Kapsama ve Öğretmen Uygunluğu Garantili")
         else:
+            self.hybrid_scheduler = None
             self.ultimate_scheduler = None
             self.enhanced_strict_scheduler = None
             self.strict_scheduler = None
@@ -98,7 +116,11 @@ class Scheduler:
         Generate a schedule automatically using lesson assignments
         Returns a list of schedule entries
         """
-        # Use simple perfect scheduler if available (HIGHEST priority)
+        # Use hybrid optimal scheduler if available (HIGHEST priority!)
+        if self.use_hybrid and self.hybrid_scheduler:
+            return self.hybrid_scheduler.generate_schedule()
+        
+        # Fallback to simple perfect scheduler
         if self.use_simple_perfect and self.simple_perfect_scheduler:
             return self.simple_perfect_scheduler.generate_schedule()
         

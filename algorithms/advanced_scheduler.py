@@ -422,7 +422,7 @@ class AdvancedScheduler:
             score += self.weights['distribution_bonus']
         
         # 3. Time slot preferences
-        avg_slot = sum(slots) / len(slots)
+        avg_slot = sum(slots) / len(slots) if len(slots) > 0 else 0
         
         # Avoid very early slots (before 2nd period)
         if avg_slot < 1:

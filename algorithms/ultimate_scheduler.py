@@ -266,7 +266,7 @@ class UltimateScheduler:
             return self._solve_csp(index + 1, classrooms)
         
         # İlerleme gösterimi
-        if index % 5 == 0:
+        if index % 5 == 0 and len(self.lesson_requirements) > 0:
             progress = (index / len(self.lesson_requirements) * 100)
             print(f"   📊 İlerleme: {progress:.0f}% ({index}/{len(self.lesson_requirements)} ders)")
         
