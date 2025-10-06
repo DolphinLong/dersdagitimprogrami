@@ -149,30 +149,28 @@ class UltraAggressiveScheduler:
             return []
     
     def _analyze_coverage(self, config: Dict) -> Dict:
-        """Detaylı kapsama analizi"""
-        total_required = 0
+        """
+        Detaylı kapsama analizi
+        
+        ÖNEMLI: 
+        - GERÇEK DOLULUK = Yerleşen / TOPLAM SLOT SAYISI (5 gün × N saat)
+        - DERS GEREKSİNİMİ = Haftalık ders saati (MEB müfredatı)
+        
+        Kullanıcı GERÇEK DOLULUK istiyor (UI'de boş hücre görünmemeli!)
+        """
+        # GERÇEK DOLULUK hesabı (UI bazlı)
+        total_slots = len(config['classes']) * 5 * config['time_slots_count']
         total_scheduled = len(self.schedule_entries)
         
         # Sınıf bazlı analiz
         class_coverage = {}
         
         for class_obj in config['classes']:
-            class_required = 0
-            class_scheduled = 0
-            empty_slots = []
-            
-            # Bu sınıfın tüm dersleri için gereken saat
-            for lesson in config['lessons']:
-                key = (class_obj.class_id, lesson.lesson_id)
-                if key in config['assignment_map']:
-                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                        lesson.lesson_id, class_obj.grade
-                    )
-                    if weekly_hours:
-                        class_required += weekly_hours
-                        total_required += weekly_hours
+            # Bu sınıfın TOPLAM SLOT SAYISI (5 gün × N saat)
+            class_total_slots = 5 * config['time_slots_count']
             
             # Bu sınıfa yerleşen saatler
+            class_scheduled = 0
             for entry in self.schedule_entries:
                 if entry['class_id'] == class_obj.class_id:
                     class_scheduled += 1
@@ -184,25 +182,30 @@ class UltraAggressiveScheduler:
                     occupied_slots.add((entry['day'], entry['time_slot']))
             
             # Tüm olası slotlar
+            empty_slots = []
             for day in range(5):
                 for slot in range(config['time_slots_count']):
                     if (day, slot) not in occupied_slots:
                         empty_slots.append((day, slot))
             
+            # GERÇEK doluluk yüzdesi (UI bazlı)
+            class_percentage = (class_scheduled / class_total_slots * 100) if class_total_slots > 0 else 100
+            
             class_coverage[class_obj.class_id] = {
                 'class_name': class_obj.name,
-                'required': class_required,
+                'total_slots': class_total_slots,  # GERÇEK slot sayısı
                 'scheduled': class_scheduled,
                 'empty_slots': empty_slots,
-                'percentage': (class_scheduled / class_required * 100) if class_required > 0 else 100
+                'percentage': class_percentage  # GERÇEK doluluk!
             }
         
-        overall_percentage = (total_scheduled / total_required * 100) if total_required > 0 else 100
+        # GERÇEK genel doluluk (UI bazlı)
+        overall_percentage = (total_scheduled / total_slots * 100) if total_slots > 0 else 100
         
         return {
-            'total_required': total_required,
+            'total_slots': total_slots,  # GERÇEK slot sayısı
             'total_scheduled': total_scheduled,
-            'overall_percentage': overall_percentage,
+            'overall_percentage': overall_percentage,  # GERÇEK doluluk!
             'class_coverage': class_coverage
         }
     
@@ -463,17 +466,17 @@ class UltraAggressiveScheduler:
         print(f"   • İyileşme: +%{improvement:.1f}")
         
         print(f"\n📊 DETAY:")
-        print(f"   • Toplam gereksinim: {final_coverage['total_required']} saat")
-        print(f"   • Yerleşen: {final_coverage['total_scheduled']} saat")
-        missing = final_coverage['total_required'] - final_coverage['total_scheduled']
-        print(f"   • Eksik: {missing} saat")
+        print(f"   • Toplam slot sayısı: {final_coverage['total_slots']} slot")
+        print(f"   • Yerleşen: {final_coverage['total_scheduled']} slot")
+        missing = final_coverage['total_slots'] - final_coverage['total_scheduled']
+        print(f"   • Boş: {missing} slot")
         
         # Sınıf bazlı rapor
         print(f"\n🏫 SINIF BAZLI KAPSAMA:")
         for class_id, class_info in final_coverage['class_coverage'].items():
             status = "✅" if class_info['percentage'] >= 100 else "⚠️"
             print(f"   {status} {class_info['class_name']}: "
-                  f"{class_info['scheduled']}/{class_info['required']} saat "
+                  f"{class_info['scheduled']}/{class_info['total_slots']} slot "
                   f"(%{class_info['percentage']:.1f})")
             if class_info['empty_slots']:
                 print(f"      Boş slot: {len(class_info['empty_slots'])} adet")
