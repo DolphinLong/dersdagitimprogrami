@@ -184,12 +184,27 @@ class UltraAggressiveScheduler:
         total_slots = len(config['classes']) * 5 * config['time_slots_count']
         total_scheduled = len(self.schedule_entries)
         
+        # Ders gereksinim hesabı (MEB müfredatı - backward compatibility)
+        total_required = 0
+        
         # Sınıf bazlı analiz
         class_coverage = {}
         
         for class_obj in config['classes']:
             # Bu sınıfın TOPLAM SLOT SAYISI (5 gün × N saat)
             class_total_slots = 5 * config['time_slots_count']
+            
+            # Bu sınıfın ders gereksinimleri (MEB müfredatı)
+            class_required = 0
+            for lesson in config['lessons']:
+                key = (class_obj.class_id, lesson.lesson_id)
+                if key in config['assignment_map']:
+                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
+                        lesson.lesson_id, class_obj.grade
+                    )
+                    if weekly_hours:
+                        class_required += weekly_hours
+                        total_required += weekly_hours
             
             # Bu sınıfa yerleşen saatler
             class_scheduled = 0
@@ -216,6 +231,7 @@ class UltraAggressiveScheduler:
             class_coverage[class_obj.class_id] = {
                 'class_name': class_obj.name,
                 'total_slots': class_total_slots,  # GERÇEK slot sayısı
+                'required': class_required,  # MEB müfredatı (backward compatibility)
                 'scheduled': class_scheduled,
                 'empty_slots': empty_slots,
                 'percentage': class_percentage  # GERÇEK doluluk!
@@ -226,6 +242,7 @@ class UltraAggressiveScheduler:
         
         return {
             'total_slots': total_slots,  # GERÇEK slot sayısı
+            'total_required': total_required,  # MEB müfredatı (backward compatibility)
             'total_scheduled': total_scheduled,
             'overall_percentage': overall_percentage,  # GERÇEK doluluk!
             'class_coverage': class_coverage
