@@ -34,6 +34,10 @@ class ScheduleGenerationThread(QThread):
     def __init__(self, scheduler):
         super().__init__()
         self.scheduler = scheduler
+        
+    def progress_callback(self, message: str, percentage: float):
+        """Scheduler'dan gelen progress güncellemelerini UI'ye aktar"""
+        self.progress.emit(int(percentage), message)
     
     def run(self):
         try:
@@ -214,7 +218,8 @@ class ScheduleWidget(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.scheduler = Scheduler(db_manager)
+        # Scheduler will be created dynamically (to support progress callback)
+        self.scheduler = None
         self.schedule_thread = None
         self.setup_ui()
         self.load_statistics()
@@ -578,12 +583,21 @@ class ScheduleWidget(QWidget):
             self.log_text.clear()
             self.add_log("🚀 Program oluşturma başlatıldı...")
             self.add_log(f"📋 {len(assignments)} ders ataması bulundu")
+            self.add_log("💪 Ultra Aggressive Scheduler - %100 doluluk hedefi!")
 
             # Disable button
             self.generate_btn.setEnabled(False)
 
+            # Create scheduler with progress callback support
+            self.scheduler = Scheduler(db_manager, progress_callback=None)
+            
             # Start thread
             self.schedule_thread = ScheduleGenerationThread(self.scheduler)
+            
+            # Connect ultra scheduler's callback to thread if available
+            if hasattr(self.scheduler, 'ultra_scheduler') and self.scheduler.ultra_scheduler:
+                self.scheduler.ultra_scheduler.progress_callback = self.schedule_thread.progress_callback
+            
             self.schedule_thread.progress.connect(self.on_progress)
             self.schedule_thread.finished.connect(self.on_finished)
             self.schedule_thread.error.connect(self.on_error)

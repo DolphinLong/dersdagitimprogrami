@@ -4,6 +4,13 @@ Automatic scheduling algorithm for the Class Scheduling Program
 
 import random
 
+# Import ultra aggressive scheduler (NEWEST - %100 Coverage Goal!)
+try:
+    from algorithms.ultra_aggressive_scheduler import UltraAggressiveScheduler
+    ULTRA_AGGRESSIVE_SCHEDULER_AVAILABLE = True
+except ImportError:
+    ULTRA_AGGRESSIVE_SCHEDULER_AVAILABLE = False
+
 # Import hybrid optimal scheduler (NEW - Most Powerful!)
 try:
     from algorithms.hybrid_optimal_scheduler import HybridOptimalScheduler
@@ -59,8 +66,10 @@ class Scheduler:
         "Sosyal Bilimler Lisesi": 8
     }
     
-    def __init__(self, db_manager, use_advanced=True, use_hybrid=True):
+    def __init__(self, db_manager, use_advanced=True, use_hybrid=True, use_ultra=True, progress_callback=None):
         self.db_manager = db_manager
+        self.progress_callback = progress_callback
+        self.use_ultra = use_ultra and ULTRA_AGGRESSIVE_SCHEDULER_AVAILABLE
         self.use_hybrid = use_hybrid and HYBRID_OPTIMAL_SCHEDULER_AVAILABLE
         self.use_simple_perfect = SIMPLE_PERFECT_SCHEDULER_AVAILABLE
         self.use_ultimate = ULTIMATE_SCHEDULER_AVAILABLE
@@ -68,8 +77,13 @@ class Scheduler:
         self.use_strict = STRICT_SCHEDULER_AVAILABLE
         self.use_advanced = use_advanced and ADVANCED_SCHEDULER_AVAILABLE
         
-        # Initialize hybrid optimal scheduler if available (HIGHEST priority!)
-        if self.use_hybrid:
+        # Initialize ultra aggressive scheduler if available (HIGHEST priority!)
+        if self.use_ultra:
+            self.ultra_scheduler = UltraAggressiveScheduler(db_manager, progress_callback)
+            print("💪 ULTRA AGGRESSIVE SCHEDULER Aktif - %100 Doluluk Hedefli!")
+            print("   ✅ İteratif iyileştirme + Boş hücre kalmayana kadar deneme")
+        # Fallback to hybrid optimal scheduler
+        elif self.use_hybrid:
             self.hybrid_scheduler = HybridOptimalScheduler(db_manager)
             print("🚀 HYBRID OPTIMAL SCHEDULER Aktif - En Güçlü Algoritma!")
             print("   ✅ Arc Consistency + Soft Constraints + Simulated Annealing")
@@ -116,7 +130,11 @@ class Scheduler:
         Generate a schedule automatically using lesson assignments
         Returns a list of schedule entries
         """
-        # Use hybrid optimal scheduler if available (HIGHEST priority!)
+        # Use ultra aggressive scheduler if available (HIGHEST priority!)
+        if self.use_ultra and self.ultra_scheduler:
+            return self.ultra_scheduler.generate_schedule()
+        
+        # Fallback to hybrid optimal scheduler
         if self.use_hybrid and self.hybrid_scheduler:
             return self.hybrid_scheduler.generate_schedule()
         
