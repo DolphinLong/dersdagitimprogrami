@@ -1,3 +1,14 @@
 PyQt5>=5.15.0
 openpyxl>=3.0.0
 reportlab>=4.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Configuration
+PyYAML>=6.0.0
+
+# Logging (built-in, but for reference)
+# logging - built-in Python module

@@ -1,0 +1,119 @@
+# Scheduler Configuration
+
+# Algorithm Settings
+algorithms:
+  # Simple Perfect Scheduler
+  simple_perfect:
+    enabled: true
+    max_attempts: 100
+    
+  # Ultimate Scheduler  
+  ultimate:
+    enabled: true
+    max_backtrack: 4000
+    use_forward_checking: true
+    
+  # Enhanced Strict Scheduler
+  enhanced_strict:
+    enabled: true
+    pressure_tracking: true
+    max_consecutive_lessons: 3
+    
+  # Hybrid Optimal Scheduler
+  hybrid_optimal:
+    enabled: true
+    arc_consistency: true
+    soft_constraints_weight: 0.3
+    simulated_annealing:
+      enabled: false  # Disabled due to block integrity issues
+      initial_temperature: 100
+      cooling_rate: 0.95
+      
+  # Ultra Aggressive Scheduler
+  ultra_aggressive:
+    enabled: true
+    max_iterations: 1000
+    relaxation_threshold: 100
+    aggressive_threshold: 50
+    final_validation: true
+
+# Performance Settings
+performance:
+  max_execution_time: 120  # seconds
+  memory_limit: 500  # MB
+  enable_parallel_processing: false
+  thread_pool_size: 4
+
+# Constraint Settings
+constraints:
+  # Hard Constraints (NEVER relaxed)
+  hard:
+    no_class_conflicts: true
+    no_teacher_conflicts: true
+    respect_weekly_hours: true
+    
+  # Soft Constraints (Can be relaxed)
+  soft:
+    teacher_availability:
+      weight: 1.0
+      relaxable_after_iterations: 100
+    
+    consecutive_lessons:
+      weight: 0.8
+      max_consecutive: 3
+    
+    preferred_time_slots:
+      weight: 0.6
+      morning_heavy_subjects: true  # Math, Science in morning
+    
+    balanced_daily_load:
+      weight: 0.7
+      target_variance: 1.5
+
+# Block Rules
+blocks:
+  enabled: true
+  preferred_sizes: [2, 2, 2]
+  allow_single_hours: true
+  max_block_size: 3
+
+# Logging Settings  
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  console: true
+  file: true
+  rotation:
+    max_bytes: 10485760  # 10 MB
+    backup_count: 5
+
+# UI Settings
+ui:
+  show_progress: true
+  update_interval: 100  # milliseconds
+  show_statistics: true
+  conflict_warnings: true
+
+# Database Settings
+database:
+  backup_before_generation: true
+  auto_save: true
+  transaction_mode: true
+
+# Validation Settings
+validation:
+  check_conflicts: true
+  auto_resolve_conflicts: true
+  max_conflict_resolution_attempts: 3
+  
+# Coverage Settings
+coverage:
+  target_percentage: 95.0
+  min_acceptable_percentage: 85.0
+  report_empty_slots: true
+
+# Development Settings (for testing)
+development:
+  enable_debug_mode: false
+  save_intermediate_results: false
+  profile_performance: false
+  generate_reports: true

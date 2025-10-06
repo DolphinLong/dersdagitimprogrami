@@ -1,0 +1,121 @@
+# -*- coding: utf-8 -*-
+"""
+Pytest configuration and fixtures
+"""
+
+import pytest
+import sys
+import os
+
+# Add parent directory to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from database.db_manager import DatabaseManager
+
+
+@pytest.fixture
+def db_manager():
+    """Create a test database manager"""
+    # Use in-memory database for tests
+    db = DatabaseManager(':memory:')
+    return db
+
+
+@pytest.fixture
+def sample_classes(db_manager):
+    """Create sample classes for testing"""
+    classes = []
+    for grade in [5, 6, 7, 8]:
+        for section in ['A', 'B']:
+            class_obj = db_manager.add_class(
+                name=f"{grade}{section}",
+                grade=grade
+            )
+            classes.append(class_obj)
+    return classes
+
+
+@pytest.fixture
+def sample_teachers(db_manager):
+    """Create sample teachers for testing"""
+    teachers = []
+    teacher_names = [
+        ('Ahmet Yılmaz', 'Matematik'),
+        ('Ayşe Kaya', 'Türkçe'),
+        ('Mehmet Demir', 'Fen Bilimleri'),
+        ('Fatma Şahin', 'İngilizce'),
+        ('Ali Çelik', 'Sosyal Bilgiler')
+    ]
+    
+    for name, subject in teacher_names:
+        teacher = db_manager.add_teacher(name=name, subject=subject)
+        teachers.append(teacher)
+    
+    return teachers
+
+
+@pytest.fixture
+def sample_lessons(db_manager):
+    """Create sample lessons for testing"""
+    lessons = []
+    lesson_names = [
+        'Matematik',
+        'Türkçe',
+        'Fen Bilimleri',
+        'İngilizce',
+        'Sosyal Bilgiler',
+        'Beden Eğitimi',
+        'Müzik',
+        'Görsel Sanatlar'
+    ]
+    
+    for lesson_name in lesson_names:
+        lesson = db_manager.add_lesson(name=lesson_name)
+        lessons.append(lesson)
+    
+    return lessons
+
+
+@pytest.fixture
+def sample_schedule_data(db_manager, sample_classes, sample_teachers, sample_lessons):
+    """Create complete sample schedule data"""
+    # Add weekly hours for lessons
+    weekly_hours = {
+        'Matematik': 5,
+        'Türkçe': 5,
+        'Fen Bilimleri': 4,
+        'İngilizce': 4,
+        'Sosyal Bilgiler': 3,
+        'Beden Eğitimi': 2,
+        'Müzik': 1,
+        'Görsel Sanatlar': 1
+    }
+    
+    for lesson in sample_lessons:
+        if lesson.name in weekly_hours:
+            # Add weekly hours for each grade
+            for grade in [5, 6, 7, 8]:
+                db_manager.add_lesson_weekly_hours(
+                    lesson_id=lesson.lesson_id,
+                    grade=grade,
+                    school_type='Ortaokul',
+                    weekly_hours=weekly_hours[lesson.name]
+                )
+    
+    # Create lesson assignments
+    for class_obj in sample_classes:
+        for i, lesson in enumerate(sample_lessons):
+            # Assign teachers round-robin
+            teacher = sample_teachers[i % len(sample_teachers)]
+            
+            db_manager.add_schedule_by_school_type(
+                class_id=class_obj.class_id,
+                lesson_id=lesson.lesson_id,
+                teacher_id=teacher.teacher_id
+            )
+    
+    return {
+        'classes': sample_classes,
+        'teachers': sample_teachers,
+        'lessons': sample_lessons
+    }
