@@ -196,7 +196,8 @@ def test_schedule_handles_insufficient_slots(db_manager):
         lesson = db_manager.add_lesson(name=f"Lesson {i}")
         teacher = db_manager.add_teacher(name=f"Teacher {i}", subject=f"Subject {i}")
         
-        db_manager.add_schedule_by_school_type(
+        # Use the correct method name
+        assignment = db_manager.add_lesson_assignment_by_school_type(
             class_id=class_obj.class_id,
             lesson_id=lesson.lesson_id,
             teacher_id=teacher.teacher_id

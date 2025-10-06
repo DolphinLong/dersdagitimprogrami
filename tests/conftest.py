@@ -91,7 +91,9 @@ def sample_schedule_data(db_manager, sample_classes, sample_teachers, sample_les
         'Görsel Sanatlar': 1
     }
     
-    for lesson in sample_lessons:
+    # Get lesson objects properly
+    lessons = db_manager.get_all_lessons()
+    for lesson in lessons:
         if lesson.name in weekly_hours:
             # Add weekly hours for each grade
             for grade in [5, 6, 7, 8]:
