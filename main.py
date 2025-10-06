@@ -20,17 +20,27 @@ from utils.helpers import setup_logging
 # ---------- 3️⃣ LOGGING ----------
 def _setup_logger(debug: bool):
     """
-    Basit bir logger ayarı.  
-    `debug=True` ise DEBUG seviyesini açar.
+    Professional logger setup with file and console handlers.
+    Uses the centralized logging configuration.
     """
-    level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s [%(levelname)s] %(module)s:%(lineno)d - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    logger = logging.getLogger()
-    return logger
+    try:
+        from logging_config import setup_logging
+        log_level = logging.DEBUG if debug else logging.INFO
+        logger = setup_logging(log_level=log_level)
+        logger.info("Logging system initialized")
+        logger.info(f"Debug mode: {debug}")
+        return logger
+    except ImportError:
+        # Fallback to basic logging if logging_config is not available
+        level = logging.DEBUG if debug else logging.INFO
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(module)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        logger = logging.getLogger()
+        logger.warning("logging_config not found, using basic logging")
+        return logger
 
 # ---------- 4️⃣ MAIN ----------
 def main():
