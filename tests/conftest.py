@@ -27,11 +27,13 @@ def sample_classes(db_manager):
     classes = []
     for grade in [5, 6, 7, 8]:
         for section in ['A', 'B']:
-            class_obj = db_manager.add_class(
+            class_id = db_manager.add_class(
                 name=f"{grade}{section}",
                 grade=grade
             )
-            classes.append(class_obj)
+            class_obj = db_manager.get_class_by_id(class_id)
+            if class_obj:
+                classes.append(class_obj)
     return classes
 
 
@@ -48,8 +50,10 @@ def sample_teachers(db_manager):
     ]
     
     for name, subject in teacher_names:
-        teacher = db_manager.add_teacher(name=name, subject=subject)
-        teachers.append(teacher)
+        teacher_id = db_manager.add_teacher(name=name, subject=subject)
+        teacher_obj = db_manager.get_teacher_by_id(teacher_id)
+        if teacher_obj:
+            teachers.append(teacher_obj)
     
     return teachers
 
@@ -70,8 +74,10 @@ def sample_lessons(db_manager):
     ]
     
     for lesson_name in lesson_names:
-        lesson = db_manager.add_lesson(name=lesson_name)
-        lessons.append(lesson)
+        lesson_id = db_manager.add_lesson(name=lesson_name)
+        lesson_obj = db_manager.get_lesson_by_id(lesson_id)
+        if lesson_obj:
+            lessons.append(lesson_obj)
     
     return lessons
 

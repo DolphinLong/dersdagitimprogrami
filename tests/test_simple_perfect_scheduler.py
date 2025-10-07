@@ -189,23 +189,24 @@ def test_multiple_schedule_generations(db_manager, sample_schedule_data):
 def test_schedule_handles_insufficient_slots(db_manager):
     """Test scheduler behavior when there aren't enough slots"""
     # Add class
-    class_obj = db_manager.add_class(name="Test Class", grade=5)
+    class_id = db_manager.add_class(name="Test Class", grade=5)
+    class_obj = db_manager.get_class_by_id(class_id)
     
     # Add many lessons requiring lots of hours
     for i in range(10):
-        lesson = db_manager.add_lesson(name=f"Lesson {i}")
-        teacher = db_manager.add_teacher(name=f"Teacher {i}", subject=f"Subject {i}")
+        lesson_id = db_manager.add_lesson(name=f"Lesson {i}")
+        teacher_id = db_manager.add_teacher(name=f"Teacher {i}", subject=f"Subject {i}")
         
         # Use the correct method name
-        assignment = db_manager.add_lesson_assignment_by_school_type(
-            class_id=class_obj.class_id,
-            lesson_id=lesson.lesson_id,
-            teacher_id=teacher.teacher_id
+        assignment = db_manager.add_schedule_by_school_type(
+            class_id=class_id,
+            lesson_id=lesson_id,
+            teacher_id=teacher_id
         )
         
         # Add weekly hours (total would exceed available slots)
         db_manager.add_lesson_weekly_hours(
-            lesson_id=lesson.lesson_id,
+            lesson_id=lesson_id,
             grade=5,
             school_type="Ortaokul",
             weekly_hours=5

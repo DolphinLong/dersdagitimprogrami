@@ -357,6 +357,27 @@ class DatabaseManager:
             logging.error(f"Error getting curriculum for lesson {lesson_id}: {e}")
             return []
 
+    def add_lesson_weekly_hours(self, lesson_id: int, grade: int, school_type: str, weekly_hours: int) -> bool:
+        """Add or update weekly hours for a lesson at a specific grade (alias for add_or_update_curriculum)."""
+        if not self._ensure_connection(): 
+            return False
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT curriculum_id FROM curriculum WHERE lesson_id = ? AND grade = ? AND school_type = ?", 
+                          (lesson_id, grade, school_type))
+            row = cursor.fetchone()
+            if row:
+                cursor.execute("UPDATE curriculum SET weekly_hours = ? WHERE curriculum_id = ?", 
+                              (weekly_hours, row['curriculum_id']))
+            else:
+                cursor.execute("INSERT INTO curriculum (lesson_id, grade, weekly_hours, school_type) VALUES (?, ?, ?, ?)", 
+                              (lesson_id, grade, weekly_hours, school_type))
+            return self._safe_commit()
+        except sqlite3.Error as e:
+            logging.error(f"Error adding/updating lesson weekly hours: {e}")
+            return False
+
     def add_or_update_curriculum(self, lesson_id: int, grade: int, weekly_hours: int) -> bool:
         """Add or update a curriculum entry for a lesson at a specific grade."""
         if not self._ensure_connection(): return False
@@ -549,6 +570,11 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logging.error(f"Error adding schedule entry: {e}")
             return None
+
+    def add_schedule_by_school_type(self, class_id: int, lesson_id: int, teacher_id: int, 
+                                     classroom_id: int = 0, day: int = -1, time_slot: int = -1) -> Optional[int]:
+        """Add a lesson assignment (without schedule details). Alias for add_schedule_entry with defaults."""
+        return self.add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
 
     def add_schedule_program(self, class_id: int, teacher_id: int, lesson_id: int,
                            classroom_id: int, day: int, time_slot: int) -> Optional[int]:
