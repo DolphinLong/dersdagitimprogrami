@@ -196,10 +196,28 @@ class DatabaseManager:
                 )
             """)
             
-            # Schedule entries table
+            # Schedule entries table (assignments)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS schedule_entries (
                     entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    class_id INTEGER NOT NULL,
+                    teacher_id INTEGER NOT NULL,
+                    lesson_id INTEGER NOT NULL,
+                    classroom_id INTEGER NOT NULL,
+                    day INTEGER NOT NULL,
+                    time_slot INTEGER NOT NULL,
+                    school_type TEXT NOT NULL,
+                    FOREIGN KEY (class_id) REFERENCES classes(class_id),
+                    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id),
+                    FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id),
+                    FOREIGN KEY (classroom_id) REFERENCES classrooms(classroom_id)
+                )
+            """)
+            
+            # Schedule table (timetable/program)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS schedule (
+                    schedule_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     class_id INTEGER NOT NULL,
                     teacher_id INTEGER NOT NULL,
                     lesson_id INTEGER NOT NULL,

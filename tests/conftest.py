@@ -18,6 +18,8 @@ def db_manager():
     """Create a test database manager"""
     # Use in-memory database for tests
     db = DatabaseManager(':memory:')
+    # Set default school type for tests
+    db.set_school_type('Ortaokul')
     return db
 
 
@@ -85,6 +87,9 @@ def sample_lessons(db_manager):
 @pytest.fixture
 def sample_schedule_data(db_manager, sample_classes, sample_teachers, sample_lessons):
     """Create complete sample schedule data"""
+    # Create a default classroom
+    classroom_id = db_manager.add_classroom(name="Test Classroom", capacity=30)
+    
     # Add weekly hours for lessons
     weekly_hours = {
         'Matematik': 5,
@@ -110,7 +115,7 @@ def sample_schedule_data(db_manager, sample_classes, sample_teachers, sample_les
                     weekly_hours=weekly_hours[lesson.name]
                 )
     
-    # Create lesson assignments
+    # Create lesson assignments  
     for class_obj in sample_classes:
         for i, lesson in enumerate(sample_lessons):
             # Assign teachers round-robin
@@ -119,11 +124,13 @@ def sample_schedule_data(db_manager, sample_classes, sample_teachers, sample_les
             db_manager.add_schedule_by_school_type(
                 class_id=class_obj.class_id,
                 lesson_id=lesson.lesson_id,
-                teacher_id=teacher.teacher_id
+                teacher_id=teacher.teacher_id,
+                classroom_id=classroom_id
             )
     
     return {
         'classes': sample_classes,
         'teachers': sample_teachers,
-        'lessons': sample_lessons
+        'lessons': sample_lessons,
+        'classroom_id': classroom_id
     }
