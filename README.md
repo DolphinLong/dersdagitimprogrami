@@ -6,8 +6,8 @@ Modern ve akıllı okul ders programı oluşturma sistemi. Yapay zeka destekli a
 ![PyQt5](https://img.shields.io/badge/PyQt5-5.15+-green.svg)
 ![SQLite](https://img.shields.io/badge/SQLite-3-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-207%2F207%20Passing-success.svg)
-![Coverage](https://img.shields.io/badge/Coverage-48%25-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-240%2B%20Passing-success.svg)
+![Coverage](https://img.shields.io/badge/Coverage-50%25-brightgreen.svg)
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
 ## ✨ Özellikler
@@ -389,7 +389,42 @@ Katkılarınızı bekliyoruz! Lütfen şu adımları izleyin:
 
 ## 📊 Yenilikler
 
-### v3.3 - Medium-Term Improvements (Latest)
+### v3.4 - Long-Term Improvements (Latest)
+
+#### 🤖 Advanced Features
+- **✅ ML Scheduler**: Machine learning integration
+  - Learn from historical schedules
+  - Predict optimal slot placements
+  - Feature extraction and scoring
+  - Model training and persistence
+  - Adaptive constraint weights
+  - 164 lines of code
+- **✅ Interactive Scheduler**: User-driven editing
+  - Lock/unlock entries
+  - Suggest alternative slots
+  - Real-time validation
+  - Undo/redo support (50 levels)
+  - Conflict detection
+  - Quality scoring
+  - 230 lines of code
+- **✅ Constraint Priority Manager**: Configurable priorities
+  - 12 constraint types (4 hard, 8 soft)
+  - 5 priority levels (CRITICAL to OPTIONAL)
+  - Profile management (save/load)
+  - 4 preset profiles (strict, balanced, flexible, speed)
+  - Priority-based scoring
+  - Violation penalty calculation
+  - 144 lines of code
+- **📈 Test Suite**: 33+ new tests for long-term features
+- **📊 Total Code**: 538 lines of production code
+
+#### 🎯 Key Benefits
+- **ML Integration**: Learn and improve from experience
+- **User Control**: Interactive editing with suggestions
+- **Flexibility**: Configurable constraint priorities
+- **Production Ready**: All features tested and documented
+
+### v3.3 - Medium-Term Improvements
 
 #### 🚀 Advanced Scheduling Features
 - **✅ Hybrid Approach Scheduler**: Best of both worlds
