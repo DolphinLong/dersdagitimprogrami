@@ -6,15 +6,15 @@ Modern ve akıllı okul ders programı oluşturma sistemi. Yapay zeka destekli a
 ![PyQt5](https://img.shields.io/badge/PyQt5-5.15+-green.svg)
 ![SQLite](https://img.shields.io/badge/SQLite-3-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-69%2F69%20Passing-success.svg)
-![Coverage](https://img.shields.io/badge/Coverage-28%25-green.svg)
+![Tests](https://img.shields.io/badge/Tests-132%2F132%20Passing-success.svg)
+![Coverage](https://img.shields.io/badge/Coverage-43%25-brightgreen.svg)
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
 ## ✨ Özellikler
 
 ### 🏗️ Modern Yazılım Mimarisi (v3.0)
-- **✅ 69/69 Tests Passing (100%)**: Comprehensive test suite with pytest
-- **📈 28% Code Coverage**: Doubled from 16% with algorithm-specific tests
+- **✅ 132/132 Tests Passing (100%)**: Comprehensive test suite with pytest
+- **📈 43% Code Coverage**: Nearly tripled from 16% with comprehensive testing
 - **🔄 CI/CD Pipeline**: GitHub Actions for automated testing and quality checks
 - **🪵 Professional Logging**: Rotating file handlers with configurable log levels
 - **⚠️ Custom Exceptions**: 10 specialized exception classes for better error handling
@@ -112,22 +112,25 @@ pytest tests/test_simple_perfect_scheduler.py -v
 
 ### Test İstatistikleri
 
-- **✅ 69/69 Tests Passing (100%)**
-- **📊 Test Coverage: 28%** (Doubled from 16%!)
+- **✅ 132/132 Tests Passing (100%)**
+- **📊 Test Coverage: 43%** (Nearly tripled from 16%!)
+  - `database/models.py`: 100% ⭐
   - `algorithms/ultimate_scheduler.py`: 97% ⭐
+  - `algorithms/soft_constraints.py`: 94% ⭐
   - `algorithms/simple_perfect_scheduler.py`: 87%
   - `algorithms/enhanced_strict_scheduler.py`: 86%
   - `config/config_loader.py`: 84%
-  - `database/models.py`: 80%
-  - `algorithms/base_scheduler.py`: 78%
-  - `database/db_manager.py`: 39%
+  - `algorithms/hybrid_optimal_scheduler.py`: 71% 🆕
+  - `database/db_manager.py`: 65% 🆕
   - `exceptions.py`: 100%
 
 **Test Breakdown by Module:**
-- BaseScheduler: 13 tests (100% passing)
+- DatabaseManager: 45 tests (100% passing) 🆕
+- HybridOptimalScheduler: 18 tests (100% passing) 🆕
+- UltimateScheduler: 13 tests (100% passing)
+- EnhancedStrictScheduler: 14 tests (100% passing)
 - SimplePerfectScheduler: 14 tests (100% passing)
-- UltimateScheduler: 13 tests (100% passing) 🆕
-- EnhancedStrictScheduler: 14 tests (100% passing) 🆕
+- BaseScheduler: 13 tests (100% passing)
 - Exceptions: 11 tests (100% passing)
 - ConfigLoader: 4 tests (100% passing)
 
@@ -236,12 +239,14 @@ dersdagitimprogrami/
 ├── config/                               # 🆕 Configuration system
 │   ├── scheduler_config.yaml             # YAML configuration
 │   └── config_loader.py                  # Config manager (84% coverage)
-├── tests/                                # 🆕 Test suite (69 tests)
+├── tests/                                # 🆕 Test suite (132 tests)
 │   ├── conftest.py                       # Pytest fixtures
+│   ├── test_db_manager.py                # 🆕 45 tests (65% coverage)
+│   ├── test_hybrid_optimal_scheduler.py  # 🆕 18 tests (71% coverage)
+│   ├── test_ultimate_scheduler.py        # 13 tests (97% coverage)
+│   ├── test_enhanced_strict_scheduler.py # 14 tests (86% coverage)
+│   ├── test_simple_perfect_scheduler.py  # 14 tests (87% coverage)
 │   ├── test_base_scheduler.py            # 13 tests
-│   ├── test_simple_perfect_scheduler.py  # 14 tests
-│   ├── test_ultimate_scheduler.py        # 🆕 13 tests (97% coverage)
-│   ├── test_enhanced_strict_scheduler.py # 🆕 14 tests (86% coverage)
 │   ├── test_exceptions.py                # 11 tests
 │   └── test_config_loader.py             # 4 tests
 ├── ui/                                   # Kullanıcı arayüzü
@@ -380,18 +385,24 @@ Katkılarınızı bekliyoruz! Lütfen şu adımları izleyin:
 ### v3.0 - Modern Software Engineering (Latest)
 
 #### 🏗️ Infrastructure Improvements
-- **✅ Comprehensive Test Suite**: 69 tests with pytest framework
-  - BaseScheduler: 13 tests (100% passing)
+- **✅ Comprehensive Test Suite**: 132 tests with pytest framework
+  - DatabaseManager: 45 tests (100% passing) 🆕
+  - HybridOptimalScheduler: 18 tests (100% passing) 🆕
+  - UltimateScheduler: 13 tests (100% passing)
+  - EnhancedStrictScheduler: 14 tests (100% passing)
   - SimplePerfectScheduler: 14 tests (100% passing)
-  - UltimateScheduler: 13 tests (100% passing) 🆕
-  - EnhancedStrictScheduler: 14 tests (100% passing) 🆕
+  - BaseScheduler: 13 tests (100% passing)
   - Exceptions: 11 tests (100% passing)
   - ConfigLoader: 4 tests (100% passing)
-- **📈 Test Coverage**: 28% overall (doubled from 16%!)
-  - Critical algorithms: 80-97% coverage
+- **📈 Test Coverage**: 43% overall (nearly tripled from 16%!)
+  - Critical components: 65-100% coverage
+  - database/models: 100% coverage ⭐
   - UltimateScheduler: 97% coverage ⭐
+  - SoftConstraints: 94% coverage ⭐
   - SimplePerfectScheduler: 87% coverage
   - EnhancedStrictScheduler: 86% coverage
+  - HybridOptimalScheduler: 71% coverage 🆕
+  - DatabaseManager: 65% coverage 🆕
 - **🔄 CI/CD Pipeline**: GitHub Actions with multi-OS and multi-Python testing
 - **🔒 Pre-commit Hooks**: Automated code quality checks (black, isort, flake8, bandit)
 - **🪵 Professional Logging**: Rotating file handlers, multiple log levels
