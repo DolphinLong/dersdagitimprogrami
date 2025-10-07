@@ -20,7 +20,7 @@ the generate_schedule() method. Subclasses can override template methods
 like _create_lesson_blocks() to customize behavior.
 """
 
-from typing import List, Dict, Tuple, Optional, Set
+from typing import List, Dict, Tuple, Optional, Set, Callable, Any
 from collections import defaultdict
 from abc import ABC, abstractmethod
 import logging
@@ -29,6 +29,22 @@ from exceptions import (
     ConflictError, TeacherConflictError, ClassConflictError,
     AvailabilityError, ScheduleGenerationError
 )
+
+# Import constants
+try:
+    from algorithms.constants import (
+        SCHOOL_TIME_SLOTS, DAYS_PER_WEEK, DAY_NAMES,
+        MAX_CONSECUTIVE_SAME_LESSONS
+    )
+except ImportError:
+    # Fallback to hardcoded values if constants not available
+    SCHOOL_TIME_SLOTS = {
+        "İlkokul": 7, "Ortaokul": 7, "Lise": 8,
+        "Anadolu Lisesi": 8, "Fen Lisesi": 8, "Sosyal Bilimler Lisesi": 8
+    }
+    DAY_NAMES = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
+    DAYS_PER_WEEK = 5
+    MAX_CONSECUTIVE_SAME_LESSONS = 3
 
 
 class BaseScheduler(ABC):
@@ -62,22 +78,22 @@ class BaseScheduler(ABC):
     
     DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
     
-    def __init__(self, db_manager, progress_callback=None):
+    def __init__(self, db_manager: Any, progress_callback: Optional[Callable[[str, int], None]] = None):
         """
         Initialize base scheduler
         
         Args:
             db_manager: Database manager instance
-            progress_callback: Optional callback for progress updates
+            progress_callback: Optional callback for progress updates (message, percentage)
         """
-        self.db_manager = db_manager
-        self.progress_callback = progress_callback
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.db_manager: Any = db_manager
+        self.progress_callback: Optional[Callable[[str, int], None]] = progress_callback
+        self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
         
         # State
-        self.schedule_entries = []
-        self.teacher_slots = defaultdict(set)  # {teacher_id: {(day, slot)}}
-        self.class_slots = defaultdict(set)    # {class_id: {(day, slot)}}
+        self.schedule_entries: List[Dict[str, int]] = []
+        self.teacher_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(set)  # {teacher_id: {(day, slot)}}
+        self.class_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(set)    # {class_id: {(day, slot)}}
     
     @abstractmethod
     def generate_schedule(self) -> List[Dict]:
