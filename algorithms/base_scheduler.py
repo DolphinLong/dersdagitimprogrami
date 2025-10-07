@@ -2,6 +2,22 @@
 """
 Base Scheduler - Common functionality for all schedulers
 DRY (Don't Repeat Yourself) principle
+
+This module provides the base class for all scheduling algorithms in the system.
+It consolidates common scheduling functionality to eliminate code duplication
+and provide a consistent interface for all scheduler implementations.
+
+Key Features:
+- State management for schedule entries, teacher slots, and class slots
+- Conflict detection and validation
+- Lesson placement and removal operations
+- Common utility methods (slot finding, availability checking, etc.)
+- Template methods for subclass customization
+- Abstract interface for schedule generation
+
+All scheduler implementations should inherit from this class and implement
+the generate_schedule() method. Subclasses can override template methods
+like _create_lesson_blocks() to customize behavior.
 """
 
 from typing import List, Dict, Tuple, Optional, Set
@@ -19,6 +35,20 @@ class BaseScheduler(ABC):
     """
     Base class for all scheduling algorithms
     Contains common functionality to avoid code duplication
+    
+    This class provides:
+    - State management (schedule_entries, teacher_slots, class_slots)
+    - Conflict detection and validation
+    - Lesson placement and removal
+    - Common utility methods for scheduling
+    - Template methods for subclass customization
+    
+    Subclasses must implement:
+    - generate_schedule(): Main scheduling algorithm
+    
+    Subclasses can override:
+    - _create_lesson_blocks(): Custom block distribution logic
+    - _load_scheduler_weights(): Custom weight loading
     """
     
     SCHOOL_TIME_SLOTS = {
@@ -141,10 +171,12 @@ class BaseScheduler(ABC):
         teacher_id: int,
         day: int,
         slot: int,
-        check_availability: bool = True
+        check_availability: bool = True,
+        consecutive_slots: int = 1
     ) -> Tuple[bool, Optional[str]]:
         """
         Check if a lesson can be placed at a specific slot
+        Enhanced to support consecutive slot checking
         
         Args:
             class_id: Class ID
@@ -152,23 +184,58 @@ class BaseScheduler(ABC):
             day: Day (0-4)
             slot: Time slot (0-7)
             check_availability: Whether to check teacher availability
+            consecutive_slots: Number of consecutive slots to check (default 1)
         
         Returns:
             (can_place, reason) tuple
         """
-        # Check class conflict
-        if self._is_slot_occupied_by_class(class_id, day, slot):
-            return False, "Class already has a lesson at this time"
-        
-        # Check teacher conflict
-        if self._is_slot_occupied_by_teacher(teacher_id, day, slot):
-            return False, "Teacher already teaching another class at this time"
-        
-        # Check teacher availability
-        if check_availability and not self._is_teacher_available(teacher_id, day, slot):
-            return False, "Teacher not available at this time"
+        # Check all consecutive slots
+        for i in range(consecutive_slots):
+            current_slot = slot + i
+            
+            # Check class conflict
+            if self._is_slot_occupied_by_class(class_id, day, current_slot):
+                return False, f"Class already has a lesson at slot {current_slot}"
+            
+            # Check teacher conflict
+            if self._is_slot_occupied_by_teacher(teacher_id, day, current_slot):
+                return False, f"Teacher already teaching another class at slot {current_slot}"
+            
+            # Check teacher availability
+            if check_availability and not self._is_teacher_available(teacher_id, day, current_slot):
+                return False, f"Teacher not available at slot {current_slot}"
         
         return True, None
+    
+    def _is_placement_valid_advanced(
+        self,
+        class_id: int,
+        teacher_id: int,
+        day: int,
+        slots: List[int],
+        check_availability: bool = True
+    ) -> bool:
+        """
+        Advanced placement validation supporting multiple slot validation
+        
+        Args:
+            class_id: Class ID
+            teacher_id: Teacher ID
+            day: Day (0-4)
+            slots: List of time slots to check
+            check_availability: Whether to check teacher availability
+        
+        Returns:
+            True if all slots are valid for placement, False otherwise
+        """
+        for slot in slots:
+            can_place, _ = self._can_place_lesson(
+                class_id, teacher_id, day, slot, check_availability, consecutive_slots=1
+            )
+            if not can_place:
+                return False
+        
+        return True
     
     def _place_lesson(
         self,
@@ -260,16 +327,23 @@ class BaseScheduler(ABC):
         
         return available_slots
     
-    def _get_lesson_blocks(self, weekly_hours: int) -> List[int]:
+    def _get_lesson_blocks(self, weekly_hours: int, strategy: str = 'default') -> List[int]:
         """
         Determine optimal lesson blocks for weekly hours
+        Enhanced to support advanced block strategies
         
         Args:
             weekly_hours: Weekly hours for the lesson
+            strategy: Block distribution strategy ('default', 'advanced', 'custom')
         
         Returns:
             List of block sizes (e.g., [2, 2, 1] for 5 hours)
         """
+        if strategy == 'advanced':
+            # Use advanced block creation (can be overridden by subclasses)
+            return self._create_lesson_blocks(weekly_hours)
+        
+        # Default strategy
         if weekly_hours >= 6:
             return [2, 2, 2]
         elif weekly_hours == 5:
@@ -285,53 +359,89 @@ class BaseScheduler(ABC):
         else:
             return []
     
-    def _detect_conflicts(self) -> Dict:
+    def _create_lesson_blocks(self, total_hours: int) -> List[int]:
         """
-        Detect conflicts in the schedule
+        Template method for scheduler-specific block creation
+        Subclasses can override this to provide custom block distribution logic
+        
+        Default implementation creates smart blocks with optimal distribution:
+        - Prioritizes 2-hour blocks
+        - Adds single hour for odd numbers
+        
+        Examples:
+        - 1 hour: [1]
+        - 2 hours: [2]
+        - 3 hours: [2, 1]
+        - 4 hours: [2, 2]
+        - 5 hours: [2, 2, 1]
+        - 6 hours: [2, 2, 2]
+        - 7 hours: [2, 2, 2, 1]
+        - 8 hours: [2, 2, 2, 2]
+        
+        Args:
+            total_hours: Total weekly hours for the lesson
         
         Returns:
-            Dict with conflict information
+            List of block sizes
         """
-        class_conflicts = []
-        teacher_conflicts = []
+        if total_hours <= 0:
+            return []
         
-        # Check class conflicts
-        class_slot_map = defaultdict(list)
-        for entry in self.schedule_entries:
-            key = (entry['class_id'], entry['day'], entry['time_slot'])
-            class_slot_map[key].append(entry)
+        blocks = []
+        remaining = total_hours
         
-        for key, entries in class_slot_map.items():
-            if len(entries) > 1:
-                class_conflicts.append({
-                    'class_id': key[0],
-                    'day': key[1],
-                    'slot': key[2],
-                    'count': len(entries),
-                    'entries': entries
-                })
+        # Fill with 2-hour blocks first
+        while remaining >= 2:
+            blocks.append(2)
+            remaining -= 2
+        
+        # Add remaining single hour if any
+        if remaining == 1:
+            blocks.append(1)
+        
+        return blocks
+    
+    def _detect_conflicts(self) -> List[Dict]:
+        """
+        Detect conflicts in the schedule
+        Enhanced to return List[Dict] format matching AdvancedScheduler
+        
+        Returns:
+            List of conflict dicts with 'type', 'entry1', 'entry2' keys
+        """
+        conflicts = []
         
         # Check teacher conflicts
-        teacher_slot_map = defaultdict(list)
+        teacher_slots = {}
         for entry in self.schedule_entries:
             key = (entry['teacher_id'], entry['day'], entry['time_slot'])
-            teacher_slot_map[key].append(entry)
-        
-        for key, entries in teacher_slot_map.items():
-            if len(entries) > 1:
-                teacher_conflicts.append({
-                    'teacher_id': key[0],
-                    'day': key[1],
-                    'slot': key[2],
-                    'count': len(entries),
-                    'entries': entries
+            if key in teacher_slots:
+                conflicts.append({
+                    'type': 'teacher_conflict',
+                    'entry1': teacher_slots[key],
+                    'entry2': entry,
+                    'day': entry['day'],
+                    'slot': entry['time_slot']
                 })
+            else:
+                teacher_slots[key] = entry
         
-        return {
-            'class_conflicts': class_conflicts,
-            'teacher_conflicts': teacher_conflicts,
-            'total_conflicts': len(class_conflicts) + len(teacher_conflicts)
-        }
+        # Check class conflicts
+        class_slots = {}
+        for entry in self.schedule_entries:
+            key = (entry['class_id'], entry['day'], entry['time_slot'])
+            if key in class_slots:
+                conflicts.append({
+                    'type': 'class_conflict',
+                    'entry1': class_slots[key],
+                    'entry2': entry,
+                    'day': entry['day'],
+                    'slot': entry['time_slot']
+                })
+            else:
+                class_slots[key] = entry
+        
+        return conflicts
     
     def _validate_schedule(self) -> bool:
         """
@@ -345,17 +455,21 @@ class BaseScheduler(ABC):
         """
         conflicts = self._detect_conflicts()
         
-        if conflicts['total_conflicts'] > 0:
-            self.logger.error(f"Schedule validation failed: {conflicts['total_conflicts']} conflicts found")
+        if len(conflicts) > 0:
+            # Count conflicts by type
+            class_conflicts = [c for c in conflicts if c['type'] == 'class_conflict']
+            teacher_conflicts = [c for c in conflicts if c['type'] == 'teacher_conflict']
             
-            if conflicts['class_conflicts']:
-                self.logger.error(f"Class conflicts: {len(conflicts['class_conflicts'])}")
+            self.logger.error(f"Schedule validation failed: {len(conflicts)} conflicts found")
             
-            if conflicts['teacher_conflicts']:
-                self.logger.error(f"Teacher conflicts: {len(conflicts['teacher_conflicts'])}")
+            if class_conflicts:
+                self.logger.error(f"Class conflicts: {len(class_conflicts)}")
+            
+            if teacher_conflicts:
+                self.logger.error(f"Teacher conflicts: {len(teacher_conflicts)}")
             
             raise ConflictError(
-                f"Schedule has {conflicts['total_conflicts']} conflicts",
+                f"Schedule has {len(conflicts)} conflicts",
                 conflicts=conflicts
             )
         
@@ -414,3 +528,80 @@ class BaseScheduler(ABC):
             'empty_slots': total_slots - total_scheduled,
             'coverage_percentage': coverage_percentage
         }
+    
+    def _get_class_lessons(self, class_obj, lessons: List, assignment_map: Dict, teachers: List) -> List[Dict]:
+        """
+        Get all lessons assigned to a class with their details
+        
+        Args:
+            class_obj: Class object
+            lessons: List of all lessons
+            assignment_map: Dict mapping (class_id, lesson_id) to teacher_id
+            teachers: List of all teachers
+        
+        Returns:
+            List of dicts with lesson information including:
+            - lesson_id, lesson_name, teacher_id, teacher_name, weekly_hours
+        """
+        class_lessons = []
+        
+        for lesson in lessons:
+            assignment_key = (class_obj.class_id, lesson.lesson_id)
+            if assignment_key in assignment_map:
+                # Get weekly hours from curriculum
+                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
+                    lesson.lesson_id, class_obj.grade
+                )
+                
+                if weekly_hours and weekly_hours > 0:
+                    teacher_id = assignment_map[assignment_key]
+                    teacher = self.db_manager.get_teacher_by_id(teacher_id)
+                    
+                    if teacher:
+                        class_lessons.append({
+                            'lesson_id': lesson.lesson_id,
+                            'lesson_name': lesson.name,
+                            'teacher_id': teacher.teacher_id,
+                            'teacher_name': teacher.name,
+                            'weekly_hours': weekly_hours,
+                        })
+        
+        return class_lessons
+    
+    def _find_available_classroom(self, classrooms: List, day: int, time_slot: int) -> Optional[object]:
+        """
+        Find an available classroom for a specific day and time slot
+        
+        Args:
+            classrooms: List of classroom objects
+            day: Day (0-4)
+            time_slot: Time slot (0-7)
+        
+        Returns:
+            Available classroom object or None if no classroom available
+        """
+        for classroom in classrooms:
+            # Check if classroom is already scheduled at this time
+            classroom_scheduled = False
+            for entry in self.schedule_entries:
+                if (entry.get('classroom_id') == classroom.classroom_id and
+                    entry['day'] == day and entry['time_slot'] == time_slot):
+                    classroom_scheduled = True
+                    break
+            
+            if not classroom_scheduled:
+                return classroom
+        
+        return None
+    
+    def _load_scheduler_weights(self) -> Dict[str, float]:
+        """
+        Template method for loading scheduler-specific weights
+        Subclasses can override this to provide custom weight loading logic
+        
+        Returns:
+            Dict of weight names to values
+        """
+        # Default implementation returns empty dict
+        # Subclasses should override to provide actual weights
+        return {}
