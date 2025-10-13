@@ -2,8 +2,20 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders application title', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const titleElement = screen.getByText(/Ders Dağıtım Sistemi/i);
+  expect(titleElement).toBeInTheDocument();
+});
+
+test('renders dashboard navigation button', () => {
+  render(<App />);
+  const dashboardButton = screen.getByRole('button', { name: /Dashboard/i });
+  expect(dashboardButton).toBeInTheDocument();
+});
+
+test('renders scheduler navigation button', () => {
+  render(<App />);
+  const schedulerButton = screen.getByRole('button', { name: /Çizelge/i });
+  expect(schedulerButton).toBeInTheDocument();
 });

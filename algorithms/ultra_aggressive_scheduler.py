@@ -10,6 +10,7 @@ from typing import List, Dict, Tuple, Optional, Callable
 from collections import defaultdict
 import random
 import time
+import logging
 
 # Set encoding for Windows
 if sys.platform.startswith('win'):
@@ -45,7 +46,8 @@ class UltraAggressiveScheduler:
         self.progress_callback = progress_callback  # UI için callback
         self.schedule_entries = []
         self.iteration = 0
-        self.max_iterations = 1000  # Maksimum deneme sayısı
+        self.max_iterations = 5000  # Maksimum deneme sayısı
+        self.logger = logging.getLogger(__name__)
         
     def generate_schedule(self) -> List[Dict]:
         """Ana program oluşturma - %100 doluluk hedefli"""
@@ -381,8 +383,11 @@ class UltraAggressiveScheduler:
         if not class_obj:
             return False
         
-        # Tüm dersleri dene
-        for lesson in config['lessons']:
+        # Tüm dersleri dene (rastgele sırada)
+        lessons_to_try = list(config['lessons'])
+        random.shuffle(lessons_to_try)
+
+        for lesson in lessons_to_try:
             key = (class_id, lesson.lesson_id)
             if key not in config['assignment_map']:
                 continue
@@ -405,7 +410,7 @@ class UltraAggressiveScheduler:
                 continue  # Bu ders zaten tam
             
             # Bu slota yerleştir
-            if self._can_place_at_slot(schedule, class_id, teacher_id, day, slot):
+            if self._can_place_at_slot(schedule, class_id, teacher_id, day, slot, lesson_name=lesson.name):
                 classroom = config['classrooms'][0] if config['classrooms'] else None
                 classroom_id = classroom.classroom_id if classroom else 1
                 
@@ -417,17 +422,25 @@ class UltraAggressiveScheduler:
                     'day': day,
                     'time_slot': slot
                 })
+                self.logger.info(
+                    f"[BAŞARILI YERLEŞTİRME] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
+                    f"Ders: {lesson.name} yerleştirildi."
+                )
                 return True
         
+        self.logger.warning(
+            f"[BOŞLUK DOLDURULAMADI] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
+            f"Neden: Bu boşluğa yerleştirilebilecek uygun bir ders bulunamadı."
+        )
         return False
     
-    def _can_place_at_slot(self, schedule: List[Dict],
+    def _can_place_at_slot_detailed(self, schedule: List[Dict],
                           class_id: int, teacher_id: int,
-                          day: int, slot: int) -> bool:
+                          day: int, slot: int, lesson_name: str = "") -> Tuple[bool, str]:
         """
         Bu slota yerleştirme yapılabilir mi?
         
-        GÜÇLENDIRILMIŞ ÇAKIŞMA KONTROLÜ:
+        GÜÇLENDIRILMIŞ ÇAKIŞMA KONTROLÜ VE DETAYLI LOGLAMA:
         1. Sınıf çakışması (ZORUNLU)
         2. Öğretmen çakışması (ZORUNLU)
         3. Öğretmen uygunluğu (İlk 100 iterasyon ZORUNLU)
@@ -438,62 +451,115 @@ class UltraAggressiveScheduler:
             if (entry['class_id'] == class_id and 
                 entry['day'] == day and 
                 entry['time_slot'] == slot):
-                # Bu slotta bu sınıfın zaten dersi var!
-                return False
+                self.logger.debug(
+                    f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
+                    f"Neden: SINIF ÇAKIŞMASI. Bu slot zaten dolu."
+                )
+                return False, "SINIF_CAKISMASI"
         
         # 2. ÖĞRETMEN ÇAKIŞMASI KONTROLÜ (ZORUNLU - ASLA ESNETILMEZ!)
         for entry in schedule:
             if (entry['teacher_id'] == teacher_id and 
                 entry['day'] == day and 
                 entry['time_slot'] == slot):
-                # Bu slotta bu öğretmenin zaten dersi var!
-                return False
+                self.logger.debug(
+                    f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
+                    f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
+                    f"Neden: ÖĞRETMEN ÇAKIŞMASI. Öğretmen bu saatte başka bir derste."
+                )
+                return False, "OGRETMEN_CAKISMASI"
         
         # 3. ÖĞRETMEN UYGUNLUĞU KONTROLÜ (İlk turda zorunlu)
         try:
             if not self.db_manager.is_teacher_available(teacher_id, day, slot):
                 # İlk 100 iterasyonda uygunluk ZORUNLU
                 if self.iteration < 100:
-                    return False
-                # Sonraki iterasyonlarda esnetilebilir (kontrollü)
-                # Ama çakışma asla kabul edilmez!
-        except:
+                    self.logger.debug(
+                        f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
+                        f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
+                        f"Neden: ÖĞRETMEN UYGUN DEĞİL (İterasyon {self.iteration} < 100, Kural Esnetilmedi)."
+                    )
+                    return False, "OGRETMEN_UYGUN_DEGIL"
+                else:
+                    self.logger.warning(
+                        f"[KURAL ESNETİLDİ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
+                        f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
+                        f"Neden: Öğretmen normalde uygun değil ancak kural esnetildi (İterasyon {self.iteration} >= 100)."
+                    )
+        except Exception as e:
+            self.logger.error(f"Öğretmen uygunluk kontrolü sırasında hata: {e}")
             pass
         
-        return True
+        return True, "BASARILI"
+    
+    def _can_place_at_slot(self, schedule: List[Dict],
+                          class_id: int, teacher_id: int,
+                          day: int, slot: int, lesson_name: str = "") -> bool:
+        """Basit çakışma kontrolü, sadece evet/hayır döndürür."""
+        can_place, _ = self._can_place_at_slot_detailed(
+            schedule, class_id, teacher_id, day, slot, lesson_name
+        )
+        return can_place
     
     def _random_perturbation(self, schedule: List[Dict], 
                             config: Dict) -> List[Dict]:
-        """Rastgele küçük değişiklik yap (local search)"""
+        """Rastgele küçük değişiklik yap (local search) - ÇAKIŞMA KONTROLLÜ"""
         
         if not schedule or len(schedule) < 2:
             return schedule
         
-        new_schedule = schedule[:]
-        
-        # Stratejiler:
-        # 1. İki dersi yer değiştir
-        # 2. Bir dersi başka slota taşı
-        
-        strategy = random.choice(['swap', 'move'])
-        
-        if strategy == 'swap' and len(new_schedule) >= 2:
-            idx1, idx2 = random.sample(range(len(new_schedule)), 2)
+        # 10 deneme hakkı ver
+        for _ in range(10):
+            new_schedule = [s.copy() for s in schedule]
             
-            day1, slot1 = new_schedule[idx1]['day'], new_schedule[idx1]['time_slot']
-            day2, slot2 = new_schedule[idx2]['day'], new_schedule[idx2]['time_slot']
-            
-            new_schedule[idx1]['day'], new_schedule[idx1]['time_slot'] = day2, slot2
-            new_schedule[idx2]['day'], new_schedule[idx2]['time_slot'] = day1, slot1
-            
-        elif strategy == 'move':
-            idx = random.randint(0, len(new_schedule) - 1)
-            new_schedule[idx]['day'] = random.randint(0, 4)
-            new_schedule[idx]['time_slot'] = random.randint(
-                0, config['time_slots_count'] - 1
+            # Strateji: Bir dersi başka bir boş slota taşı
+            # En az yerleşmiş sınıflardan birini seç
+            coverage_report = self._analyze_coverage(config)
+            class_priorities = sorted(
+                coverage_report['class_coverage'].items(),
+                key=lambda x: x[1]['percentage']
             )
-        
-        return new_schedule
+
+            if not class_priorities:
+                continue
+
+            class_id_to_move = class_priorities[0][0]
+            
+            # Bu sınıfa ait bir dersi ve boş bir slotu seç
+            entries_to_move = [e for e in new_schedule if e['class_id'] == class_id_to_move]
+            empty_slots = coverage_report['class_coverage'][class_id_to_move]['empty_slots']
+
+            if not entries_to_move or not empty_slots:
+                continue
+
+            entry_to_move_idx = new_schedule.index(random.choice(entries_to_move))
+            original_entry = new_schedule[entry_to_move_idx].copy()
+
+            day, slot = random.choice(empty_slots)
+            
+            # Değişikliği uygula
+            new_schedule[entry_to_move_idx]['day'] = day
+            new_schedule[entry_to_move_idx]['time_slot'] = slot
+
+            # Çakışma kontrolü yap
+            # Geçici olarak dersi çıkarıp o slotun boş olup olmadığını kontrol et
+            temp_schedule = new_schedule[:entry_to_move_idx] + new_schedule[entry_to_move_idx+1:]
+            
+            can_place, reason = self._can_place_at_slot_detailed(
+                temp_schedule, 
+                original_entry['class_id'], 
+                original_entry['teacher_id'], 
+                day, 
+                slot
+            )
+
+            if can_place:
+                self.logger.info(f"[PERTURBATION] Ders (ID: {original_entry['lesson_id']}) yeni slota taşındı: Sınıf {original_entry['class_id']} -> Gün {day}, Saat {slot}")
+                return new_schedule # Çakışma yok, yeni programı döndür
+
+        # 10 denemede de başarılı olamazsa, orijinal programı döndür
+        self.logger.warning("[PERTURBATION] Rastgele taşıma denemeleri başarısız, çakışma riski nedeniyle değişiklik yapılmadı.")
+        return schedule
     
     def _aggressive_filling(self, schedule: List[Dict],
                            coverage: Dict, config: Dict) -> List[Dict]:

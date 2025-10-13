@@ -58,3 +58,7 @@ Thumbs.db
 reports/*.pdf
 reports/*.xlsx
 config/local_config.yaml
+
+# Environment variables
+.env
+backend/.env
