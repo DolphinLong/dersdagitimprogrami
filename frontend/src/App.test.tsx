@@ -16,6 +16,6 @@ test('renders dashboard navigation button', () => {
 
 test('renders scheduler navigation button', () => {
   render(<App />);
-  const schedulerButton = screen.getByRole('button', { name: /Çizelge/i });
-  expect(schedulerButton).toBeInTheDocument();
+  const schedulerButtons = screen.getAllByRole('button', { name: /Çizelge/i });
+  expect(schedulerButtons.length).toBeGreaterThan(0);
 });
