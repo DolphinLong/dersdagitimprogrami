@@ -2,17 +2,27 @@
 Backup and Restore dialog for the Class Scheduling Program
 """
 
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QMessageBox, QFileDialog
-from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+)
+
 from database import db_manager
 from utils.file_manager import FileManager
 from utils.helpers import create_styled_message_box
 
+
 class BackupRestoreDialog(QDialog):
     """Dialog for backup and restore operations"""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.file_manager = FileManager(db_manager)
@@ -20,7 +30,7 @@ class BackupRestoreDialog(QDialog):
         self.setMinimumSize(600, 400)
         self.setup_ui()
         self.apply_styles()
-    
+
     def setup_ui(self):
         """Set up the user interface with a modern card-based design."""
         main_layout = QVBoxLayout(self)
@@ -47,15 +57,15 @@ class BackupRestoreDialog(QDialog):
             "Veri Tabanı Yedekle",
             "Mevcut programın ve tüm verilerin tam bir yedeğini oluşturun.",
             self.create_backup,
-            "#27ae60"
+            "#27ae60",
         )
-        
+
         restore_card = self._create_action_card(
             "📤",
             "Yedekten Geri Yükle",
             "Önceki bir yedekten programı geri yükleyin. DİKKAT: Mevcut tüm veriler silinecektir!",
             self.restore_backup,
-            "#f39c12"
+            "#f39c12",
         )
 
         cards_layout.addWidget(backup_card)
@@ -103,7 +113,8 @@ class BackupRestoreDialog(QDialog):
 
         button = QPushButton(title)
         button.clicked.connect(callback)
-        button.setStyleSheet(f"""
+        button.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {color};
                 color: white;
@@ -115,7 +126,8 @@ class BackupRestoreDialog(QDialog):
             QPushButton:hover {{
                 background-color: {self._lighten_color(color)};
             }}
-        """)
+        """
+        )
         layout.addWidget(button)
 
         return card
@@ -124,10 +136,11 @@ class BackupRestoreDialog(QDialog):
         color = QColor(color_str)
         color.setHsl(color.hslHue(), color.hslSaturation(), min(255, color.lightness() + 25))
         return color.name()
-    
+
     def apply_styles(self):
         """Apply modern styles to the new card-based layout."""
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #f0f4f8;
             }
@@ -168,23 +181,24 @@ class BackupRestoreDialog(QDialog):
             #closeButton:hover {
                 background-color: #7f8c8d;
             }
-        """)
-    
+        """
+        )
+
     def create_backup(self):
         """Create a backup of the database"""
         try:
             # Ask user for backup location
             filename, _ = QFileDialog.getSaveFileName(
-                self, 
-                "Yedek Dosyasını Kaydet", 
-                "schedule_backup.db", 
-                "Database Files (*.db);;All Files (*)"
+                self,
+                "Yedek Dosyasını Kaydet",
+                "schedule_backup.db",
+                "Database Files (*.db);;All Files (*)",
             )
-            
+
             if filename:
                 # Create backup
                 result = self.file_manager.backup_database(filename)
-                
+
                 # Show result
                 if "başarıyla" in result and "oluşturuldu" in result:
                     msg = create_styled_message_box(self, "Başarılı", result)
@@ -193,9 +207,11 @@ class BackupRestoreDialog(QDialog):
                     msg = create_styled_message_box(self, "Hata", result, QMessageBox.Critical)
                     msg.exec_()
         except Exception as e:
-            msg = create_styled_message_box(self, "Hata", f"Yedekleme hatası: {str(e)}", QMessageBox.Critical)
+            msg = create_styled_message_box(
+                self, "Hata", f"Yedekleme hatası: {str(e)}", QMessageBox.Critical
+            )
             msg.exec_()
-    
+
     def restore_backup(self):
         """Restore database from backup"""
         try:
@@ -205,25 +221,24 @@ class BackupRestoreDialog(QDialog):
                 "Onay",
                 "Veri tabanını geri yüklemek istediğinizden emin misiniz? Mevcut veriler silinecektir.",
                 QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
+                QMessageBox.No,
             )
-            
+
             if confirm == QMessageBox.Yes:
                 # Ask user for backup file
                 filename, _ = QFileDialog.getOpenFileName(
-                    self,
-                    "Yedek Dosyasını Seç",
-                    "",
-                    "Database Files (*.db);;All Files (*)"
+                    self, "Yedek Dosyasını Seç", "", "Database Files (*.db);;All Files (*)"
                 )
-                
+
                 if filename:
                     # Restore backup
                     result = self.file_manager.restore_database(filename)
-                    
+
                     # Show result
                     if "başarıyla" in result and "geri yüklendi" in result:
-                        msg = create_styled_message_box(self, "Başarılı", result + "\n\nUygulama yeniden başlatılacak.")
+                        msg = create_styled_message_box(
+                            self, "Başarılı", result + "\n\nUygulama yeniden başlatılacak."
+                        )
                         msg.exec_()
                         # Close the application to restart with new database
                         self.done(1)  # Use done() instead of close()
@@ -231,5 +246,7 @@ class BackupRestoreDialog(QDialog):
                         msg = create_styled_message_box(self, "Hata", result, QMessageBox.Critical)
                         msg.exec_()
         except Exception as e:
-            msg = create_styled_message_box(self, "Hata", f"Geri yükleme hatası: {str(e)}", QMessageBox.Critical)
+            msg = create_styled_message_box(
+                self, "Hata", f"Geri yükleme hatası: {str(e)}", QMessageBox.Critical
+            )
             msg.exec_()

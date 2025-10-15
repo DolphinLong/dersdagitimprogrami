@@ -3,20 +3,20 @@
 Day ve Slot değerlerini kontrol et
 """
 
-import sys
 import io
+import sys
 
-if sys.platform.startswith('win'):
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
+if sys.platform.startswith("win"):
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     else:
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 from database import db_manager
 
-print("="*80)
+print("=" * 80)
 print("🔍 DAY VE SLOT DEĞERLERİ KONTROLÜ")
-print("="*80)
+print("=" * 80)
 
 # İlk sınıfı seç
 classes = db_manager.get_all_classes()
@@ -41,10 +41,10 @@ duplicates = {}
 for entry in class_schedule:
     # Day sayısı
     day_counts[entry.day] = day_counts.get(entry.day, 0) + 1
-    
+
     # Slot sayısı
     slot_counts[entry.time_slot] = slot_counts.get(entry.time_slot, 0) + 1
-    
+
     # Duplicate kontrolü
     key = (entry.day, entry.time_slot)
     if key in duplicates:
@@ -89,7 +89,7 @@ for entry in class_schedule:
     if entry.day < 0 or entry.day >= 5:
         print(f"   ❌ Geçersiz gün: {entry.day}")
         invalid_found = True
-    
+
     if entry.time_slot < 0 or entry.time_slot >= 8:  # Max 8 saat
         print(f"   ❌ Geçersiz slot: {entry.time_slot}")
         invalid_found = True
@@ -98,18 +98,18 @@ if not invalid_found:
     print("   ✅ Tüm değerler geçerli!")
 
 # TÜM SLOTLARI GÖSTER
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("📋 TÜM DERSLER (DAY, SLOT):")
-print("="*80)
+print("=" * 80)
 
 for entry in class_schedule:
     lesson = db_manager.get_lesson_by_id(entry.lesson_id)
     teacher = db_manager.get_teacher_by_id(entry.teacher_id)
-    
+
     lesson_name = lesson.name if lesson else "?"
     teacher_name = teacher.name if teacher else "?"
     day_name = days_tr[entry.day] if entry.day < 5 else f"Gün {entry.day}"
-    
+
     print(f"   {day_name:12s} {entry.time_slot+1:2d}. saat → {lesson_name:20s} ({teacher_name})")
 
-print("\n" + "="*80)
+print("\n" + "=" * 80)

@@ -2,29 +2,39 @@
 Login dialog for the Class Scheduling Program
 """
 
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QWidget
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
 from database import db_manager
 from utils.helpers import create_styled_message_box
 
+
 class LoginDialog(QDialog):
     """Login dialog window with modern design"""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Ders Programı - Giriş")
         self.setFixedSize(500, 600)
-        
+
         self.setup_ui()
         self.apply_styles()
-    
+
     def setup_ui(self):
         """Set up the user interface with a clean, modern design."""
         # Main container widget with colored background
         container = QWidget(self)
         container.setObjectName("container")
         container.setGeometry(0, 0, 500, 600)
-        
+
         layout = QVBoxLayout(container)
         layout.setContentsMargins(50, 50, 50, 50)
         layout.setSpacing(20)
@@ -34,11 +44,11 @@ class LoginDialog(QDialog):
         icon_label = QLabel("📚")
         icon_label.setObjectName("iconLabel")
         icon_label.setAlignment(Qt.AlignCenter)
-        
+
         title_label = QLabel("Ders Programı")
         title_label.setObjectName("titleLabel")
         title_label.setAlignment(Qt.AlignCenter)
-        
+
         subtitle_label = QLabel("Sisteme Hoş Geldiniz")
         subtitle_label.setObjectName("subtitleLabel")
         subtitle_label.setAlignment(Qt.AlignCenter)
@@ -49,14 +59,14 @@ class LoginDialog(QDialog):
 
         username_label = QLabel("Kullanıcı Adı")
         username_label.setObjectName("fieldLabel")
-        
+
         self.username_input = QLineEdit()
         self.username_input.setPlaceholderText("Kullanıcı adınızı girin")
         self.username_input.setObjectName("usernameInput")
-        
+
         password_label = QLabel("Şifre")
         password_label.setObjectName("fieldLabel")
-        
+
         self.password_input = QLineEdit()
         self.password_input.setPlaceholderText("Şifrenizi girin")
         self.password_input.setEchoMode(QLineEdit.Password)
@@ -88,7 +98,8 @@ class LoginDialog(QDialog):
 
     def apply_styles(self):
         """Apply a clean and professional stylesheet."""
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             #container {
                 background-color: #6366f1;
             }
@@ -144,12 +155,15 @@ class LoginDialog(QDialog):
             #loginButton:pressed {
                 background-color: #e0e0e0;
             }
-        """)
+        """
+        )
         self.setMessageBoxStyle()
-    
+
     def setMessageBoxStyle(self):
         """Set the style for message boxes"""
-        QMessageBox.setStyleSheet(self, """
+        QMessageBox.setStyleSheet(
+            self,
+            """
             QMessageBox {
                 background-color: #ffffff;
                 color: #2c3e50;
@@ -178,25 +192,30 @@ class LoginDialog(QDialog):
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
                                           stop: 0 #4a5ac0, stop: 1 #5f367d);
             }
-        """)
-    
+        """,
+        )
+
     def login(self):
         """Handle login attempt"""
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
-        
+
         if not username or not password:
-            msg = create_styled_message_box(self, "Giriş Başarısız", "Lütfen kullanıcı adı ve şifre girin.", QMessageBox.Warning)
+            msg = create_styled_message_box(
+                self, "Giriş Başarısız", "Lütfen kullanıcı adı ve şifre girin.", QMessageBox.Warning
+            )
             msg.exec_()
             return
-        
+
         # Check credentials
         user = db_manager.get_user(username, password)
         if user:
             self.accept()
             # In a real application, you would pass the user object to the main window
         else:
-            msg = create_styled_message_box(self, "Giriş Başarısız", "Geçersiz kullanıcı adı veya şifre.", QMessageBox.Warning)
+            msg = create_styled_message_box(
+                self, "Giriş Başarısız", "Geçersiz kullanıcı adı veya şifre.", QMessageBox.Warning
+            )
             msg.exec_()
             self.password_input.clear()
             self.username_input.setFocus()

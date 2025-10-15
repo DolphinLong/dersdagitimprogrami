@@ -1,20 +1,33 @@
-
 """
 Reports dialog for the Class Scheduling Program - Redesigned for a professional look and feel.
 """
 
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-                             QComboBox, QTableWidget, QTableWidgetItem, QHeaderView, 
-                             QMessageBox, QFileDialog, QWidget, QFrame)
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
+
 from database import db_manager
 from reports.generator import ReportGenerator
 from utils.helpers import create_styled_message_box
 
+
 class ReportsDialog(QDialog):
     """Dialog for generating and exporting reports with a professional table view."""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.report_generator = ReportGenerator(db_manager)
@@ -46,11 +59,9 @@ class ReportsDialog(QDialog):
         type_label.setObjectName("fieldLabel")
         self.report_type_combo = QComboBox()
         self.report_type_combo.setObjectName("reportTypeCombo")
-        self.report_type_combo.addItems([
-            "Sınıf Programı",
-            "Öğretmen Programı",
-            "Derslik Kullanımı"
-        ])
+        self.report_type_combo.addItems(
+            ["Sınıf Programı", "Öğretmen Programı", "Derslik Kullanımı"]
+        )
         self.report_type_combo.currentIndexChanged.connect(self.on_report_type_changed)
         left_layout.addWidget(type_label)
         left_layout.addWidget(self.report_type_combo)
@@ -107,7 +118,8 @@ class ReportsDialog(QDialog):
 
     def apply_styles(self):
         """Apply a professional and surprising stylesheet."""
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #f8f9fa;
             }
@@ -215,7 +227,8 @@ class ReportsDialog(QDialog):
             #exportButton:hover {
                 background-color: #5dade2;
             }
-        """)
+        """
+        )
 
     def _populate_table(self, headers, data):
         """Populate the QTableWidget with structured data."""
@@ -229,14 +242,17 @@ class ReportsDialog(QDialog):
                 item = QTableWidgetItem(str(cell_data))
                 item.setTextAlignment(Qt.AlignCenter)
                 self.report_table.setItem(row_idx, col_idx, item)
-        
+
         self.report_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.report_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.report_table.setAlternatingRowColors(True)
 
     def _get_data_from_table(self):
         """Extracts headers and data from the report table."""
-        headers = [self.report_table.horizontalHeaderItem(i).text() for i in range(self.report_table.columnCount())]
+        headers = [
+            self.report_table.horizontalHeaderItem(i).text()
+            for i in range(self.report_table.columnCount())
+        ]
         data = []
         for row in range(self.report_table.rowCount()):
             row_data = []
@@ -276,66 +292,100 @@ class ReportsDialog(QDialog):
     def generate_report(self):
         """Generate the selected report and display it in the table."""
         report_type_index = self.report_type_combo.currentIndex()
-        
+
         try:
             headers, data = [], []
             if report_type_index == 0:
                 class_id = self.entity_combo.currentData()
                 if not class_id:
-                    create_styled_message_box(self, "Hata", "Lütfen bir sınıf seçin.", QMessageBox.Warning).exec_()
+                    create_styled_message_box(
+                        self, "Hata", "Lütfen bir sınıf seçin.", QMessageBox.Warning
+                    ).exec_()
                     return
                 headers, data = self.report_generator.generate_class_schedule_report(class_id)
             elif report_type_index == 1:
                 teacher_id = self.entity_combo.currentData()
                 if not teacher_id:
-                    create_styled_message_box(self, "Hata", "Lütfen bir öğretmen seçin.", QMessageBox.Warning).exec_()
+                    create_styled_message_box(
+                        self, "Hata", "Lütfen bir öğretmen seçin.", QMessageBox.Warning
+                    ).exec_()
                     return
                 headers, data = self.report_generator.generate_teacher_schedule_report(teacher_id)
             else:
                 headers, data = self.report_generator.generate_classroom_usage_report()
-            
+
             self._populate_table(headers, data)
 
         except Exception as e:
-            create_styled_message_box(self, "Hata", f"Rapor oluşturulurken bir hata oluştu: {str(e)}", QMessageBox.Critical).exec_()
+            create_styled_message_box(
+                self,
+                "Hata",
+                f"Rapor oluşturulurken bir hata oluştu: {str(e)}",
+                QMessageBox.Critical,
+            ).exec_()
 
     def export_to_pdf(self):
         """Export the current table view to a PDF file."""
         if self.report_table.rowCount() == 0:
-            create_styled_message_box(self, "Hata", "Dışa aktarılacak bir rapor yok. Lütfen önce bir rapor oluşturun.", QMessageBox.Warning).exec_()
+            create_styled_message_box(
+                self,
+                "Hata",
+                "Dışa aktarılacak bir rapor yok. Lütfen önce bir rapor oluşturun.",
+                QMessageBox.Warning,
+            ).exec_()
             return
 
         report_title = self.report_type_combo.currentText()
-        
-        filename, _ = QFileDialog.getSaveFileName(self, "PDF Olarak Kaydet", f"{report_title}.pdf", "PDF Files (*.pdf)")
-        
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "PDF Olarak Kaydet", f"{report_title}.pdf", "PDF Files (*.pdf)"
+        )
+
         if not filename:
             return
 
         try:
             headers, data = self._get_data_from_table()
             # The new PDF generator is in the pdf_generator attribute of the report_generator
-            result = self.report_generator.pdf_generator.generate_pdf(report_title, headers, data, filename)
+            result = self.report_generator.pdf_generator.generate_pdf(
+                report_title, headers, data, filename
+            )
             create_styled_message_box(self, "Başarılı", result).exec_()
         except Exception as e:
-            create_styled_message_box(self, "Hata", f"PDF oluşturulurken bir hata oluştu: {str(e)}", QMessageBox.Critical).exec_()
+            create_styled_message_box(
+                self, "Hata", f"PDF oluşturulurken bir hata oluştu: {str(e)}", QMessageBox.Critical
+            ).exec_()
 
     def export_to_excel(self):
         """Export the current table view to an Excel file."""
         if self.report_table.rowCount() == 0:
-            create_styled_message_box(self, "Hata", "Dışa aktarılacak bir rapor yok. Lütfen önce bir rapor oluşturun.", QMessageBox.Warning).exec_()
+            create_styled_message_box(
+                self,
+                "Hata",
+                "Dışa aktarılacak bir rapor yok. Lütfen önce bir rapor oluşturun.",
+                QMessageBox.Warning,
+            ).exec_()
             return
 
         report_title = self.report_type_combo.currentText()
-        
-        filename, _ = QFileDialog.getSaveFileName(self, "Excel Olarak Kaydet", f"{report_title}.xlsx", "Excel Files (*.xlsx)")
-        
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Excel Olarak Kaydet", f"{report_title}.xlsx", "Excel Files (*.xlsx)"
+        )
+
         if not filename:
             return
 
         try:
             headers, data = self._get_data_from_table()
-            result = self.report_generator.excel_generator.generate_excel(report_title, headers, data, filename)
+            result = self.report_generator.excel_generator.generate_excel(
+                report_title, headers, data, filename
+            )
             create_styled_message_box(self, "Başarılı", result).exec_()
         except Exception as e:
-            create_styled_message_box(self, "Hata", f"Excel oluşturulurken bir hata oluştu: {str(e)}", QMessageBox.Critical).exec_()
+            create_styled_message_box(
+                self,
+                "Hata",
+                f"Excel oluşturulurken bir hata oluştu: {str(e)}",
+                QMessageBox.Critical,
+            ).exec_()

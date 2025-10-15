@@ -1,13 +1,13 @@
-
-import sqlite3
 import logging
 import os
+import sqlite3
 
 # Proje kök dizinini al
 project_root = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(project_root, "schedule.db")
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 
 def cleanup_triggers():
     """Veritabanında 'lessons_old' tablosuna referans veren bozuk tetikleyicileri temizler."""
@@ -22,14 +22,20 @@ def cleanup_triggers():
         logging.info(f"Veritabanı bağlantısı kuruldu: {DB_FILE}")
 
         # 1. 'lessons_old' referansı içeren tüm tetikleyicileri bul
-        cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='trigger' AND sql LIKE '%lessons_old%'")
+        cursor.execute(
+            "SELECT name, sql FROM sqlite_master WHERE type='trigger' AND sql LIKE '%lessons_old%'"
+        )
         triggers_to_drop = cursor.fetchall()
 
         if not triggers_to_drop:
-            logging.info("Temizlenecek bozuk bir tetikleyici bulunamadı. Veritabanı temiz görünüyor.")
+            logging.info(
+                "Temizlenecek bozuk bir tetikleyici bulunamadı. Veritabanı temiz görünüyor."
+            )
             return
 
-        logging.warning(f"{len(triggers_to_drop)} adet bozuk tetikleyici bulundu. Temizleme işlemi başlıyor...")
+        logging.warning(
+            f"{len(triggers_to_drop)} adet bozuk tetikleyici bulundu. Temizleme işlemi başlıyor..."
+        )
 
         # 2. Bulunan her tetikleyiciyi sil
         for trigger_name, trigger_sql in triggers_to_drop:
@@ -39,7 +45,7 @@ def cleanup_triggers():
                 logging.info(f"'{trigger_name}' başarıyla silindi.")
             except sqlite3.Error as e:
                 logging.error(f"'{trigger_name}' silinirken bir hata oluştu: {e}")
-        
+
         conn.commit()
         logging.info("Tetikleyici temizleme işlemi başarıyla tamamlandı.")
 
@@ -55,6 +61,7 @@ def cleanup_triggers():
         if conn:
             conn.close()
             logging.info("Veritabanı bağlantısı kapatıldı.")
+
 
 if __name__ == "__main__":
     cleanup_triggers()

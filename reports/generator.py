@@ -1,29 +1,28 @@
-
-
 """
 Report generation for the Class Scheduling Program
 """
 
-from reports.pdf_generator import PDFGenerator
 from reports.excel_generator import ExcelGenerator
+from reports.pdf_generator import PDFGenerator
+
 
 class ReportGenerator:
     """Handles report generation"""
-    
+
     SCHOOL_TIME_SLOTS = {
         "İlkokul": 6,
         "Ortaokul": 7,
         "Lise": 8,
         "Anadolu Lisesi": 8,
         "Fen Lisesi": 8,
-        "Sosyal Bilimler Lisesi": 8
+        "Sosyal Bilimler Lisesi": 8,
     }
-    
+
     def __init__(self, db_manager):
         self.db_manager = db_manager
         self.pdf_generator = PDFGenerator(db_manager)
         self.excel_generator = ExcelGenerator(db_manager)
-    
+
     def generate_class_schedule_report(self, class_id):
         """
         Generate a schedule report for a specific class.
@@ -36,13 +35,13 @@ class ReportGenerator:
         schedule_entries = self.db_manager.get_schedule_for_specific_class(class_id)
         teachers = {t.teacher_id: t for t in self.db_manager.get_all_teachers()}
         lessons = {l.lesson_id: l for l in self.db_manager.get_all_lessons()}
-        
+
         school_type = self.db_manager.get_school_type() or "Lise"
         time_slots_count = self.SCHOOL_TIME_SLOTS.get(school_type, 8)
-        
+
         headers = ["Saat", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
         data = []
-        
+
         schedule_matrix = {}
         for entry in schedule_entries:
             schedule_matrix[(entry.day, entry.time_slot)] = entry
@@ -63,7 +62,7 @@ class ReportGenerator:
                 else:
                     row_data.append("")
             data.append(row_data)
-            
+
         return headers, data
 
     def generate_teacher_schedule_report(self, teacher_id):
@@ -121,9 +120,9 @@ class ReportGenerator:
 
         # For this example, we'll just report on the first classroom
         classroom = classrooms[0]
-        
+
         schedule_entries = self.db_manager.get_schedule_by_school_type()
-        
+
         school_type = self.db_manager.get_school_type() or "Lise"
         time_slots_count = self.SCHOOL_TIME_SLOTS.get(school_type, 8)
 
@@ -134,7 +133,7 @@ class ReportGenerator:
         for entry in schedule_entries:
             if entry.classroom_id == classroom.classroom_id:
                 schedule_matrix[(entry.day, entry.time_slot)] = entry
-        
+
         all_classes = {c.class_id: c for c in self.db_manager.get_all_classes()}
         all_lessons = {l.lesson_id: l for l in self.db_manager.get_all_lessons()}
 
@@ -174,7 +173,7 @@ class ReportGenerator:
             return self.pdf_generator.generate_classroom_usage_pdf(filename)
         else:
             return "Geçersiz rapor türü"
-    
+
     def export_to_excel(self, report_type, identifier=None, filename=None):
         """
         Export report to Excel

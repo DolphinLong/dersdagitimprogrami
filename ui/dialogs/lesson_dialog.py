@@ -1,12 +1,26 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView
-from PyQt5.QtCore import Qt
 import logging
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+)
+
 from database import db_manager
 from utils.helpers import create_styled_message_box
 
+
 class LessonDialog(QDialog):
     """Dialog for adding or editing lessons and their curriculum."""
-    
+
     def __init__(self, parent=None, lesson=None):
         super().__init__(parent)
         self.lesson = lesson
@@ -69,18 +83,18 @@ class LessonDialog(QDialog):
             grades = list(range(1, 5))
         elif school_type == "Ortaokul":
             grades = list(range(5, 9))
-        else: # Lise and others
+        else:  # Lise and others
             grades = list(range(9, 13))
 
         self.curriculum_table.setRowCount(len(grades))
-        
+
         # Store grades in the first column (as non-editable items)
         for i, grade in enumerate(grades):
             grade_item = QTableWidgetItem(f"{grade}. Sınıf")
             grade_item.setData(Qt.UserRole, grade)
             grade_item.setFlags(grade_item.flags() & ~Qt.ItemIsEditable)
             self.curriculum_table.setItem(i, 0, grade_item)
-            
+
             # Add an empty item for weekly hours
             self.curriculum_table.setItem(i, 1, QTableWidgetItem(""))
 
@@ -101,7 +115,9 @@ class LessonDialog(QDialog):
         """Save lesson name and its curriculum data."""
         lesson_name = self.name_input.text().strip()
         if not lesson_name:
-            create_styled_message_box(self, "Hata", "Ders adı boş bırakılamaz.", QMessageBox.Warning).exec_()
+            create_styled_message_box(
+                self, "Hata", "Ders adı boş bırakılamaz.", QMessageBox.Warning
+            ).exec_()
             return
 
         try:
@@ -116,9 +132,14 @@ class LessonDialog(QDialog):
                 lesson_id = db_manager.add_lesson(lesson_name)
                 if not lesson_id:
                     # This could happen if the lesson name is not unique
-                    create_styled_message_box(self, "Hata", f"'{lesson_name}' adında bir ders zaten mevcut veya eklenemedi.", QMessageBox.Critical).exec_()
+                    create_styled_message_box(
+                        self,
+                        "Hata",
+                        f"'{lesson_name}' adında bir ders zaten mevcut veya eklenemedi.",
+                        QMessageBox.Critical,
+                    ).exec_()
                     return
-            
+
             # Step 2: Save the curriculum data from the table
             for i in range(self.curriculum_table.rowCount()):
                 grade = self.curriculum_table.item(i, 0).data(Qt.UserRole)
@@ -129,22 +150,32 @@ class LessonDialog(QDialog):
                         weekly_hours = int(hours_text)
                         db_manager.add_or_update_curriculum(lesson_id, grade, weekly_hours)
                     except ValueError:
-                        create_styled_message_box(self, "Hata", f"{grade}. sınıf için girilen saat geçersiz bir sayı.", QMessageBox.Warning).exec_()
-                        return # Stop saving on first error
+                        create_styled_message_box(
+                            self,
+                            "Hata",
+                            f"{grade}. sınıf için girilen saat geçersiz bir sayı.",
+                            QMessageBox.Warning,
+                        ).exec_()
+                        return  # Stop saving on first error
                 else:
                     # Optional: handle empty hours - maybe delete the curriculum entry if it exists
                     pass
 
-            create_styled_message_box(self, "Başarılı", "Ders ve müfredat bilgileri başarıyla kaydedildi.").exec_()
+            create_styled_message_box(
+                self, "Başarılı", "Ders ve müfredat bilgileri başarıyla kaydedildi."
+            ).exec_()
             self.accept()
 
         except Exception as e:
             logging.error(f"Error saving lesson/curriculum: {e}")
-            create_styled_message_box(self, "Hata", f"Kaydederken bir hata oluştu: {e}", QMessageBox.Critical).exec_()
+            create_styled_message_box(
+                self, "Hata", f"Kaydederken bir hata oluştu: {e}", QMessageBox.Critical
+            ).exec_()
 
     def apply_styles(self):
         """Apply modern styles."""
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #f8f9fa;
             }
@@ -174,4 +205,5 @@ class LessonDialog(QDialog):
             QPushButton:hover {
                 opacity: 0.9;
             }
-        """)
+        """
+        )

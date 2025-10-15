@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Main application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dersdagitim:latest
+    container_name: dersdagitim-app
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DISPLAY=${DISPLAY:-:0}
+    
+    # Volumes
+    volumes:
+      # Database persistence
+      - ./schedule.db:/app/schedule.db
+      # Logs persistence
+      - ./logs:/app/logs
+      # Reports persistence
+      - ./reports:/app/reports
+      # X11 socket for GUI (Linux)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    
+    # Network
+    networks:
+      - dersdagitim-network
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 512M
+  
+  # Optional: Web interface (future)
+  # web:
+  #   build:
+  #     context: ./web
+  #     dockerfile: Dockerfile
+  #   image: dersdagitim-web:latest
+  #   container_name: dersdagitim-web
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - dersdagitim-network
+
+networks:
+  dersdagitim-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  logs-data:
+  reports-data:

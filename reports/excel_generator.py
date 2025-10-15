@@ -1,16 +1,19 @@
-
 """
 Excel generator for the Class Scheduling Program.
 """
+
 import logging
+
 try:
     import openpyxl
     from openpyxl import Workbook
-    from openpyxl.styles import Font, Alignment, PatternFill
+    from openpyxl.styles import Alignment, Font, PatternFill
     from openpyxl.utils import get_column_letter
+
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
+
 
 class ExcelGenerator:
     """Handles Excel report generation with styled tables."""
@@ -25,18 +28,20 @@ class ExcelGenerator:
         Generates an Excel file with a styled table from structured data.
         """
         if not OPENPYXL_AVAILABLE:
-            return "openpyxl kütüphanesi bulunamadı. Lütfen 'pip install openpyxl' komutuyla yükleyin."
+            return (
+                "openpyxl kütüphanesi bulunamadı. Lütfen 'pip install openpyxl' komutuyla yükleyin."
+            )
 
         try:
             wb = Workbook()
             ws = wb.active
-            ws.title = title[:31] # Sheet title limit is 31 chars
+            ws.title = title[:31]  # Sheet title limit is 31 chars
 
             # --- Styling ---
             header_font = Font(bold=True, color="FFFFFF")
             header_fill = PatternFill(start_color="34495E", end_color="34495E", fill_type="solid")
             center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
-            
+
             # --- Title ---
             ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
             title_cell = ws.cell(row=1, column=1, value=title)
@@ -57,10 +62,12 @@ class ExcelGenerator:
                 ws.append(row_data)
 
             # --- Post-process styling and formatting ---
-            for row in ws.iter_rows(min_row=3, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+            for row in ws.iter_rows(
+                min_row=3, max_row=ws.max_row, min_col=1, max_col=ws.max_column
+            ):
                 for cell in row:
                     cell.alignment = center_align
-            
+
             # Adjust column widths and row heights
             for col_idx in range(1, ws.max_column + 1):
                 ws.column_dimensions[get_column_letter(col_idx)].width = 25

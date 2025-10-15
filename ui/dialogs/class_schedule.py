@@ -2,67 +2,79 @@
 Class schedule dialog for the Class Scheduling Program - FIXED
 """
 
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QPushButton, QComboBox, QMessageBox, QTextEdit)
+import logging
+
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+)
+
 from database import db_manager
 from utils.helpers import generate_color_for_lesson
 
 
 class ClassScheduleDialog(QDialog):
     """Dialog for viewing a specific class schedule"""
-    
+
     SCHOOL_TIME_SLOTS = {
         "İlkokul": 6,
         "Ortaokul": 7,
         "Lise": 8,
         "Anadolu Lisesi": 8,
         "Fen Lisesi": 8,
-        "Sosyal Bilimler Lisesi": 8
+        "Sosyal Bilimler Lisesi": 8,
     }
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
         # 🎯 Force Fusion style
         from PyQt5.QtWidgets import QApplication
-        QApplication.setStyle('Fusion')
+
+        QApplication.setStyle("Fusion")
 
         self.setWindowTitle("Sınıf Programı Görüntüle")
         self.setFixedSize(1000, 600)
         self.setup_ui()
         self.populate_classes()
         self.apply_styles()
-    
+
     def setup_ui(self):
         """Set up the user interface"""
         layout = QVBoxLayout()
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
-        
+
         # Title
         title_label = QLabel("SINIF PROGRAMI")
         title_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         title_label.setFont(QFont("Segoe UI", 18, QFont.Bold))
         layout.addWidget(title_label)
-        
+
         # Class selection
         class_layout = QHBoxLayout()
         class_label = QLabel("Sınıf:")
         self.class_combo = QComboBox()
         self.class_combo.currentIndexChanged.connect(self.load_class_schedule)
-        
+
         class_layout.addWidget(class_label)
         class_layout.addWidget(self.class_combo, 1)
         layout.addLayout(class_layout)
-        
+
         # HTML Schedule view
         self.schedule_html = QTextEdit()
         self.schedule_html.setReadOnly(True)
         self.schedule_html.setMinimumHeight(400)
         layout.addWidget(self.schedule_html)
-        
+
         # Buttons
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -80,7 +92,7 @@ class ClassScheduleDialog(QDialog):
         button_layout.addWidget(self.open_html_button)
         button_layout.addWidget(self.close_button)
         layout.addLayout(button_layout)
-        
+
         self.setLayout(layout)
 
     def generate_html_schedule(self, class_entries):
@@ -244,17 +256,17 @@ class ClassScheduleDialog(QDialog):
         try:
             color = QColor(hex_color)
             darker = QColor(
-                int(color.red() * 0.8), 
-                int(color.green() * 0.8), 
-                int(color.blue() * 0.8)
+                int(color.red() * 0.8), int(color.green() * 0.8), int(color.blue() * 0.8)
             )
             return darker.name()
-        except:
+        except (TypeError, ValueError) as e:
+            logging.warning(f"Could not darken color {hex_color}: {e}")
             return hex_color
 
     def apply_styles(self):
         """Apply clean styles"""
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
                                           stop: 0 #ffffff, stop: 1 #f8f9fa);
@@ -313,21 +325,22 @@ class ClassScheduleDialog(QDialog):
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
                                           stop: 0 #c0392b, stop: 1 #a93226);
             }
-        """)
-    
+        """
+        )
+
     def populate_classes(self):
         """Populate the class combo box"""
         self.class_combo.clear()
         classes = db_manager.get_all_classes()
         for class_obj in classes:
             self.class_combo.addItem(class_obj.name, class_obj.class_id)
-    
+
     def load_class_schedule(self):
         """Load schedule for the selected class"""
         class_id = self.class_combo.currentData()
         if not class_id:
             return
-        
+
         class_entries = db_manager.get_schedule_for_specific_class(class_id)
         html_content = self.generate_html_schedule(class_entries)
         self.schedule_html.setHtml(html_content)
@@ -351,7 +364,7 @@ class ClassScheduleDialog(QDialog):
                 f"📄 HTML programı oluşturuldu!\n\n"
                 f"📁 Dosya: {filename}\n\n"
                 f"🌐 Tarayıcıda açmak için dosyaya çift tıklayın.\n"
-                f"🎨 Tamamen renkli ve güzel görünecek!"
+                f"🎨 Tamamen renkli ve güzel görünecek!",
             )
 
         except Exception as e:
@@ -370,10 +383,11 @@ class ClassScheduleDialog(QDialog):
             generator = HTMLScheduleGenerator(db_manager)
             filename = generator.save_html_report(class_id)
 
-            import webbrowser
             import os
+            import webbrowser
+
             file_path = os.path.abspath(filename)
-            webbrowser.open(f'file://{file_path}')
+            webbrowser.open(f"file://{file_path}")
 
             QMessageBox.information(
                 self,
@@ -381,7 +395,7 @@ class ClassScheduleDialog(QDialog):
                 f"🌐 HTML programı tarayıcıda açılıyor!\n\n"
                 f"📁 Dosya: {filename}\n\n"
                 f"🎨 Tarayıcıda %100 renkli ve güzel görünecek!\n"
-                f"📱 Mobil cihazlarda da mükemmel çalışır!"
+                f"📱 Mobil cihazlarda da mükemmel çalışır!",
             )
 
         except Exception as e:

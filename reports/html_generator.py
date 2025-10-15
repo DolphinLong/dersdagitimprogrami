@@ -4,9 +4,11 @@ Creates beautiful, colorful web-based schedule tables
 """
 
 import os
-from typing import List, Dict
+from typing import Dict, List
+
 from database import db_manager
 from utils.helpers import generate_color_for_lesson
+
 
 class HTMLScheduleGenerator:
     """Generate beautiful HTML schedule reports"""
@@ -200,9 +202,12 @@ class HTMLScheduleGenerator:
         """Darken a hex color for gradient"""
         try:
             from PyQt5.QtGui import QColor
+
             color = QColor(hex_color)
             # Make it darker
-            darker = QColor(int(color.red() * 0.8), int(color.green() * 0.8), int(color.blue() * 0.8))
+            darker = QColor(
+                int(color.red() * 0.8), int(color.green() * 0.8), int(color.blue() * 0.8)
+            )
             return darker.name()
         except:
             return hex_color
@@ -216,7 +221,7 @@ class HTMLScheduleGenerator:
 
         html_content = self.generate_class_schedule_html(class_id)
 
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write(html_content)
 
         return filename
@@ -224,10 +229,10 @@ class HTMLScheduleGenerator:
     def open_in_browser(self, class_id: int):
         """Open HTML report in default browser"""
         filename = self.save_html_report(class_id)
-        import webbrowser
         import os
+        import webbrowser
 
         file_path = os.path.abspath(filename)
-        webbrowser.open(f'file://{file_path}')
+        webbrowser.open(f"file://{file_path}")
 
         return filename

@@ -1,0 +1,12 @@
+Kısa Vadeli 
+✅ requirements.txt dosyası oluştur
+✅ LICENSE dosyası ekle
+✅ Şifre hashleme implement et
+✅ UI testleri ekle (pytest-qt)
+✅ API dokümantasyonu başlat
+Orta Vadeli 
+✅ Integration test coverage artır (%50+)
+✅ Veritabanı indexleri optimize et
+✅ Caching stratejisini genişlet
+✅ Kullanıcı kılavuzu yaz
+✅ Docker containerization

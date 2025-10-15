@@ -16,7 +16,7 @@ SCHOOL_TIME_SLOTS: Dict[str, int] = {
     "Lise": 8,
     "Anadolu Lisesi": 8,
     "Fen Lisesi": 8,
-    "Sosyal Bilimler Lisesi": 8
+    "Sosyal Bilimler Lisesi": 8,
 }
 
 DAYS_PER_WEEK: int = 5
@@ -30,8 +30,8 @@ DAY_NAMES_EN: list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 # Time slot thresholds
 EARLY_SLOT_THRESHOLD: int = 1  # Before 2nd period
-LATE_SLOT_THRESHOLD: int = 6   # After 6th period
-LUNCH_SLOTS: list = [3, 4]     # Typically 4th and 5th periods
+LATE_SLOT_THRESHOLD: int = 6  # After 6th period
+LUNCH_SLOTS: list = [3, 4]  # Typically 4th and 5th periods
 
 # Morning slots (preferred for difficult lessons)
 MORNING_SLOTS: list = [0, 1, 2, 3]
@@ -71,15 +71,15 @@ MAX_TEACHER_DAILY_HOURS: int = 7
 # ============================================================================
 
 DEFAULT_SCHEDULER_WEIGHTS: Dict[str, float] = {
-    'same_day_penalty': -30.0,
-    'distribution_bonus': 20.0,
-    'block_preference_bonus': 15.0,
-    'early_slot_penalty': -10.0,
-    'late_slot_penalty': -15.0,
-    'lunch_break_bonus': 10.0,
-    'consecutive_bonus': 5.0,
-    'gap_penalty': -25.0,
-    'teacher_load_balance': 10.0,
+    "same_day_penalty": -30.0,
+    "distribution_bonus": 20.0,
+    "block_preference_bonus": 15.0,
+    "early_slot_penalty": -10.0,
+    "late_slot_penalty": -15.0,
+    "lunch_break_bonus": 10.0,
+    "consecutive_bonus": 5.0,
+    "gap_penalty": -25.0,
+    "teacher_load_balance": 10.0,
 }
 
 # ============================================================================
@@ -87,14 +87,14 @@ DEFAULT_SCHEDULER_WEIGHTS: Dict[str, float] = {
 # ============================================================================
 
 SOFT_CONSTRAINT_WEIGHTS: Dict[str, float] = {
-    'teacher_time_preference': 10.0,
-    'balanced_daily_load': 15.0,
-    'lesson_spacing': 12.0,
-    'difficult_lessons_morning': 8.0,
-    'teacher_load_balance': 10.0,
-    'consecutive_block_bonus': 7.0,
-    'no_gaps_penalty': 20.0,
-    'lunch_break_preference': 5.0,
+    "teacher_time_preference": 10.0,
+    "balanced_daily_load": 15.0,
+    "lesson_spacing": 12.0,
+    "difficult_lessons_morning": 8.0,
+    "teacher_load_balance": 10.0,
+    "consecutive_block_bonus": 7.0,
+    "no_gaps_penalty": 20.0,
+    "lunch_break_preference": 5.0,
 }
 
 # ============================================================================
@@ -130,7 +130,7 @@ DIFFICULT_LESSONS: list = [
     "Biyoloji",
     "Türk Dili ve Edebiyatı",
     "Geometri",
-    "Analitik Geometri"
+    "Analitik Geometri",
 ]
 
 # Light lessons (can be scheduled anytime, preferred for lunch)
@@ -142,7 +142,7 @@ LIGHT_LESSONS: list = [
     "Görsel Sanatlar",
     "Teknoloji Tasarım",
     "Seçmeli Ders",
-    "Rehberlik"
+    "Rehberlik",
 ]
 
 # ============================================================================
@@ -150,8 +150,8 @@ LIGHT_LESSONS: list = [
 # ============================================================================
 
 EXCELLENT_COVERAGE_THRESHOLD: float = 0.95  # 95%
-GOOD_COVERAGE_THRESHOLD: float = 0.85       # 85%
-ACCEPTABLE_COVERAGE_THRESHOLD: float = 0.70 # 70%
+GOOD_COVERAGE_THRESHOLD: float = 0.85  # 85%
+ACCEPTABLE_COVERAGE_THRESHOLD: float = 0.70  # 70%
 
 # ============================================================================
 # RELAXATION CONFIGURATION
@@ -175,14 +175,14 @@ CACHE_REFRESH_INTERVAL: int = 300  # 5 minutes
 # ============================================================================
 
 ERROR_MESSAGES: Dict[str, str] = {
-    'no_teachers': 'Hiç öğretmen bulunamadı',
-    'no_classes': 'Hiç sınıf bulunamadı',
-    'no_lessons': 'Hiç ders bulunamadı',
-    'no_assignments': 'Hiç ders ataması bulunamadı',
-    'max_iterations': 'Maksimum iterasyon sayısına ulaşıldı',
-    'max_backtracks': 'Maksimum backtrack sayısına ulaşıldı',
-    'no_solution': 'Çözüm bulunamadı',
-    'conflicts_detected': 'Çakışmalar tespit edildi',
+    "no_teachers": "Hiç öğretmen bulunamadı",
+    "no_classes": "Hiç sınıf bulunamadı",
+    "no_lessons": "Hiç ders bulunamadı",
+    "no_assignments": "Hiç ders ataması bulunamadı",
+    "max_iterations": "Maksimum iterasyon sayısına ulaşıldı",
+    "max_backtracks": "Maksimum backtrack sayısına ulaşıldı",
+    "no_solution": "Çözüm bulunamadı",
+    "conflicts_detected": "Çakışmalar tespit edildi",
 }
 
 # ============================================================================
@@ -190,8 +190,8 @@ ERROR_MESSAGES: Dict[str, str] = {
 # ============================================================================
 
 SUCCESS_MESSAGES: Dict[str, str] = {
-    'schedule_generated': 'Program başarıyla oluşturuldu',
-    'no_conflicts': 'Çakışma tespit edilmedi',
-    'excellent_coverage': 'Mükemmel kapsama sağlandı',
-    'good_coverage': 'İyi kapsama sağlandı',
+    "schedule_generated": "Program başarıyla oluşturuldu",
+    "no_conflicts": "Çakışma tespit edilmedi",
+    "excellent_coverage": "Mükemmel kapsama sağlandı",
+    "good_coverage": "İyi kapsama sağlandı",
 }

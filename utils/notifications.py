@@ -2,39 +2,40 @@
 Notification system for the Class Scheduling Program
 """
 
-from PyQt5.QtWidgets import QMessageBox, QSystemTrayIcon, QMenu, QAction, qApp, QWidget, QStatusBar
-from PyQt5.QtGui import QIcon, QPixmap, QColor
-from PyQt5.QtCore import QObject, pyqtSignal, Qt
+from PyQt5.QtCore import QObject, Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QIcon, QPixmap
+from PyQt5.QtWidgets import QAction, QMenu, QMessageBox, QStatusBar, QSystemTrayIcon, QWidget, qApp
+
 
 class NotificationManager(QObject):
     """Manages notifications for the application"""
-    
+
     # Signal for sending notifications
     notification_sent = pyqtSignal(str, str)  # title, message
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._parent = parent
         self.setup_system_tray()
-    
+
     def setup_system_tray(self):
         """Set up system tray icon"""
         try:
             # Check if system tray is available
             if QSystemTrayIcon.isSystemTrayAvailable():
                 self.tray_icon = QSystemTrayIcon(self._parent)
-                
+
                 # Create a simple pixmap icon as fallback
                 pixmap = QPixmap(32, 32)
                 pixmap.fill(QColor(0, 0, 0, 0))  # Transparent color
                 self.tray_icon.setIcon(QIcon(pixmap))
-                
+
                 # Create context menu
                 self.tray_menu = QMenu()
                 quit_action = QAction("Çıkış", self.tray_menu)
                 quit_action.triggered.connect(qApp.quit)
                 self.tray_menu.addAction(quit_action)
-                
+
                 self.tray_icon.setContextMenu(self.tray_menu)
                 self.tray_icon.show()
             else:
@@ -42,22 +43,22 @@ class NotificationManager(QObject):
         except Exception as e:
             print(f"System tray setup error: {e}")
             self.tray_icon = None
-    
+
     def get_status_bar(self):
         """Get the main window's status bar by navigating up the parent hierarchy"""
         # Navigate up to the main window to get the status bar
         parent = self._parent
-        while parent and not hasattr(parent, 'statusBar'):
-            parent = getattr(parent, 'parent', lambda: None)()
+        while parent and not hasattr(parent, "statusBar"):
+            parent = getattr(parent, "parent", lambda: None)()
             if parent is None:
                 break
-        if parent and hasattr(parent, 'statusBar'):
+        if parent and hasattr(parent, "statusBar"):
             # Type checking workaround for basedpyright
-            status_bar_method = getattr(parent, 'statusBar')
+            status_bar_method = getattr(parent, "statusBar")
             if callable(status_bar_method):
                 return status_bar_method()
         return None
-    
+
     def show_message(self, title, message, level="info"):
         """
         Show a notification message
@@ -67,7 +68,7 @@ class NotificationManager(QObject):
         status_bar = self.get_status_bar()
         if status_bar and isinstance(status_bar, QStatusBar):
             status_bar.showMessage(f"{title}: {message}", 5000)  # 5 seconds
-        
+
         # Show system tray notification
         if self.tray_icon:
             # Use Qt constants for icon types - with type checking workaround
@@ -78,27 +79,32 @@ class NotificationManager(QObject):
                 icon = QSystemTrayIcon.MessageIcon(QSystemTrayIcon.Critical)  # type: ignore
             elif level == "success":
                 icon = QSystemTrayIcon.MessageIcon(QSystemTrayIcon.Information)  # type: ignore
-            
+
             self.tray_icon.showMessage(title, message, icon, 3000)  # 3 seconds
-        
+
         # Emit signal
         self.notification_sent.emit(title, message)
-        
+
         # For now, also show a message box (in a real app, this would be configurable)
-        msg_box = QMessageBox(self._parent) if self._parent and isinstance(self._parent, QWidget) else QMessageBox()
+        msg_box = (
+            QMessageBox(self._parent)
+            if self._parent and isinstance(self._parent, QWidget)
+            else QMessageBox()
+        )
         msg_box.setWindowTitle(title)
-        
+
         if level == "warning":
             msg_box.setIcon(QMessageBox.Warning)
         elif level == "error":
             msg_box.setIcon(QMessageBox.Critical)
         else:
             msg_box.setIcon(QMessageBox.Information)
-        
+
         msg_box.setText(message)
-        
+
         # Apply consistent styling
-        msg_box.setStyleSheet("""
+        msg_box.setStyleSheet(
+            """
             QMessageBox {
                 background-color: #ffffff;
                 color: #212529;
@@ -127,10 +133,11 @@ class NotificationManager(QObject):
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
                                           stop: 0 #2573a7, stop: 1 #1f618d);
             }
-        """)
-        
+        """
+        )
+
         msg_box.exec_()
-    
+
     def notify_schedule_change(self, class_name, change_type="updated"):
         """Notify about schedule changes"""
         if change_type == "updated":
@@ -145,13 +152,13 @@ class NotificationManager(QObject):
         else:
             title = "Program Değişikliği"
             message = f"{class_name} sınıfının ders programında değişiklik yapıldı."
-        
+
         self.show_message(title, message, "info")
-    
+
     def notify_conflict(self, conflict_type, details):
         """Notify about schedule conflicts"""
         title = "Çakışma Uyarısı"
-        
+
         if conflict_type == "teacher":
             message = f"Öğretmen çakışması: {details}"
         elif conflict_type == "class":
@@ -160,17 +167,19 @@ class NotificationManager(QObject):
             message = f"Derslik çakışması: {details}"
         else:
             message = f"Çakışma tespit edildi: {details}"
-        
+
         self.show_message(title, message, "warning")
-    
+
     def notify_export_complete(self, export_type, filename):
         """Notify about export completion"""
         title = "Dışa Aktarma Tamamlandı"
         message = f"{export_type} raporu başarıyla dışa aktarıldı: {filename}"
         self.show_message(title, message, "success")
 
+
 # Global notification manager instance
 notification_manager = None
+
 
 def get_notification_manager(parent=None):
     """Get or create the global notification manager"""

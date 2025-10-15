@@ -4,10 +4,18 @@ Tests for custom exceptions
 """
 
 import pytest
+
 from exceptions import (
-    SchedulerError, ScheduleGenerationError, ConflictError,
-    TeacherConflictError, ClassConflictError, AvailabilityError,
-    CoverageError, ConfigurationError, DatabaseError, ValidationError
+    AvailabilityError,
+    ClassConflictError,
+    ConfigurationError,
+    ConflictError,
+    CoverageError,
+    DatabaseError,
+    ScheduleGenerationError,
+    SchedulerError,
+    TeacherConflictError,
+    ValidationError,
 )
 
 
@@ -26,9 +34,9 @@ def test_schedule_generation_error():
 
 def test_conflict_error():
     """Test ConflictError with conflicts"""
-    conflicts = [{'day': 0, 'slot': 0}]
+    conflicts = [{"day": 0, "slot": 0}]
     error = ConflictError("Conflict detected", conflicts=conflicts)
-    
+
     assert isinstance(error, SchedulerError)
     assert error.conflicts == conflicts
 

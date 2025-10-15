@@ -3,19 +3,22 @@
 Class Scheduling Program - Main Application Entry Point
 """
 
-import sys
-import os
 import argparse
 import logging
+import os
+import sys
 
 # ---------- 1️⃣ PYTHON PATH ----------
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from PyQt5.QtCore import QLocale, Qt, QTranslator
+
 # ---------- 2️⃣ IMPORTS ----------
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QTranslator, QLocale, Qt
+
 from ui.main_window import MainWindow
 from utils.helpers import setup_logging
+
 
 # ---------- 3️⃣ LOGGING ----------
 def _setup_logger(debug: bool):
@@ -25,6 +28,7 @@ def _setup_logger(debug: bool):
     """
     try:
         from logging_config import setup_logging
+
         log_level = logging.DEBUG if debug else logging.INFO
         logger = setup_logging(log_level=log_level)
         logger.info("Logging system initialized")
@@ -42,13 +46,12 @@ def _setup_logger(debug: bool):
         logger.warning("logging_config not found, using basic logging")
         return logger
 
+
 # ---------- 4️⃣ MAIN ----------
 def main():
     # ---- CLI options ----
     parser = argparse.ArgumentParser(description="Class Scheduling Program")
-    parser.add_argument(
-        "--debug", action="store_true", help="Run in debug mode (verbose logs)"
-    )
+    parser.add_argument("--debug", action="store_true", help="Run in debug mode (verbose logs)")
     parser.add_argument(
         "--lang",
         type=str,
@@ -101,6 +104,7 @@ def main():
     result = app.exec_()
     logger.info(f"Application exited with code: {result}")
     sys.exit(result)
+
 
 if __name__ == "__main__":
     main()

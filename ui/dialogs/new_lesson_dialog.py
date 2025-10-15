@@ -3,29 +3,50 @@ New Lesson Management Dialog with Internet Integration
 This dialog allows users to fetch current lessons from the internet and manage weekly hours.
 """
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, 
-                             QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, 
-                             QProgressBar, QTextEdit, QComboBox, QGroupBox, QFormLayout, QSpinBox, QAbstractItemView)
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QFont
 import json
 import logging
+
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (
+    QAbstractItemView,
+    QComboBox,
+    QDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QSpinBox,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextEdit,
+    QVBoxLayout,
+)
+
 from database import db_manager
 from utils.helpers import create_styled_message_box
 
+
 class LessonFetcher(QThread):
     """Thread to fetch lessons from the internet"""
+
     lessons_fetched = pyqtSignal(list)
     error_occurred = pyqtSignal(str)
-    
+
     def __init__(self, school_type):
         super().__init__()
         self.school_type = school_type
-    
+
     def run(self):
         """Fetch lessons from a mock API (in a real implementation, this would connect to an actual service)"""
         try:
@@ -35,7 +56,7 @@ class LessonFetcher(QThread):
             self.lessons_fetched.emit(lessons_data)
         except Exception as e:
             self.error_occurred.emit(str(e))
-    
+
     def get_mock_lessons_data(self):
         """Get mock lessons data based on school type"""
         # This is mock data - in a real implementation, this would come from an API
@@ -175,14 +196,15 @@ class LessonFetcher(QThread):
                 {"name": "Seçmeli Matematik", "grades": [9, 10, 11, 12]},
                 {"name": "Seçmeli Tarih", "grades": [9, 10, 11, 12]},
                 {"name": "Seçmeli Coğrafya", "grades": [9, 10, 11, 12]},
-            ]
+            ],
         }
-        
+
         return mock_data.get(self.school_type, [])
+
 
 class NewLessonDialog(QDialog):
     """Dialog for adding or editing lessons with internet integration and weekly hours management."""
-    
+
     def __init__(self, parent=None, lesson=None):
         super().__init__(parent)
         self.lesson = lesson
@@ -191,7 +213,7 @@ class NewLessonDialog(QDialog):
         self.setup_ui()
         self.apply_styles()
         self.populate_data()
-        
+
     def setup_ui(self):
         """Set up the user interface."""
         layout = QVBoxLayout()
@@ -203,7 +225,7 @@ class NewLessonDialog(QDialog):
         title_label.setObjectName("title")
         title_label.setAlignment(Qt.AlignCenter)  # type: ignore
         layout.addWidget(title_label)
-        
+
         # School type info
         school_type = db_manager.get_school_type()
         if school_type:
@@ -215,34 +237,34 @@ class NewLessonDialog(QDialog):
         # Internet fetch section
         fetch_group = QGroupBox("İnternetten Ders Bilgilerini Al")
         fetch_layout = QVBoxLayout()
-        
+
         fetch_button_layout = QHBoxLayout()
         self.fetch_button = QPushButton("🌍 İnternetten Dersleri Getir")
         self.fetch_button.setObjectName("fetchButton")
         self.fetch_button.clicked.connect(self.fetch_lessons_from_internet)
-        
+
         self.refresh_button = QPushButton("🔄 Yenile")
         self.refresh_button.setObjectName("refreshButton")
         self.refresh_button.clicked.connect(self.refresh_lessons)
-        
+
         fetch_button_layout.addWidget(self.fetch_button)
         fetch_button_layout.addWidget(self.refresh_button)
         fetch_button_layout.addStretch()
-        
+
         fetch_layout.addLayout(fetch_button_layout)
-        
+
         # Progress bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         fetch_layout.addWidget(self.progress_bar)
-        
+
         # Status text
         self.status_text = QTextEdit()
         self.status_text.setMaximumHeight(60)
         self.status_text.setReadOnly(True)
         self.status_text.setVisible(False)
         fetch_layout.addWidget(self.status_text)
-        
+
         fetch_group.setLayout(fetch_layout)
         layout.addWidget(fetch_group)
 
@@ -258,7 +280,7 @@ class NewLessonDialog(QDialog):
         # Available lessons list
         lessons_label = QLabel("Mevcut Dersler:")
         layout.addWidget(lessons_label)
-        
+
         self.lessons_list = QTableWidget()
         self.lessons_list.setColumnCount(2)
         self.lessons_list.setHorizontalHeaderLabels(["Ders Adı", "Sınıf Seviyeleri"])
@@ -273,19 +295,19 @@ class NewLessonDialog(QDialog):
         # Weekly hours input
         hours_group = QGroupBox("Haftalık Ders Saatleri")
         hours_layout = QVBoxLayout()
-        
+
         # Grade selection
         grade_layout = QHBoxLayout()
         grade_label = QLabel("Sınıf Seviyesi:")
         self.grade_combo = QComboBox()
         self.grade_combo.currentIndexChanged.connect(self.on_grade_changed)
-        
+
         hours_label = QLabel("Haftalık Saat:")
         self.hours_spinbox = QSpinBox()
         self.hours_spinbox.setMinimum(0)
         self.hours_spinbox.setMaximum(50)
         self.hours_spinbox.setValue(2)
-        
+
         grade_layout.addWidget(grade_label)
         grade_layout.addWidget(self.grade_combo)
         grade_layout.addSpacing(20)
@@ -293,7 +315,7 @@ class NewLessonDialog(QDialog):
         grade_layout.addWidget(self.hours_spinbox)
         grade_layout.addStretch()
         hours_layout.addLayout(grade_layout)
-        
+
         # Curriculum Table
         curriculum_label = QLabel("Sınıf Seviyesine Göre Haftalık Ders Saatleri:")
         hours_layout.addWidget(curriculum_label)
@@ -305,7 +327,7 @@ class NewLessonDialog(QDialog):
         self.curriculum_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # type: ignore
         self.curriculum_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         hours_layout.addWidget(self.curriculum_table)
-        
+
         hours_group.setLayout(hours_layout)
         layout.addWidget(hours_group)
 
@@ -321,28 +343,29 @@ class NewLessonDialog(QDialog):
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
-        
+
         # Initialize grade combo with school-specific grades
         self.initialize_grades()
-        
+
     def initialize_grades(self):
         """Initialize grade combo with school-specific grades"""
         school_type = db_manager.get_school_type()
         self.grade_combo.clear()
-        
+
         if school_type == "İlkokul":
             grades = list(range(1, 5))
         elif school_type == "Ortaokul":
             grades = list(range(5, 9))
         else:  # Lise and others
             grades = list(range(9, 13))
-            
+
         for grade in grades:
             self.grade_combo.addItem(f"{grade}. Sınıf", grade)
-    
+
     def apply_styles(self):
         """Apply modern styles."""
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
                                           stop: 0 #ffffff, stop: 1 #f8f9fa);
@@ -471,8 +494,9 @@ class NewLessonDialog(QDialog):
                 background-color: #3498db;
                 width: 20px;
             }
-        """)
-    
+        """
+        )
+
     def fetch_lessons_from_internet(self):
         """Fetch lessons from the internet"""
         self.progress_bar.setVisible(True)
@@ -480,76 +504,77 @@ class NewLessonDialog(QDialog):
         self.status_text.setVisible(True)
         self.status_text.setText("Dersler internetten alınıyor...")
         self.fetch_button.setEnabled(False)
-        
+
         # Get school type
         school_type = db_manager.get_school_type()
         if not school_type:
             school_type = "Lise"  # Default to Lise if not set
-            
+
         # Start the fetch thread
         self.fetcher = LessonFetcher(school_type)
         self.fetcher.lessons_fetched.connect(self.on_lessons_fetched)
         self.fetcher.error_occurred.connect(self.on_fetch_error)
         self.fetcher.start()
-    
+
     def on_lessons_fetched(self, lessons_data):
         """Handle fetched lessons data"""
         self.progress_bar.setVisible(False)
         self.fetch_button.setEnabled(True)
-        
+
         if lessons_data:
             self.status_text.setText(f"{len(lessons_data)} ders başarıyla alındı.")
             self.populate_lessons_list(lessons_data)
         else:
             self.status_text.setText("İnternetten ders alınamadı.")
-    
+
     def on_fetch_error(self, error_message):
         """Handle fetch error"""
         self.progress_bar.setVisible(False)
         self.fetch_button.setEnabled(True)
         self.status_text.setVisible(True)
         self.status_text.setText(f"Hata oluştu: {error_message}")
-        create_styled_message_box(self, "Hata", f"Dersler alınırken hata oluştu: {error_message}", QMessageBox.Critical).exec_()
-    
+        create_styled_message_box(
+            self, "Hata", f"Dersler alınırken hata oluştu: {error_message}", QMessageBox.Critical
+        ).exec_()
+
     def populate_lessons_list(self, lessons_data):
         """Populate the lessons list table"""
         self.lessons_list.setRowCount(len(lessons_data))
-        
+
         for row, lesson in enumerate(lessons_data):
             # Lesson name
             name_item = QTableWidgetItem(lesson["name"])
             name_item.setFlags(name_item.flags() & ~Qt.ItemIsEditable)  # type: ignore
             self.lessons_list.setItem(row, 0, name_item)
-            
+
             # Grades
             grades_text = ", ".join([f"{grade}. sınıf" for grade in lesson["grades"]])
             grades_item = QTableWidgetItem(grades_text)
             grades_item.setFlags(grades_item.flags() & ~Qt.ItemIsEditable)  # type: ignore
             self.lessons_list.setItem(row, 1, grades_item)
-            
+
             # Store the lesson data in the first item
             name_item.setData(Qt.UserRole, lesson)  # type: ignore
-    
+
     def refresh_lessons(self):
         """Refresh lessons from database"""
         self.status_text.setVisible(True)
         self.status_text.setText("Veritabanından dersler yenileniyor...")
-        
+
         # Get all lessons from database
         all_lessons = db_manager.get_all_lessons()
-        
+
         # Create mock data structure from database lessons
         lessons_data = []
         for lesson in all_lessons:
             # For existing lessons, we'll create a simple structure
-            lessons_data.append({
-                "name": lesson.name,
-                "grades": []  # We don't have grade info for existing lessons
-            })
-        
+            lessons_data.append(
+                {"name": lesson.name, "grades": []}  # We don't have grade info for existing lessons
+            )
+
         self.populate_lessons_list(lessons_data)
         self.status_text.setText(f"{len(lessons_data)} ders veritabanından yüklendi.")
-    
+
     def on_lesson_selected(self):
         """Handle lesson selection from the list"""
         selected_rows = self.lessons_list.selectionModel().selectedRows()  # type: ignore
@@ -557,18 +582,18 @@ class NewLessonDialog(QDialog):
             row = selected_rows[0].row()
             lesson_item = self.lessons_list.item(row, 0)
             lesson_data = lesson_item.data(Qt.UserRole)  # type: ignore
-            
+
             # Set the lesson name in the input field
             self.name_input.setText(lesson_data["name"])
-            
+
             # Clear the curriculum table
             self.curriculum_table.setRowCount(0)
-            
+
             # Populate grade combo with available grades for this lesson
             self.grade_combo.clear()
             for grade in lesson_data["grades"]:
                 self.grade_combo.addItem(f"{grade}. Sınıf", grade)
-    
+
     def on_grade_changed(self, index):
         """Handle grade selection change"""
         if index >= 0:
@@ -576,7 +601,7 @@ class NewLessonDialog(QDialog):
             # In a real implementation, we would look up existing hours for this grade
             # For now, we'll just reset to default
             self.hours_spinbox.setValue(2)
-    
+
     def populate_data(self):
         """Populate dialog with existing lesson and curriculum data."""
         # Define grades based on school type
@@ -585,7 +610,7 @@ class NewLessonDialog(QDialog):
             grades = list(range(1, 5))
         elif school_type == "Ortaokul":
             grades = list(range(5, 9))
-        else: # Lise and others
+        else:  # Lise and others
             grades = list(range(9, 13))
 
         # If editing an existing lesson
@@ -602,7 +627,7 @@ class NewLessonDialog(QDialog):
                 grade_item = QTableWidgetItem(f"{grade}. Sınıf")
                 grade_item.setFlags(grade_item.flags() & ~Qt.ItemIsEditable)  # type: ignore
                 self.curriculum_table.setItem(row, 0, grade_item)
-                
+
                 hours_item = QTableWidgetItem(str(hours))
                 hours_item.setFlags(hours_item.flags() & ~Qt.ItemIsEditable)  # type: ignore
                 self.curriculum_table.setItem(row, 1, hours_item)
@@ -612,7 +637,9 @@ class NewLessonDialog(QDialog):
         """Save lesson name and its curriculum data."""
         lesson_name = self.name_input.text().strip()
         if not lesson_name:
-            create_styled_message_box(self, "Hata", "Ders adı boş bırakılamaz.", QMessageBox.Warning).exec_()
+            create_styled_message_box(
+                self, "Hata", "Ders adı boş bırakılamaz.", QMessageBox.Warning
+            ).exec_()
             return
 
         try:
@@ -627,20 +654,29 @@ class NewLessonDialog(QDialog):
                 lesson_id = db_manager.add_lesson(lesson_name)
                 if not lesson_id:
                     # This could happen if the lesson name is not unique
-                    create_styled_message_box(self, "Hata", f"'{lesson_name}' adında bir ders zaten mevcut veya eklenemedi.", QMessageBox.Critical).exec_()
+                    create_styled_message_box(
+                        self,
+                        "Hata",
+                        f"'{lesson_name}' adında bir ders zaten mevcut veya eklenemedi.",
+                        QMessageBox.Critical,
+                    ).exec_()
                     return
-            
+
             # Step 2: Save the curriculum data from the table
             # For this implementation, we'll save the currently selected grade and hours
             grade = self.grade_combo.currentData()
             weekly_hours = self.hours_spinbox.value()
-            
+
             if grade and weekly_hours > 0:
                 db_manager.add_or_update_curriculum(lesson_id, grade, weekly_hours)
-            
-            create_styled_message_box(self, "Başarılı", "Ders ve müfredat bilgileri başarıyla kaydedildi.").exec_()
+
+            create_styled_message_box(
+                self, "Başarılı", "Ders ve müfredat bilgileri başarıyla kaydedildi."
+            ).exec_()
             self.accept()
 
         except Exception as e:
             logging.error(f"Error saving lesson/curriculum: {e}")
-            create_styled_message_box(self, "Hata", f"Kaydederken bir hata oluştu: {e}", QMessageBox.Critical).exec_()
+            create_styled_message_box(
+                self, "Hata", f"Kaydederken bir hata oluştu: {e}", QMessageBox.Critical
+            ).exec_()
