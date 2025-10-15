@@ -297,11 +297,5 @@ class TestUIStyles:
         assert widget.styleSheet() == "background-color: red;"
 
 
-# Additional fixtures
-@pytest.fixture
-def qapp():
-    """Provide QApplication instance"""
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication([])
-    return app
+# Note: qtbot fixture is provided by pytest-qt plugin
+# No need to define qapp fixture manually
