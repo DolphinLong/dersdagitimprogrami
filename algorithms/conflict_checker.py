@@ -28,11 +28,7 @@ class ConflictChecker:
                     continue
 
                 # Check if same teacher at same time
-                if (
-                    entry.teacher_id == teacher_id
-                    and entry.day == day
-                    and entry.time_slot == time_slot
-                ):
+                if entry.teacher_id == teacher_id and entry.day == day and entry.time_slot == time_slot:
                     return (True, entry)
 
             return (False, None)
@@ -56,11 +52,7 @@ class ConflictChecker:
                     continue
 
                 # Check if same class at same time
-                if (
-                    entry.class_id == class_id
-                    and entry.day == day
-                    and entry.time_slot == time_slot
-                ):
+                if entry.class_id == class_id and entry.day == day and entry.time_slot == time_slot:
                     return (True, entry)
 
             return (False, None)
@@ -84,11 +76,7 @@ class ConflictChecker:
                     continue
 
                 # Check if same classroom at same time
-                if (
-                    entry.classroom_id == classroom_id
-                    and entry.day == day
-                    and entry.time_slot == time_slot
-                ):
+                if entry.classroom_id == classroom_id and entry.day == day and entry.time_slot == time_slot:
                     return (True, entry)
 
             return (False, None)

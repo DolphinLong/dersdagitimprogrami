@@ -182,9 +182,7 @@ class ConstraintPriorityManager:
                 "description": constraint_info["description"],
                 "category": constraint_info["category"],
                 "default_priority": constraint_info["default_priority"].name,
-                "current_priority": self.priorities.get(
-                    constraint_id, constraint_info["default_priority"]
-                ).name,
+                "current_priority": self.priorities.get(constraint_id, constraint_info["default_priority"]).name,
             }
 
         return result
@@ -199,11 +197,7 @@ class ConstraintPriorityManager:
         Returns:
             Dict of constraints in that category
         """
-        return {
-            cid: info
-            for cid, info in self.DEFAULT_CONSTRAINTS.items()
-            if info["category"] == category
-        }
+        return {cid: info for cid, info in self.DEFAULT_CONSTRAINTS.items() if info["category"] == category}
 
     def get_constraints_by_priority(self, priority: ConstraintPriority) -> List[str]:
         """
@@ -418,15 +412,10 @@ class ConstraintPriorityManager:
                 warnings.append(f"Warning: {cid} should be CRITICAL for valid schedules")
 
         # Check if too many constraints are OPTIONAL
-        optional_count = sum(
-            1 for p in self.priorities.values() if p == ConstraintPriority.OPTIONAL
-        )
+        optional_count = sum(1 for p in self.priorities.values() if p == ConstraintPriority.OPTIONAL)
 
         if optional_count > len(self.priorities) * 0.5:
-            warnings.append(
-                "Warning: More than 50% of constraints are OPTIONAL. "
-                "Schedule quality may be low."
-            )
+            warnings.append("Warning: More than 50% of constraints are OPTIONAL. " "Schedule quality may be low.")
 
         return warnings
 

@@ -78,9 +78,7 @@ class UltraAggressiveScheduler:
 
         initial_coverage = coverage_report["overall_percentage"]
         print(f"\n   ✅ İlk kapsama: {initial_coverage:.1f}%")
-        print(
-            f"   📊 Yerleşen: {coverage_report['total_scheduled']} / {coverage_report['total_required']} saat"
-        )
+        print(f"   📊 Yerleşen: {coverage_report['total_scheduled']} / {coverage_report['total_required']} saat")
 
         # 3. AŞAMA: İteratif iyileştirme - %100 dolana kadar!
         if initial_coverage < 100:
@@ -89,9 +87,7 @@ class UltraAggressiveScheduler:
             print(f"   ⚡ Maksimum deneme: {self.max_iterations}")
             print("")
 
-            self.schedule_entries = self._iterative_improvement(
-                self.schedule_entries, coverage_report, config
-            )
+            self.schedule_entries = self._iterative_improvement(self.schedule_entries, coverage_report, config)
 
         # 4. AŞAMA: Final analiz
         print("\n📊 AŞAMA 4: Final kapsama analizi...")
@@ -205,9 +201,7 @@ class UltraAggressiveScheduler:
             for lesson in config["lessons"]:
                 key = (class_obj.class_id, lesson.lesson_id)
                 if key in config["assignment_map"]:
-                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                        lesson.lesson_id, class_obj.grade
-                    )
+                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
                     if weekly_hours:
                         class_required += weekly_hours
                         total_required += weekly_hours
@@ -232,9 +226,7 @@ class UltraAggressiveScheduler:
                         empty_slots.append((day, slot))
 
             # GERÇEK doluluk yüzdesi (UI bazlı)
-            class_percentage = (
-                (class_scheduled / class_total_slots * 100) if class_total_slots > 0 else 100
-            )
+            class_percentage = (class_scheduled / class_total_slots * 100) if class_total_slots > 0 else 100
 
             class_coverage[class_obj.class_id] = {
                 "class_name": class_obj.name,
@@ -256,9 +248,7 @@ class UltraAggressiveScheduler:
             "class_coverage": class_coverage,
         }
 
-    def _iterative_improvement(
-        self, schedule: List[Dict], coverage: Dict, config: Dict
-    ) -> List[Dict]:
+    def _iterative_improvement(self, schedule: List[Dict], coverage: Dict, config: Dict) -> List[Dict]:
         """İteratif iyileştirme - boş hücreleri doldur"""
 
         current_schedule = schedule[:]
@@ -276,9 +266,7 @@ class UltraAggressiveScheduler:
             if self.iteration % 10 == 0:
                 print(f"   🔄 İterasyon {self.iteration}: Kapsama %{best_coverage:.1f}")
                 progress = min(best_coverage, 99)
-                self._report_progress(
-                    f"İterasyon {self.iteration} - %{best_coverage:.1f} dolu", progress
-                )
+                self._report_progress(f"İterasyon {self.iteration} - %{best_coverage:.1f} dolu", progress)
 
             # Boş hücreleri doldurmaya çalış
             new_schedule = self._fill_empty_cells(current_schedule[:], coverage, config)
@@ -333,9 +321,7 @@ class UltraAggressiveScheduler:
         """
 
         # Rastgele bir sınıf seç (kapsama düşük olanları tercih et)
-        class_priorities = sorted(
-            coverage["class_coverage"].items(), key=lambda x: x[1]["percentage"]
-        )
+        class_priorities = sorted(coverage["class_coverage"].items(), key=lambda x: x[1]["percentage"])
 
         for class_id, class_info in class_priorities:
             if class_info["percentage"] >= 100:
@@ -351,11 +337,7 @@ class UltraAggressiveScheduler:
             # ÇAKIŞMA KONTROLÜ: Bu slot gerçekten boş mu?
             is_occupied = False
             for entry in schedule:
-                if (
-                    entry["class_id"] == class_id
-                    and entry["day"] == day
-                    and entry["time_slot"] == slot
-                ):
+                if entry["class_id"] == class_id and entry["day"] == day and entry["time_slot"] == slot:
                     is_occupied = True
                     break
 
@@ -371,9 +353,7 @@ class UltraAggressiveScheduler:
 
         return schedule
 
-    def _try_place_lesson_in_slot(
-        self, schedule: List[Dict], class_id: int, day: int, slot: int, config: Dict
-    ) -> bool:
+    def _try_place_lesson_in_slot(self, schedule: List[Dict], class_id: int, day: int, slot: int, config: Dict) -> bool:
         """Belirli bir slota ders yerleştirmeye çalış"""
 
         # Bu sınıfın henüz yerleşmemiş dersleri var mı?
@@ -393,25 +373,19 @@ class UltraAggressiveScheduler:
             teacher_id = config["assignment_map"][key]
 
             # Bu dersten ne kadar yerleşti?
-            weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                lesson.lesson_id, class_obj.grade
-            )
+            weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
             if not weekly_hours:
                 continue
 
             scheduled_hours = sum(
-                1
-                for e in schedule
-                if e["class_id"] == class_id and e["lesson_id"] == lesson.lesson_id
+                1 for e in schedule if e["class_id"] == class_id and e["lesson_id"] == lesson.lesson_id
             )
 
             if scheduled_hours >= weekly_hours:
                 continue  # Bu ders zaten tam
 
             # Bu slota yerleştir
-            if self._can_place_at_slot(
-                schedule, class_id, teacher_id, day, slot, lesson_name=lesson.name
-            ):
+            if self._can_place_at_slot(schedule, class_id, teacher_id, day, slot, lesson_name=lesson.name):
                 classroom = config["classrooms"][0] if config["classrooms"] else None
                 classroom_id = classroom.classroom_id if classroom else 1
 
@@ -466,11 +440,7 @@ class UltraAggressiveScheduler:
 
         # 2. ÖĞRETMEN ÇAKIŞMASI KONTROLÜ (ZORUNLU - ASLA ESNETILMEZ!)
         for entry in schedule:
-            if (
-                entry["teacher_id"] == teacher_id
-                and entry["day"] == day
-                and entry["time_slot"] == slot
-            ):
+            if entry["teacher_id"] == teacher_id and entry["day"] == day and entry["time_slot"] == slot:
                 self.logger.debug(
                     f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
                     f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
@@ -511,9 +481,7 @@ class UltraAggressiveScheduler:
         lesson_name: str = "",
     ) -> bool:
         """Basit çakışma kontrolü, sadece evet/hayır döndürür."""
-        can_place, _ = self._can_place_at_slot_detailed(
-            schedule, class_id, teacher_id, day, slot, lesson_name
-        )
+        can_place, _ = self._can_place_at_slot_detailed(schedule, class_id, teacher_id, day, slot, lesson_name)
         return can_place
 
     def _random_perturbation(self, schedule: List[Dict], config: Dict) -> List[Dict]:
@@ -529,9 +497,7 @@ class UltraAggressiveScheduler:
             # Strateji: Bir dersi başka bir boş slota taşı
             # En az yerleşmiş sınıflardan birini seç
             coverage_report = self._analyze_coverage(config)
-            class_priorities = sorted(
-                coverage_report["class_coverage"].items(), key=lambda x: x[1]["percentage"]
-            )
+            class_priorities = sorted(coverage_report["class_coverage"].items(), key=lambda x: x[1]["percentage"])
 
             if not class_priorities:
                 continue
@@ -591,9 +557,7 @@ class UltraAggressiveScheduler:
 
         return new_schedule
 
-    def _print_final_report(
-        self, initial_coverage: float, final_coverage: Dict, elapsed_time: float
-    ):
+    def _print_final_report(self, initial_coverage: float, final_coverage: Dict, elapsed_time: float):
         """Final rapor yazdır"""
         print("\n" + "=" * 80)
         print("📊 FİNAL RAPOR")
@@ -687,9 +651,7 @@ class UltraAggressiveScheduler:
                     lesson_name = lesson.name if lesson else "?"
                     lessons.append(lesson_name)
 
-                conflict_msg = (
-                    f"Sınıf ID {class_id} - {day_name} {slot+1}. saat: {', '.join(lessons)}"
-                )
+                conflict_msg = f"Sınıf ID {class_id} - {day_name} {slot+1}. saat: {', '.join(lessons)}"
                 conflicts.append(conflict_msg)
 
         # Öğretmen bazlı çakışma kontrolü
@@ -716,9 +678,7 @@ class UltraAggressiveScheduler:
                     lesson_name = lesson.name if lesson else "?"
                     lessons.append(lesson_name)
 
-                conflict_msg = (
-                    f"Öğretmen {teacher_name} - {day_name} {slot+1}. saat: {', '.join(lessons)}"
-                )
+                conflict_msg = f"Öğretmen {teacher_name} - {day_name} {slot+1}. saat: {', '.join(lessons)}"
                 conflicts.append(conflict_msg)
 
         return conflicts
@@ -757,6 +717,4 @@ class UltraAggressiveScheduler:
             try:
                 self.progress_callback(message, percentage)
             except Exception as e:
-                logging.warning(
-                    f"Progress callback raised an exception in UltraAggressiveScheduler: {e}"
-                )
+                logging.warning(f"Progress callback raised an exception in UltraAggressiveScheduler: {e}")

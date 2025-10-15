@@ -177,9 +177,7 @@ class UltimateScheduler:
         for lesson in lessons:
             assignment_key = (class_obj.class_id, lesson.lesson_id)
             if assignment_key in assignment_map:
-                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                    lesson.lesson_id, class_obj.grade
-                )
+                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
 
                 if weekly_hours and weekly_hours > 0:
                     teacher_id = assignment_map[assignment_key]
@@ -325,9 +323,7 @@ class UltimateScheduler:
         # (Bu ders kısmi yerleşebilir)
         return self._solve_csp(index + 1, classrooms)
 
-    def _get_current_domain(
-        self, class_id: int, lesson_id: int, teacher_id: int
-    ) -> List[Tuple[int, int]]:
+    def _get_current_domain(self, class_id: int, lesson_id: int, teacher_id: int) -> List[Tuple[int, int]]:
         """Mevcut durumda geçerli domain'i al (forward checking)"""
         key = (class_id, lesson_id)
         original_domain = self.domains.get(key, [])
@@ -347,9 +343,7 @@ class UltimateScheduler:
 
         return valid_slots
 
-    def _order_domain_lcv(
-        self, domain: List[Tuple[int, int]], class_id: int, teacher_id: int
-    ) -> List[Tuple[int, int]]:
+    def _order_domain_lcv(self, domain: List[Tuple[int, int]], class_id: int, teacher_id: int) -> List[Tuple[int, int]]:
         """
         LCV (Least Constraining Value) heuristic
         Diğer dersleri en az kısıtlayan slotları önce dene
@@ -375,9 +369,7 @@ class UltimateScheduler:
 
         return [(day, slot) for _, day, slot in slot_scores]
 
-    def _is_consistent(
-        self, class_id: int, teacher_id: int, day: int, slot: int, lesson_id: int = None
-    ) -> bool:
+    def _is_consistent(self, class_id: int, teacher_id: int, day: int, slot: int, lesson_id: int = None) -> bool:
         """Atama tutarlı mı kontrol et"""
         # Sınıf çakışması
         if slot in self.state.class_usage[class_id][day]:
@@ -398,9 +390,7 @@ class UltimateScheduler:
 
         return True
 
-    def _would_create_three_consecutive_lessons(
-        self, class_id: int, lesson_id: int, day: int, slot: int
-    ) -> bool:
+    def _would_create_three_consecutive_lessons(self, class_id: int, lesson_id: int, day: int, slot: int) -> bool:
         """
         Bu slot'a ders yerleştirilirse 3 saat üst üste aynı ders olur mu?
         Returns True if placing would create 3 consecutive same lessons

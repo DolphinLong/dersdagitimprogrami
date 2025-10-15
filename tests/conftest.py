@@ -7,11 +7,21 @@ import os
 import sys
 
 import pytest
+from PyQt5.QtWidgets import QApplication
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from database.db_manager import DatabaseManager
+
+
+# Ensure QApplication exists for pytest-qt
+@pytest.fixture(scope="session")
+def qapp():
+    """Provide QApplication instance for all tests"""
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    yield app
 
 
 @pytest.fixture

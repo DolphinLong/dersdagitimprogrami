@@ -13,6 +13,7 @@ from database.models import Class, Classroom, Curriculum, Lesson, ScheduleEntry,
 # Import password hasher utility
 try:
     from utils.password_hasher import hash_password, verify_password
+
     USE_PASSWORD_HASHER = True
 except ImportError:
     USE_PASSWORD_HASHER = False
@@ -53,9 +54,7 @@ class DatabaseManager:
         if not hasattr(self.local, "connection") or self.local.connection is None:
             self.local.connection = sqlite3.connect(self.db_path)
             self.local.connection.row_factory = sqlite3.Row
-            self.local.connection.execute(
-                "PRAGMA foreign_keys = ON"
-            )  # Enable foreign key constraints
+            self.local.connection.execute("PRAGMA foreign_keys = ON")  # Enable foreign key constraints
         return self.local.connection
 
     def close_connection(self):
@@ -92,9 +91,7 @@ class DatabaseManager:
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT setting_value FROM settings WHERE setting_key = ?", ("school_type",)
-            )
+            cursor.execute("SELECT setting_value FROM settings WHERE setting_key = ?", ("school_type",))
             row = cursor.fetchone()
             return row[0] if row else None
         except sqlite3.Error as e:
@@ -392,9 +389,7 @@ class DatabaseManager:
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT * FROM lessons WHERE school_type = ? ORDER BY name", (school_type,)
-            )
+            cursor.execute("SELECT * FROM lessons WHERE school_type = ? ORDER BY name", (school_type,))
             rows = cursor.fetchall()
             return [Lesson(row["lesson_id"], row["name"], row["weekly_hours"]) for row in rows]
         except sqlite3.Error as e:
@@ -457,18 +452,13 @@ class DatabaseManager:
             )
             rows = cursor.fetchall()
             return [
-                Curriculum(
-                    row["curriculum_id"], row["lesson_id"], row["grade"], row["weekly_hours"]
-                )
-                for row in rows
+                Curriculum(row["curriculum_id"], row["lesson_id"], row["grade"], row["weekly_hours"]) for row in rows
             ]
         except sqlite3.Error as e:
             logging.error(f"Error getting curriculum for lesson {lesson_id}: {e}")
             return []
 
-    def add_lesson_weekly_hours(
-        self, lesson_id: int, grade: int, school_type: str, weekly_hours: int
-    ) -> bool:
+    def add_lesson_weekly_hours(self, lesson_id: int, grade: int, school_type: str, weekly_hours: int) -> bool:
         """Add or update weekly hours for a lesson at a specific grade (alias for add_or_update_curriculum)."""
         if not self._ensure_connection():
             return False
@@ -584,13 +574,8 @@ class DatabaseManager:
                 (school_type,),
             )
             rows = cursor.fetchall()
-            entries = [
-                ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
-                for row in rows
-            ]
-            logging.debug(
-                f"Retrieved {len(entries)} schedule entries for school type: {school_type}"
-            )
+            entries = [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
+            logging.debug(f"Retrieved {len(entries)} schedule entries for school type: {school_type}")
             return entries
         except sqlite3.Error as e:
             logging.error(f"Error getting schedule entries: {e}")
@@ -613,10 +598,7 @@ class DatabaseManager:
                 (school_type,),
             )
             rows = cursor.fetchall()
-            return [
-                ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
-                for row in rows
-            ]
+            return [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
         except sqlite3.Error as e:
             logging.error(f"Error getting schedule program: {e}")
             return []
@@ -643,9 +625,7 @@ class DatabaseManager:
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT * FROM lessons WHERE name = ? AND school_type = ?", (name, school_type)
-            )
+            cursor.execute("SELECT * FROM lessons WHERE name = ? AND school_type = ?", (name, school_type))
             row = cursor.fetchone()
             return Lesson(row["lesson_id"], row["name"], row["weekly_hours"]) if row else None
         except sqlite3.Error as e:
@@ -719,9 +699,7 @@ class DatabaseManager:
                 (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type),
             )
             if self._safe_commit():
-                logging.debug(
-                    f"Added schedule entry: Class {class_id}, Teacher {teacher_id}, Lesson {lesson_id}"
-                )
+                logging.debug(f"Added schedule entry: Class {class_id}, Teacher {teacher_id}, Lesson {lesson_id}")
                 return cursor.lastrowid
             return None
         except sqlite3.Error as e:
@@ -738,9 +716,7 @@ class DatabaseManager:
         time_slot: int = -1,
     ) -> Optional[int]:
         """Add a lesson assignment (without schedule details). Alias for add_schedule_entry with defaults."""
-        return self.add_schedule_entry(
-            class_id, teacher_id, lesson_id, classroom_id, day, time_slot
-        )
+        return self.add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
 
     def add_schedule_program(
         self,
@@ -793,10 +769,7 @@ class DatabaseManager:
                 (class_id, school_type),
             )
             rows = cursor.fetchall()
-            return [
-                ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
-                for row in rows
-            ]
+            return [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
         except sqlite3.Error as e:
             logging.error(f"Error getting schedule program for class: {e}")
             return []
@@ -818,10 +791,7 @@ class DatabaseManager:
                 (teacher_id, school_type),
             )
             rows = cursor.fetchall()
-            return [
-                ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
-                for row in rows
-            ]
+            return [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
         except sqlite3.Error as e:
             logging.error(f"Error getting schedule program for teacher: {e}")
             return []
@@ -918,9 +888,7 @@ class DatabaseManager:
             result = cursor.rowcount >= 0  # Allow 0 rows to be deleted
 
             if self._safe_commit() and result:
-                logging.info(
-                    f"Deleted {deleted_count} schedule entries for school type: {school_type}"
-                )
+                logging.info(f"Deleted {deleted_count} schedule entries for school type: {school_type}")
                 return True
             return result
         except sqlite3.Error as e:
@@ -942,9 +910,7 @@ class DatabaseManager:
             result = cursor.rowcount >= 0  # Allow 0 rows to be deleted
 
             if self._safe_commit() and result:
-                logging.info(
-                    f"Cleared {deleted_count} schedule entries for school type: {school_type}"
-                )
+                logging.info(f"Cleared {deleted_count} schedule entries for school type: {school_type}")
                 return True
             return result
         except sqlite3.Error as e:
@@ -1027,9 +993,7 @@ class DatabaseManager:
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE classes SET name = ?, grade = ? WHERE class_id = ?", (name, grade, class_id)
-            )
+            cursor.execute("UPDATE classes SET name = ?, grade = ? WHERE class_id = ?", (name, grade, class_id))
             result = cursor.rowcount > 0
             return self._safe_commit() and result
         except sqlite3.Error as e:
@@ -1064,9 +1028,7 @@ class DatabaseManager:
             logging.error(f"Error getting teacher availability: {e}")
             return []
 
-    def set_teacher_availability(
-        self, teacher_id: int, day: int, time_slot: int, is_available: bool
-    ) -> bool:
+    def set_teacher_availability(self, teacher_id: int, day: int, time_slot: int, is_available: bool) -> bool:
         """Set teacher availability for a specific day and time slot"""
         if not self._ensure_connection():
             return False
@@ -1130,9 +1092,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM classrooms WHERE school_type = ?", (school_type,))
             rows = cursor.fetchall()
-            classrooms = [
-                Classroom(row["classroom_id"], row["name"], row["capacity"]) for row in rows
-            ]
+            classrooms = [Classroom(row["classroom_id"], row["name"], row["capacity"]) for row in rows]
             logging.debug(f"Retrieved {len(classrooms)} classrooms for school type: {school_type}")
             return classrooms
         except sqlite3.Error as e:
@@ -1167,11 +1127,11 @@ class DatabaseManager:
     def _hash_password(self, password: str, *, iterations: int = 100_000) -> str:
         """
         Hash password using best available method (bcrypt or PBKDF2-HMAC-SHA256)
-        
+
         Args:
             password: Plain text password
             iterations: Number of iterations for PBKDF2 (ignored if bcrypt is used)
-            
+
         Returns:
             Hashed password string
         """
@@ -1186,11 +1146,11 @@ class DatabaseManager:
     def _verify_password(self, stored: str, provided_password: str) -> bool:
         """
         Verify a provided password against stored hash
-        
+
         Args:
             stored: Stored password hash
             provided_password: Password to verify
-            
+
         Returns:
             True if password matches, False otherwise
         """
@@ -1243,10 +1203,7 @@ class DatabaseManager:
             cursor.execute("SELECT * FROM curriculum WHERE school_type = ?", (school_type,))
             rows = cursor.fetchall()
             return [
-                Curriculum(
-                    row["curriculum_id"], row["lesson_id"], row["grade"], row["weekly_hours"]
-                )
-                for row in rows
+                Curriculum(row["curriculum_id"], row["lesson_id"], row["grade"], row["weekly_hours"]) for row in rows
             ]
         except sqlite3.Error as e:
             logging.error(f"Error getting all curriculum: {e}")
@@ -1295,9 +1252,7 @@ class DatabaseManager:
                     # This lesson is missing
                     lesson = self.get_lesson_by_id(curriculum_entry.lesson_id)
                     if lesson:
-                        missing_lessons.append(
-                            (curriculum_entry.lesson_id, lesson.name, curriculum_entry.weekly_hours)
-                        )
+                        missing_lessons.append((curriculum_entry.lesson_id, lesson.name, curriculum_entry.weekly_hours))
 
             if missing_lessons:
                 result[class_obj.class_id] = {
@@ -1344,9 +1299,7 @@ class DatabaseManager:
                     class_obj = self.get_class_by_id(assignment.class_id)
                     if class_obj:
                         # Get weekly hours for this lesson
-                        weekly_hours = self.get_weekly_hours_for_lesson(
-                            assignment.lesson_id, class_obj.grade
-                        )
+                        weekly_hours = self.get_weekly_hours_for_lesson(assignment.lesson_id, class_obj.grade)
                         if weekly_hours:
                             total_hours += weekly_hours
             teacher_workload[teacher.teacher_id] = total_hours
@@ -1365,8 +1318,7 @@ class DatabaseManager:
                 suitable_teachers = [
                     t
                     for t in all_teachers
-                    if t.subject.lower() in lesson_name.lower()
-                    or lesson_name.lower() in t.subject.lower()
+                    if t.subject.lower() in lesson_name.lower() or lesson_name.lower() in t.subject.lower()
                 ]
 
                 if not suitable_teachers:
@@ -1410,11 +1362,7 @@ class DatabaseManager:
                         logging.error(f"Failed to auto-assign {lesson_name} to {class_obj.name}")
                 else:
                     # No suitable teacher found
-                    result["failed"].append(
-                        (class_obj.name, lesson_name, "Uygun öğretmen bulunamadı")
-                    )
-                    logging.warning(
-                        f"No suitable teacher found for {lesson_name} in {class_obj.name}"
-                    )
+                    result["failed"].append((class_obj.name, lesson_name, "Uygun öğretmen bulunamadı"))
+                    logging.warning(f"No suitable teacher found for {lesson_name} in {class_obj.name}")
 
         return result

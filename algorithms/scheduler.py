@@ -75,9 +75,7 @@ class Scheduler:
         "Sosyal Bilimler Lisesi": 8,
     }
 
-    def __init__(
-        self, db_manager, use_advanced=True, use_hybrid=True, use_ultra=True, progress_callback=None
-    ):
+    def __init__(self, db_manager, use_advanced=True, use_hybrid=True, use_ultra=True, progress_callback=None):
         self.logger = logging.getLogger(__name__)
         self.db_manager = db_manager
         self.progress_callback = progress_callback
@@ -92,55 +90,39 @@ class Scheduler:
         # Initialize ultra aggressive scheduler if available (HIGHEST priority!)
         # NOW FIXED: Güçlendirilmiş çakışma kontrolü + Final validation
         if self.use_ultra:
-            self.ultra_scheduler = UltraAggressiveScheduler(
-                db_manager, progress_callback
-            )
-            self.logger.info(
-                "💪 ULTRA AGGRESSIVE SCHEDULER Aktif - %100 Doluluk Hedefli!"
-            )
-            self.logger.info(
-                "   ✅ İteratif iyileştirme + Boş hücre kalmayana kadar deneme"
-            )
+            self.ultra_scheduler = UltraAggressiveScheduler(db_manager, progress_callback)
+            self.logger.info("💪 ULTRA AGGRESSIVE SCHEDULER Aktif - %100 Doluluk Hedefli!")
+            self.logger.info("   ✅ İteratif iyileştirme + Boş hücre kalmayana kadar deneme")
             self.logger.info("   ✅ Güçlendirilmiş çakışma kontrolü + Final validation")
         # Fallback to hybrid optimal scheduler
         elif self.use_hybrid:
             self.hybrid_scheduler = HybridOptimalScheduler(db_manager)
             self.logger.info("🚀 HYBRID OPTIMAL SCHEDULER Aktif - En Güçlü Algoritma!")
-            self.logger.info(
-                "   ✅ Arc Consistency + Soft Constraints + Simulated Annealing"
-            )
+            self.logger.info("   ✅ Arc Consistency + Soft Constraints + Simulated Annealing")
         # Fallback to simple perfect scheduler
         elif self.use_simple_perfect:
             self.hybrid_scheduler = None
             self.simple_perfect_scheduler = SimplePerfectScheduler(db_manager)
-            self.logger.info(
-                "🎯 SIMPLE PERFECT SCHEDULER Aktif - Pragmatik ve %100 Etkili"
-            )
+            self.logger.info("🎯 SIMPLE PERFECT SCHEDULER Aktif - Pragmatik ve %100 Etkili")
         # Fallback to ultimate scheduler
         elif self.use_ultimate:
             self.hybrid_scheduler = None
             self.simple_perfect_scheduler = None
             self.ultimate_scheduler = UltimateScheduler(db_manager)
-            self.logger.info(
-                "🎯 ULTIMATE SCHEDULER Aktif - Gerçek Backtracking + CSP + Forward Checking"
-            )
+            self.logger.info("🎯 ULTIMATE SCHEDULER Aktif - Gerçek Backtracking + CSP + Forward Checking")
         # Fallback to enhanced strict scheduler
         elif self.use_enhanced_strict:
             self.hybrid_scheduler = None
             self.ultimate_scheduler = None
             self.enhanced_strict_scheduler = EnhancedStrictScheduler(db_manager)
-            self.logger.info(
-                "🚀 ENHANCED STRICT SCHEDULER Aktif - Backtracking + %100 Kapsama Hedefi"
-            )
+            self.logger.info("🚀 ENHANCED STRICT SCHEDULER Aktif - Backtracking + %100 Kapsama Hedefi")
         # Fallback to strict scheduler
         elif self.use_strict:
             self.hybrid_scheduler = None
             self.ultimate_scheduler = None
             self.enhanced_strict_scheduler = None
             self.strict_scheduler = StrictScheduler(db_manager)
-            self.logger.info(
-                "🎯 STRICT SCHEDULER Aktif - Tam Kapsama ve Öğretmen Uygunluğu Garantili"
-            )
+            self.logger.info("🎯 STRICT SCHEDULER Aktif - Tam Kapsama ve Öğretmen Uygunluğu Garantili")
         else:
             self.hybrid_scheduler = None
             self.ultimate_scheduler = None
@@ -234,9 +216,7 @@ class Scheduler:
 
         # For each class, try to schedule their lessons based on assignments
         for class_obj in classes:
-            self.logger.info(
-                f"\n=== Scheduling for class: {class_obj.name} (Grade {class_obj.grade}) ==="
-            )
+            self.logger.info(f"\n=== Scheduling for class: {class_obj.name} (Grade {class_obj.grade}) ===")
 
             # Get all lessons for this grade that have assignments
             class_lessons = []
@@ -245,14 +225,10 @@ class Scheduler:
                 assignment_key = (class_obj.class_id, lesson.lesson_id)
                 if assignment_key in lesson_assignments:
                     # Get weekly hours from curriculum
-                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                        lesson.lesson_id, class_obj.grade
-                    )
+                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
                     if weekly_hours and weekly_hours > 0:
                         assigned_teacher_id = lesson_assignments[assignment_key]
-                        assigned_teacher = self.db_manager.get_teacher_by_id(
-                            assigned_teacher_id
-                        )
+                        assigned_teacher = self.db_manager.get_teacher_by_id(assigned_teacher_id)
                         if assigned_teacher:
                             class_lessons.append((lesson, weekly_hours, assigned_teacher))
                             self.logger.info(
@@ -270,8 +246,7 @@ class Scheduler:
             # Schedule assigned lessons
             for lesson, weekly_hours, assigned_teacher in class_lessons:
                 self.logger.info(
-                    f"Scheduling assigned lesson: {lesson.name} ({weekly_hours} hours) "
-                    f"with {assigned_teacher.name}"
+                    f"Scheduling assigned lesson: {lesson.name} ({weekly_hours} hours) " f"with {assigned_teacher.name}"
                 )
 
                 # Try to schedule this lesson with the assigned teacher
@@ -292,9 +267,7 @@ class Scheduler:
                     )
 
             # Print class schedule summary
-            class_total = len(
-                [e for e in schedule_entries if e["class_id"] == class_obj.class_id]
-            )
+            class_total = len([e for e in schedule_entries if e["class_id"] == class_obj.class_id])
             self.logger.info(f"✅ Class {class_obj.name} scheduled: {class_total} hours")
 
         # Final summary
@@ -304,9 +277,7 @@ class Scheduler:
         # Check for any conflicts
         conflicts = self.detect_conflicts(schedule_entries)
         if conflicts:
-            self.logger.warning(
-                f"⚠️  {len(conflicts)} conflicts detected - attempting resolution..."
-            )
+            self.logger.warning(f"⚠️  {len(conflicts)} conflicts detected - attempting resolution...")
             # Try to resolve conflicts automatically
             from algorithms.conflict_resolver import ConflictResolver
 
@@ -318,26 +289,17 @@ class Scheduler:
 
     def _get_eligible_teachers(self, teachers, lesson):
         """Get all teachers eligible to teach a specific lesson"""
-        eligible_teachers = [
-            teacher for teacher in teachers if teacher.subject == lesson.name
-        ]
+        eligible_teachers = [teacher for teacher in teachers if teacher.subject == lesson.name]
 
         # Special handling for specific lessons
         if lesson.name == "T.C. İnkılap Tarihi ve Atatürkçülük":
-            sosyal_bilgiler_teachers = [
-                teacher for teacher in teachers if teacher.subject == "Sosyal Bilgiler"
-            ]
+            sosyal_bilgiler_teachers = [teacher for teacher in teachers if teacher.subject == "Sosyal Bilgiler"]
             eligible_teachers.extend(sosyal_bilgiler_teachers)
 
         # Sort by current workload (ascending)
         teacher_workload = {}
         for teacher in eligible_teachers:
-            workload = sum(
-                1
-                for entry in self.db_manager.get_schedule_for_specific_teacher(
-                    teacher.teacher_id
-                )
-            )
+            workload = sum(1 for entry in self.db_manager.get_schedule_for_specific_teacher(teacher.teacher_id))
             teacher_workload[teacher.teacher_id] = workload
 
         eligible_teachers.sort(key=lambda t: teacher_workload.get(t.teacher_id, 0))
@@ -427,9 +389,7 @@ class Scheduler:
                             schedule_entries, assigned_teacher.teacher_id, day, available_slots
                         ):
                             # Schedule the lesson with assigned teacher - but only up to weekly_hours
-                            slots_to_schedule = min(
-                                len(available_slots), weekly_hours - scheduled_hours
-                            )
+                            slots_to_schedule = min(len(available_slots), weekly_hours - scheduled_hours)
                             for i in range(slots_to_schedule):
                                 time_slot = available_slots[i]
                                 new_entry = {
@@ -465,9 +425,7 @@ class Scheduler:
                 f"    ⚠️  {lesson.name}: {scheduled_hours}/{weekly_hours} hours scheduled ({success_rate:.1f}%)"
             )
         else:
-            self.logger.info(
-                f"    ✅ {lesson.name}: {scheduled_hours}/{weekly_hours} hours scheduled (100%)"
-            )
+            self.logger.info(f"    ✅ {lesson.name}: {scheduled_hours}/{weekly_hours} hours scheduled (100%)")
 
         return scheduled_hours >= weekly_hours  # AGGRESSIVE: Only accept 100% success
 
@@ -488,9 +446,7 @@ class Scheduler:
         elif eligible_teachers:
             teachers_to_try = eligible_teachers
         else:
-            teachers_to_try = self._get_eligible_teachers(
-                self.db_manager.get_all_teachers(), lesson
-            )
+            teachers_to_try = self._get_eligible_teachers(self.db_manager.get_all_teachers(), lesson)
 
         if not teachers_to_try:
             return False
@@ -540,9 +496,7 @@ class Scheduler:
                                 schedule_entries, teacher.teacher_id, day, available_slots
                             ):
                                 # Schedule the lesson - but only up to weekly_hours
-                                slots_to_schedule = min(
-                                    len(available_slots), weekly_hours - scheduled_hours
-                                )
+                                slots_to_schedule = min(len(available_slots), weekly_hours - scheduled_hours)
                                 for i in range(slots_to_schedule):
                                     time_slot = available_slots[i]
                                     new_entry = {
@@ -643,9 +597,7 @@ class Scheduler:
 
             for i in range(hours_needed):
                 time_slot = time_slots[start_slot + i]
-                if not self._is_slot_available_for_class(
-                    schedule_entries, class_id, day, time_slot
-                ):
+                if not self._is_slot_available_for_class(schedule_entries, class_id, day, time_slot):
                     all_available = False
                     break
                 consecutive_slots.append(time_slot)
@@ -672,9 +624,7 @@ class Scheduler:
 
             for i in range(hours_needed):
                 time_slot = time_slots[start_slot + i]
-                if not self._is_slot_available_for_class_enhanced(
-                    schedule_entries, class_id, day, time_slot
-                ):
+                if not self._is_slot_available_for_class_enhanced(schedule_entries, class_id, day, time_slot):
                     all_available = False
                     break
                 consecutive_slots.append(time_slot)
@@ -685,9 +635,7 @@ class Scheduler:
         # If consecutive slots not available, find any available slots
         available_slots = []
         for time_slot in time_slots:
-            if self._is_slot_available_for_class_enhanced(
-                schedule_entries, class_id, day, time_slot
-            ):
+            if self._is_slot_available_for_class_enhanced(schedule_entries, class_id, day, time_slot):
                 available_slots.append(time_slot)
                 if len(available_slots) >= hours_needed:
                     return available_slots[:hours_needed]
@@ -699,19 +647,11 @@ class Scheduler:
         for time_slot in time_slots:
             # Check if teacher is already scheduled
             for entry in schedule_entries:
-                entry_teacher_id = (
-                    entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
-                )
+                entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                 entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-                entry_time_slot = (
-                    entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-                )
+                entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                if (
-                    entry_teacher_id == teacher_id
-                    and entry_day == day
-                    and entry_time_slot == time_slot
-                ):
+                if entry_teacher_id == teacher_id and entry_day == day and entry_time_slot == time_slot:
                     return False
 
             # Check explicit availability if exists
@@ -720,36 +660,22 @@ class Scheduler:
 
         return True
 
-    def _can_teacher_teach_at_slots_enhanced(
-        self, schedule_entries, teacher_id, day, time_slots
-    ):
+    def _can_teacher_teach_at_slots_enhanced(self, schedule_entries, teacher_id, day, time_slots):
         """Enhanced teacher availability checking with better conflict detection"""
         for time_slot in time_slots:
             # Check memory schedule conflicts
             for entry in schedule_entries:
-                entry_teacher_id = (
-                    entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
-                )
+                entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                 entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-                entry_time_slot = (
-                    entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-                )
+                entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                if (
-                    entry_teacher_id == teacher_id
-                    and entry_day == day
-                    and entry_time_slot == time_slot
-                ):
+                if entry_teacher_id == teacher_id and entry_day == day and entry_time_slot == time_slot:
                     return False
 
             # Check database schedule conflicts
             existing_schedule = self.db_manager.get_schedule_program_by_school_type()
             for entry in existing_schedule:
-                if (
-                    entry.teacher_id == teacher_id
-                    and entry.day == day
-                    and entry.time_slot == time_slot
-                ):
+                if entry.teacher_id == teacher_id and entry.day == day and entry.time_slot == time_slot:
                     return False
 
             # Check explicit availability (STRICT - respect teacher preferences)
@@ -763,9 +689,7 @@ class Scheduler:
 
         return True
 
-    def _find_best_slots_aggressive(
-        self, schedule_entries, class_id, day, time_slots, hours_needed
-    ):
+    def _find_best_slots_aggressive(self, schedule_entries, class_id, day, time_slots, hours_needed):
         """Aggressive slot finding with multiple strategies"""
         # Strategy 1: Try consecutive slots
         for start_slot in range(len(time_slots) - hours_needed + 1):
@@ -774,9 +698,7 @@ class Scheduler:
 
             for i in range(hours_needed):
                 time_slot = time_slots[start_slot + i]
-                if not self._is_slot_available_for_class_aggressive(
-                    schedule_entries, class_id, day, time_slot
-                ):
+                if not self._is_slot_available_for_class_aggressive(schedule_entries, class_id, day, time_slot):
                     all_available = False
                     break
                 consecutive_slots.append(time_slot)
@@ -787,45 +709,29 @@ class Scheduler:
         # Strategy 2: Try any available slots
         available_slots = []
         for time_slot in time_slots:
-            if self._is_slot_available_for_class_aggressive(
-                schedule_entries, class_id, day, time_slot
-            ):
+            if self._is_slot_available_for_class_aggressive(schedule_entries, class_id, day, time_slot):
                 available_slots.append(time_slot)
                 if len(available_slots) >= hours_needed:
                     return available_slots[:hours_needed]
 
         return []
 
-    def _can_teacher_teach_at_slots_aggressive(
-        self, schedule_entries, teacher_id, day, time_slots
-    ):
+    def _can_teacher_teach_at_slots_aggressive(self, schedule_entries, teacher_id, day, time_slots):
         """Aggressive teacher availability checking"""
         for time_slot in time_slots:
             # Check memory schedule conflicts
             for entry in schedule_entries:
-                entry_teacher_id = (
-                    entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
-                )
+                entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                 entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-                entry_time_slot = (
-                    entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-                )
+                entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                if (
-                    entry_teacher_id == teacher_id
-                    and entry_day == day
-                    and entry_time_slot == time_slot
-                ):
+                if entry_teacher_id == teacher_id and entry_day == day and entry_time_slot == time_slot:
                     return False
 
             # Check database schedule conflicts
             existing_schedule = self.db_manager.get_schedule_program_by_school_type()
             for entry in existing_schedule:
-                if (
-                    entry.teacher_id == teacher_id
-                    and entry.day == day
-                    and entry.time_slot == time_slot
-                ):
+                if entry.teacher_id == teacher_id and entry.day == day and entry.time_slot == time_slot:
                     return False
 
             # Check explicit availability (AGGRESSIVE - respect teacher preferences)
@@ -838,35 +744,21 @@ class Scheduler:
 
         return True
 
-    def _is_slot_available_for_class_aggressive(
-        self, schedule_entries, class_id, day, time_slot
-    ):
+    def _is_slot_available_for_class_aggressive(self, schedule_entries, class_id, day, time_slot):
         """Aggressive slot availability checking"""
         # Check memory schedule
         for entry in schedule_entries:
-            entry_class_id = (
-                entry["class_id"] if isinstance(entry, dict) else entry.class_id
-            )
+            entry_class_id = entry["class_id"] if isinstance(entry, dict) else entry.class_id
             entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-            entry_time_slot = (
-                entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-            )
+            entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-            if (
-                entry_class_id == class_id
-                and entry_day == day
-                and entry_time_slot == time_slot
-            ):
+            if entry_class_id == class_id and entry_day == day and entry_time_slot == time_slot:
                 return False
 
         # Also check database schedule
         existing_schedule = self.db_manager.get_schedule_program_by_school_type()
         for entry in existing_schedule:
-            if (
-                entry.class_id == class_id
-                and entry.day == day
-                and entry.time_slot == time_slot
-            ):
+            if entry.class_id == class_id and entry.day == day and entry.time_slot == time_slot:
                 return False
 
         return True
@@ -876,14 +768,8 @@ class Scheduler:
         for lesson in lessons:
             # Handle special case for physical education subjects
             if (
-                (
-                    subject_name == "Beden Eğitimi ve Oyun"
-                    and lesson.name == "Beden Eğitimi ve Oyun"
-                )
-                or (
-                    subject_name == "Beden Eğitimi ve Spor"
-                    and lesson.name == "Beden Eğitimi ve Spor"
-                )
+                (subject_name == "Beden Eğitimi ve Oyun" and lesson.name == "Beden Eğitimi ve Oyun")
+                or (subject_name == "Beden Eğitimi ve Spor" and lesson.name == "Beden Eğitimi ve Spor")
                 or (lesson.name == subject_name)
             ):
                 return lesson
@@ -891,16 +777,10 @@ class Scheduler:
 
     def _has_conflict(self, schedule_entries, new_entry):
         """Check if a new entry conflicts with existing entries - improved version"""
-        new_class_id = (
-            new_entry["class_id"] if isinstance(new_entry, dict) else new_entry.class_id
-        )
+        new_class_id = new_entry["class_id"] if isinstance(new_entry, dict) else new_entry.class_id
         new_day = new_entry["day"] if isinstance(new_entry, dict) else new_entry.day
-        new_time_slot = (
-            new_entry["time_slot"] if isinstance(new_entry, dict) else new_entry.time_slot
-        )
-        new_teacher_id = (
-            new_entry["teacher_id"] if isinstance(new_entry, dict) else new_entry.teacher_id
-        )
+        new_time_slot = new_entry["time_slot"] if isinstance(new_entry, dict) else new_entry.time_slot
+        new_teacher_id = new_entry["teacher_id"] if isinstance(new_entry, dict) else new_entry.teacher_id
 
         for entry in schedule_entries:
             # Extract entry data
@@ -949,9 +829,7 @@ class Scheduler:
         else:
             # 5+ hours: mix of 2-hour and 1-hour blocks
             # Aim for mostly 2-hour blocks with some singles for flexibility
-            two_hour_blocks = min(
-                total_hours // 2, num_days - 1
-            )  # Leave room for singles
+            two_hour_blocks = min(total_hours // 2, num_days - 1)  # Leave room for singles
             blocks = [2] * two_hour_blocks
             remaining = total_hours - (two_hour_blocks * 2)
             blocks.extend([1] * remaining)
@@ -969,9 +847,7 @@ class Scheduler:
 
         return blocks
 
-    def _find_consecutive_slots(
-        self, schedule_entries, class_id, day, time_slots, hours_needed
-    ):
+    def _find_consecutive_slots(self, schedule_entries, class_id, day, time_slots, hours_needed):
         """
         Find consecutive available time slots for a class on a specific day
         Returns a list of consecutive time slots or empty list if not found
@@ -984,9 +860,7 @@ class Scheduler:
 
             for i in range(hours_needed):
                 time_slot = time_slots[start_slot + i]
-                if not self._is_slot_available_for_class(
-                    schedule_entries, class_id, day, time_slot
-                ):
+                if not self._is_slot_available_for_class(schedule_entries, class_id, day, time_slot):
                     all_available = False
                     break
                 consecutive_slots.append(time_slot)
@@ -998,9 +872,7 @@ class Scheduler:
         # This is a fallback approach
         available_slots = []
         for time_slot in time_slots:
-            if self._is_slot_available_for_class(
-                schedule_entries, class_id, day, time_slot
-            ):
+            if self._is_slot_available_for_class(schedule_entries, class_id, day, time_slot):
                 available_slots.append(time_slot)
                 if len(available_slots) >= hours_needed:
                     # Return the first hours_needed slots (not necessarily consecutive)
@@ -1008,25 +880,19 @@ class Scheduler:
 
         return []
 
-    def _find_available_teacher_for_period(
-        self, schedule_entries, teachers, lesson, day, start_time, end_time
-    ):
+    def _find_available_teacher_for_period(self, schedule_entries, teachers, lesson, day, start_time, end_time):
         """
         Find an available teacher for a period (consecutive time slots)
         """
 
         # First, get all teachers who can teach this lesson
-        eligible_teachers = [
-            teacher for teacher in teachers if teacher.subject == lesson.name
-        ]
+        eligible_teachers = [teacher for teacher in teachers if teacher.subject == lesson.name]
 
         # Special handling for T.C. İnkılap Tarihi ve Atatürkçülük lesson in 8th grade
         # Allow Sosyal Bilgiler teachers to also teach this subject
         if lesson.name == "T.C. İnkılap Tarihi ve Atatürkçülük":
             # Add Sosyal Bilgiler teachers as eligible for this lesson
-            sosyal_bilgiler_teachers = [
-                teacher for teacher in teachers if teacher.subject == "Sosyal Bilgiler"
-            ]
+            sosyal_bilgiler_teachers = [teacher for teacher in teachers if teacher.subject == "Sosyal Bilgiler"]
             eligible_teachers.extend(sosyal_bilgiler_teachers)
 
         # If no eligible teachers, return None
@@ -1041,9 +907,7 @@ class Scheduler:
             count = 0
             for entry in schedule_entries:
                 # Handle both dictionary and ScheduleEntry object formats
-                entry_teacher_id = (
-                    entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
-                )
+                entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                 if entry_teacher_id == teacher.teacher_id:
                     count += 1
             teacher_hours[teacher.teacher_id] = count
@@ -1058,23 +922,11 @@ class Scheduler:
                 # Check if teacher is already scheduled at this time
                 for entry in schedule_entries:
                     # Handle both dictionary and ScheduleEntry object formats
-                    entry_teacher_id = (
-                        entry["teacher_id"]
-                        if isinstance(entry, dict)
-                        else entry.teacher_id
-                    )
+                    entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                     entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-                    entry_time_slot = (
-                        entry["time_slot"]
-                        if isinstance(entry, dict)
-                        else entry.time_slot
-                    )
+                    entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                    if (
-                        entry_teacher_id == teacher.teacher_id
-                        and entry_day == day
-                        and entry_time_slot == time_slot
-                    ):
+                    if entry_teacher_id == teacher.teacher_id and entry_day == day and entry_time_slot == time_slot:
                         teacher_available = False
                         break
 
@@ -1082,9 +934,7 @@ class Scheduler:
                     break
 
                 # Check if teacher is explicitly available for this time slot
-                if not self.db_manager.is_teacher_available(
-                    teacher.teacher_id, day, time_slot
-                ):
+                if not self.db_manager.is_teacher_available(teacher.teacher_id, day, time_slot):
                     teacher_available = False
                     break
 
@@ -1098,23 +948,11 @@ class Scheduler:
             for time_slot in range(start_time, end_time + 1):
                 for entry in schedule_entries:
                     # Handle both dictionary and ScheduleEntry object formats
-                    entry_teacher_id = (
-                        entry["teacher_id"]
-                        if isinstance(entry, dict)
-                        else entry.teacher_id
-                    )
+                    entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                     entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-                    entry_time_slot = (
-                        entry["time_slot"]
-                        if isinstance(entry, dict)
-                        else entry.time_slot
-                    )
+                    entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                    if (
-                        entry_teacher_id == teacher.teacher_id
-                        and entry_day == day
-                        and entry_time_slot == time_slot
-                    ):
+                    if entry_teacher_id == teacher.teacher_id and entry_day == day and entry_time_slot == time_slot:
                         teacher_available = False
                         break
                 if not teacher_available:
@@ -1129,51 +967,29 @@ class Scheduler:
         """Check if a time slot is available for a class"""
         for entry in schedule_entries:
             # Handle both dictionary and ScheduleEntry object formats
-            entry_class_id = (
-                entry["class_id"] if isinstance(entry, dict) else entry.class_id
-            )
+            entry_class_id = entry["class_id"] if isinstance(entry, dict) else entry.class_id
             entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-            entry_time_slot = (
-                entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-            )
+            entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-            if (
-                entry_class_id == class_id
-                and entry_day == day
-                and entry_time_slot == time_slot
-            ):
+            if entry_class_id == class_id and entry_day == day and entry_time_slot == time_slot:
                 return False
         return True
 
-    def _is_slot_available_for_class_enhanced(
-        self, schedule_entries, class_id, day, time_slot
-    ):
+    def _is_slot_available_for_class_enhanced(self, schedule_entries, class_id, day, time_slot):
         """Enhanced slot availability checking with database validation"""
         # Check memory schedule
         for entry in schedule_entries:
-            entry_class_id = (
-                entry["class_id"] if isinstance(entry, dict) else entry.class_id
-            )
+            entry_class_id = entry["class_id"] if isinstance(entry, dict) else entry.class_id
             entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-            entry_time_slot = (
-                entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-            )
+            entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-            if (
-                entry_class_id == class_id
-                and entry_day == day
-                and entry_time_slot == time_slot
-            ):
+            if entry_class_id == class_id and entry_day == day and entry_time_slot == time_slot:
                 return False
 
         # Also check database schedule
         existing_schedule = self.db_manager.get_schedule_program_by_school_type()
         for entry in existing_schedule:
-            if (
-                entry.class_id == class_id
-                and entry.day == day
-                and entry.time_slot == time_slot
-            ):
+            if entry.class_id == class_id and entry.day == day and entry.time_slot == time_slot:
                 return False
 
         return True
@@ -1210,9 +1026,7 @@ class Scheduler:
         # Allow Sosyal Bilgiler teachers to also teach this subject
         if lesson.name == "T.C. İnkılap Tarihi ve Atatürkçülük":
             # Add Sosyal Bilgiler teachers as eligible for this lesson
-            sosyal_bilgiler_teachers = [
-                teacher for teacher in teachers if teacher.subject == "Sosyal Bilgiler"
-            ]
+            sosyal_bilgiler_teachers = [teacher for teacher in teachers if teacher.subject == "Sosyal Bilgiler"]
             eligible_teachers.extend(sosyal_bilgiler_teachers)
 
         # If no eligible teachers, return None
@@ -1225,17 +1039,11 @@ class Scheduler:
             teacher_scheduled = False
             for entry in schedule_entries:
                 # Handle both dictionary and ScheduleEntry object formats
-                entry_teacher_id = (
-                    entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
-                )
+                entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
                 entry_day = entry["day"] if isinstance(entry, dict) else entry.day
                 entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                if (
-                    entry_teacher_id == teacher.teacher_id
-                    and entry_day == day
-                    and entry_time_slot == time_slot
-                ):
+                if entry_teacher_id == teacher.teacher_id and entry_day == day and entry_time_slot == time_slot:
                     teacher_scheduled = True
                     break
 
@@ -1256,17 +1064,11 @@ class Scheduler:
             classroom_scheduled = False
             for entry in schedule_entries:
                 # Handle both dictionary and ScheduleEntry object formats
-                entry_classroom_id = (
-                    entry["classroom_id"] if isinstance(entry, dict) else entry.classroom_id
-                )
+                entry_classroom_id = entry["classroom_id"] if isinstance(entry, dict) else entry.classroom_id
                 entry_day = entry["day"] if isinstance(entry, dict) else entry.day
                 entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
-                if (
-                    entry_classroom_id == classroom.classroom_id
-                    and entry_day == day
-                    and entry_time_slot == time_slot
-                ):
+                if entry_classroom_id == classroom.classroom_id and entry_day == day and entry_time_slot == time_slot:
                     classroom_scheduled = True
                     break
 
@@ -1286,13 +1088,9 @@ class Scheduler:
         teacher_slots = {}
         for entry in schedule_entries:
             # Handle both dictionary and ScheduleEntry object formats
-            entry_teacher_id = (
-                entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
-            )
+            entry_teacher_id = entry["teacher_id"] if isinstance(entry, dict) else entry.teacher_id
             entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-            entry_time_slot = (
-                entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-            )
+            entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
             key = (entry_teacher_id, entry_day, entry_time_slot)
             if key in teacher_slots:
@@ -1310,13 +1108,9 @@ class Scheduler:
         class_slots = {}
         for entry in schedule_entries:
             # Handle both dictionary and ScheduleEntry object formats
-            entry_class_id = (
-                entry["class_id"] if isinstance(entry, dict) else entry.class_id
-            )
+            entry_class_id = entry["class_id"] if isinstance(entry, dict) else entry.class_id
             entry_day = entry["day"] if isinstance(entry, dict) else entry.day
-            entry_time_slot = (
-                entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
-            )
+            entry_time_slot = entry["time_slot"] if isinstance(entry, dict) else entry.time_slot
 
             key = (entry_class_id, entry_day, entry_time_slot)
             if key in class_slots:

@@ -80,9 +80,7 @@ class PerformanceMonitor:
 
         return wrapper
 
-    def record_scheduler_run(
-        self, scheduler_name: str, duration: float, coverage: float, entries: int, conflicts: int
-    ):
+    def record_scheduler_run(self, scheduler_name: str, duration: float, coverage: float, entries: int, conflicts: int):
         """
         Record a scheduler run
 

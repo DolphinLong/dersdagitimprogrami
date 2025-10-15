@@ -93,9 +93,7 @@ class HybridOptimalScheduler:
 
         # Modülleri başlat
         self.explainer = SchedulerExplainer(db_manager) if EXPLAINER_AVAILABLE else None
-        self.soft_constraints = (
-            SoftConstraintManager(db_manager) if SOFT_CONSTRAINTS_AVAILABLE else None
-        )
+        self.soft_constraints = SoftConstraintManager(db_manager) if SOFT_CONSTRAINTS_AVAILABLE else None
         self.heuristics = ScheduleHeuristics(db_manager) if HEURISTICS_AVAILABLE else None
 
         # Yedek: Simple Perfect Scheduler
@@ -192,9 +190,7 @@ class HybridOptimalScheduler:
         # Adaptif backtrack limiti hesapla
         if LOCAL_SEARCH_AVAILABLE:
             avg_lessons = len(assignments) / max(len(classes), 1)
-            backtrack_limit = adaptive_backtrack_limit(
-                len(classes), len(teachers), int(avg_lessons)
-            )
+            backtrack_limit = adaptive_backtrack_limit(len(classes), len(teachers), int(avg_lessons))
         else:
             backtrack_limit = 5000
 
@@ -253,9 +249,7 @@ class HybridOptimalScheduler:
             iterations_per_temp=50,
         )
 
-        optimized = sa.optimize(
-            schedule, evaluate, neighbor_gen.generate_neighbor, check_constraints
-        )
+        optimized = sa.optimize(schedule, evaluate, neighbor_gen.generate_neighbor, check_constraints)
 
         return optimized
 
@@ -308,9 +302,7 @@ class HybridOptimalScheduler:
             for lesson in config["lessons"]:
                 key = (class_obj.class_id, lesson.lesson_id)
                 if key in config["assignment_map"]:
-                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                        lesson.lesson_id, class_obj.grade
-                    )
+                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
                     if weekly_hours:
                         total_required += weekly_hours
 
@@ -355,9 +347,7 @@ class HybridOptimalScheduler:
 
         return conflicts
 
-    def _resolve_conflicts(
-        self, schedule: List[Dict], conflicts: List[Dict], config: Dict
-    ) -> List[Dict]:
+    def _resolve_conflicts(self, schedule: List[Dict], conflicts: List[Dict], config: Dict) -> List[Dict]:
         """Çakışmaları çözmeye çalış"""
         print("\n🔧 Çakışma çözümü deneniyor...")
 
@@ -373,9 +363,7 @@ class HybridOptimalScheduler:
                     for day in range(5):
                         for slot in range(config["time_slots_count"]):
                             # Bu slot uygun mu?
-                            if self._is_slot_available(
-                                schedule, entry["class_id"], entry["teacher_id"], day, slot
-                            ):
+                            if self._is_slot_available(schedule, entry["class_id"], entry["teacher_id"], day, slot):
                                 # Taşı
                                 entry["day"] = day
                                 entry["time_slot"] = slot
@@ -385,9 +373,7 @@ class HybridOptimalScheduler:
         print(f"   ✅ {resolved_count} çakışma çözüldü")
         return schedule
 
-    def _is_slot_available(
-        self, schedule: List[Dict], class_id: int, teacher_id: int, day: int, slot: int
-    ) -> bool:
+    def _is_slot_available(self, schedule: List[Dict], class_id: int, teacher_id: int, day: int, slot: int) -> bool:
         """Slot uygun mu?"""
         for entry in schedule:
             if entry["day"] == day and entry["time_slot"] == slot:

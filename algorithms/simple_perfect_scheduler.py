@@ -84,9 +84,7 @@ class SimplePerfectScheduler:
             for lesson in lessons:
                 key = (class_obj.class_id, lesson.lesson_id)
                 if key in assignment_map:
-                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                        lesson.lesson_id, class_obj.grade
-                    )
+                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
 
                     if weekly_hours and weekly_hours > 0:
                         teacher_id = assignment_map[key]
@@ -123,9 +121,7 @@ class SimplePerfectScheduler:
                 self.logger.info(f"   📊 İlerleme: {idx + 1}/{len(all_needs)} ders")
 
             # Bu dersin tüm saatlerini yerleştirmeye çalış
-            scheduled = self._schedule_lesson(
-                need, time_slots_count, classrooms, max_attempts=5
-            )
+            scheduled = self._schedule_lesson(need, time_slots_count, classrooms, max_attempts=5)
 
             need["scheduled"] = scheduled
             total_scheduled += scheduled
@@ -136,9 +132,7 @@ class SimplePerfectScheduler:
         self.logger.info("=" * 80)
         self.logger.info(f"📊 Gereksinim: {total_required} saat")
         self.logger.info(f"✅ Yerleşen: {total_scheduled} saat")
-        coverage = (
-            (total_scheduled / total_required * 100) if total_required > 0 else 0
-        )
+        coverage = (total_scheduled / total_required * 100) if total_required > 0 else 0
         self.logger.info(f"📈 Başarı: {coverage:.1f}%")
 
         # Başarısız olanları göster
@@ -172,9 +166,7 @@ class SimplePerfectScheduler:
 
         return self.schedule_entries
 
-    def _schedule_lesson(
-        self, need: Dict, time_slots_count: int, classrooms: List, max_attempts: int = 5
-    ) -> int:
+    def _schedule_lesson(self, need: Dict, time_slots_count: int, classrooms: List, max_attempts: int = 5) -> int:
         """
         Bir dersi yerleştir - Optimal dağılım stratejisi:
         6 saat: 2+2+2 (3 gün)
@@ -274,9 +266,7 @@ class SimplePerfectScheduler:
             )
         elif weekly_hours == 1:
             # 1 saat: Tekli yerleştir
-            scheduled += self._try_singles(
-                class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms
-            )
+            scheduled += self._try_singles(class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms)
 
         # Son çare: Kalan saatler için esnek yerleştirme
         # ÖNEMLİ: 2 saatlik dersler için fallback yok (yukarıda zaten blok olarak yerleştirildi)
@@ -290,9 +280,7 @@ class SimplePerfectScheduler:
         # ÖNEMLİ: 2 saatlik dersler için fallback yok
         if scheduled < weekly_hours and weekly_hours >= 4:
             remaining = weekly_hours - scheduled
-            scheduled += self._try_relaxed(
-                class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms
-            )
+            scheduled += self._try_relaxed(class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms)
 
         return scheduled
 
@@ -328,17 +316,13 @@ class SimplePerfectScheduler:
                     slots = list(range(start_slot, start_slot + block_size))
 
                     # Tüm slotlar uygun mu?
-                    if self._can_place_all(
-                        class_id, teacher_id, day, slots, lesson_id
-                    ):
+                    if self._can_place_all(class_id, teacher_id, day, slots, lesson_id):
                         # Yerleştir
                         classroom = classrooms[0] if classrooms else None
                         classroom_id = classroom.classroom_id if classroom else 1
 
                         for slot in slots:
-                            self._add_entry(
-                                class_id, teacher_id, lesson_id, classroom_id, day, slot
-                            )
+                            self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                             scheduled += 1
 
                         used_days.add(day)
@@ -388,9 +372,7 @@ class SimplePerfectScheduler:
                         classroom_id = classroom.classroom_id if classroom else 1
 
                         for slot in slots:
-                            self._add_entry(
-                                class_id, teacher_id, lesson_id, classroom_id, day, slot
-                            )
+                            self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                             scheduled += 1
 
                         used_days.add(day)
@@ -440,9 +422,7 @@ class SimplePerfectScheduler:
                     classroom = classrooms[0] if classrooms else None
                     classroom_id = classroom.classroom_id if classroom else 1
 
-                    self._add_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
 
         return scheduled
@@ -472,9 +452,7 @@ class SimplePerfectScheduler:
                 classroom = classrooms[0] if classrooms else None
                 classroom_id = classroom.classroom_id if classroom else 1
 
-                self._add_entry(
-                    class_id, teacher_id, lesson_id, classroom_id, day, slot
-                )
+                self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                 scheduled += 1
 
         return scheduled
@@ -504,16 +482,12 @@ class SimplePerfectScheduler:
                     classroom = classrooms[0] if classrooms else None
                     classroom_id = classroom.classroom_id if classroom else 1
 
-                    self._add_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
 
         return scheduled
 
-    def _can_place_all(
-        self, class_id: int, teacher_id: int, day: int, slots: List[int], lesson_id: int = None
-    ) -> bool:
+    def _can_place_all(self, class_id: int, teacher_id: int, day: int, slots: List[int], lesson_id: int = None) -> bool:
         """Tüm slotlara yerleştirilebilir mi?"""
         # ÖNEMLİ: Aynı güne aynı dersi BÖLÜNMÜŞ şekilde yerleştirme
         # Eğer bu günde bu sınıfta bu ders zaten varsa, ardışık olmalı
@@ -521,20 +495,14 @@ class SimplePerfectScheduler:
             # Bu günde bu dersin mevcut slotlarını bul
             existing_slots = []
             for entry in self.schedule_entries:
-                if (
-                    entry["class_id"] == class_id
-                    and entry["lesson_id"] == lesson_id
-                    and entry["day"] == day
-                ):
+                if entry["class_id"] == class_id and entry["lesson_id"] == lesson_id and entry["day"] == day:
                     existing_slots.append(entry["time_slot"])
 
             # Eğer bu günde bu ders zaten varsa
             if existing_slots:
                 for new_slot in slots:
                     # Yeni slot, mevcut slotlardan en az biriyle ardışık olmalı
-                    min_distance = min(
-                        abs(new_slot - existing) for existing in existing_slots
-                    )
+                    min_distance = min(abs(new_slot - existing) for existing in existing_slots)
                     if min_distance > 1:
                         # Hiçbir mevcut slotla ardışık değil -> ENGELLE
                         return False
@@ -553,23 +521,17 @@ class SimplePerfectScheduler:
                 if not self.db_manager.is_teacher_available(teacher_id, day, slot):
                     return False
             except Exception as e:
-                logging.warning(
-                    f"Error checking teacher availability in SimplePerfectScheduler: {e}"
-                )
+                logging.warning(f"Error checking teacher availability in SimplePerfectScheduler: {e}")
                 # On error, treat as available to avoid blocking schedule generation
 
             # ÖNEMLİ: 3 saat üst üste aynı ders kontrolü
             if lesson_id is not None:
-                if self._would_create_three_consecutive_lessons(
-                    class_id, lesson_id, day, slot
-                ):
+                if self._would_create_three_consecutive_lessons(class_id, lesson_id, day, slot):
                     return False
 
         return True
 
-    def _would_create_three_consecutive_lessons(
-        self, class_id: int, lesson_id: int, day: int, slot: int
-    ) -> bool:
+    def _would_create_three_consecutive_lessons(self, class_id: int, lesson_id: int, day: int, slot: int) -> bool:
         """
         Bu slot'a ders yerleştirilirse 3 saat üst üste aynı ders olur mu?
         Returns True if placing would create 3 consecutive same lessons
@@ -630,9 +592,7 @@ class SimplePerfectScheduler:
 
         return True
 
-    def _add_entry(
-        self, class_id: int, teacher_id: int, lesson_id: int, classroom_id: int, day: int, slot: int
-    ):
+    def _add_entry(self, class_id: int, teacher_id: int, lesson_id: int, classroom_id: int, day: int, slot: int):
         """Kayıt ekle"""
         entry = {
             "class_id": class_id,

@@ -96,16 +96,12 @@ class MLScheduler:
         features["is_afternoon"] = 1 if slot >= 4 else 0
 
         # Teacher workload features
-        teacher_hours_today = sum(
-            1 for e in current_schedule if e["teacher_id"] == teacher_id and e["day"] == day
-        )
+        teacher_hours_today = sum(1 for e in current_schedule if e["teacher_id"] == teacher_id and e["day"] == day)
         features["teacher_hours_today"] = teacher_hours_today
         features["teacher_is_busy"] = 1 if teacher_hours_today >= 4 else 0
 
         # Class schedule density
-        class_hours_today = sum(
-            1 for e in current_schedule if e["class_id"] == class_id and e["day"] == day
-        )
+        class_hours_today = sum(1 for e in current_schedule if e["class_id"] == class_id and e["day"] == day)
         features["class_hours_today"] = class_hours_today
         features["class_has_gap"] = self._check_gap(current_schedule, class_id, day, slot)
 
@@ -149,17 +145,13 @@ class MLScheduler:
 
         if not self.is_trained:
             # Fallback to heuristic-based selection
-            return self._heuristic_selection(
-                class_id, lesson_id, teacher_id, available_slots, current_schedule
-            )
+            return self._heuristic_selection(class_id, lesson_id, teacher_id, available_slots, current_schedule)
 
         # Score each available slot
         slot_scores = []
 
         for day, slot in available_slots:
-            features = self.extract_features(
-                class_id, lesson_id, teacher_id, day, slot, current_schedule
-            )
+            features = self.extract_features(class_id, lesson_id, teacher_id, day, slot, current_schedule)
 
             # Predict score (placeholder - replace with actual ML model)
             score = self._calculate_score_from_features(features)
@@ -172,10 +164,7 @@ class MLScheduler:
         # Return best slot
         best_score, best_day, best_slot = slot_scores[0]
 
-        self.logger.info(
-            f"ML predicted best slot: Day {best_day}, Slot {best_slot} "
-            f"(score: {best_score:.2f})"
-        )
+        self.logger.info(f"ML predicted best slot: Day {best_day}, Slot {best_slot} " f"(score: {best_score:.2f})")
 
         return (best_day, best_slot)
 
@@ -214,8 +203,7 @@ class MLScheduler:
             self.feature_data.append(features)
 
         self.logger.info(
-            f"Learned from schedule: {len(schedule)} entries, "
-            f"coverage: {quality_metrics.get('coverage', 0):.1f}%"
+            f"Learned from schedule: {len(schedule)} entries, " f"coverage: {quality_metrics.get('coverage', 0):.1f}%"
         )
 
     def train_model(self):
@@ -227,8 +215,7 @@ class MLScheduler:
         """
         if len(self.feature_data) < 10:
             self.logger.warning(
-                f"Not enough data to train ({len(self.feature_data)} samples). "
-                "Need at least 10 samples."
+                f"Not enough data to train ({len(self.feature_data)} samples). " "Need at least 10 samples."
             )
             return False
 
@@ -236,9 +223,7 @@ class MLScheduler:
 
         # Placeholder: Calculate average weights from successful schedules
         successful_features = [
-            f
-            for f in self.feature_data
-            if f.get("quality_score", 0) >= 90 and f.get("had_conflicts", 1) == 0
+            f for f in self.feature_data if f.get("quality_score", 0) >= 90 and f.get("had_conflicts", 1) == 0
         ]
 
         if successful_features:
@@ -247,18 +232,11 @@ class MLScheduler:
                 "morning_preference": sum(f.get("is_morning", 0) for f in successful_features)
                 / len(successful_features),
                 "avoid_teacher_overload": 1.0
-                - (
-                    sum(f.get("teacher_is_busy", 0) for f in successful_features)
-                    / len(successful_features)
-                ),
+                - (sum(f.get("teacher_is_busy", 0) for f in successful_features) / len(successful_features)),
                 "avoid_gaps": 1.0
-                - (
-                    sum(f.get("class_has_gap", 0) for f in successful_features)
-                    / len(successful_features)
-                ),
+                - (sum(f.get("class_has_gap", 0) for f in successful_features) / len(successful_features)),
                 "difficult_lesson_morning": sum(
-                    f.get("is_difficult_lesson", 0) * f.get("is_morning", 0)
-                    for f in successful_features
+                    f.get("is_difficult_lesson", 0) * f.get("is_morning", 0) for f in successful_features
                 )
                 / len(successful_features),
             }
@@ -381,9 +359,7 @@ class MLScheduler:
 
     def _check_gap(self, schedule: List[Dict], class_id: int, day: int, slot: int) -> int:
         """Check if placing at this slot would create a gap"""
-        class_slots_today = [
-            e["time_slot"] for e in schedule if e["class_id"] == class_id and e["day"] == day
-        ]
+        class_slots_today = [e["time_slot"] for e in schedule if e["class_id"] == class_id and e["day"] == day]
 
         if not class_slots_today:
             return 0
@@ -428,11 +404,7 @@ class MLScheduler:
 
         for hist in self.historical_schedules:
             for entry in hist["schedule"]:
-                if (
-                    entry["lesson_id"] == lesson_id
-                    and entry["day"] == day
-                    and entry["time_slot"] == slot
-                ):
+                if entry["lesson_id"] == lesson_id and entry["day"] == day and entry["time_slot"] == slot:
                     total += 1
                     if hist["metrics"].get("coverage", 0) >= 90:
                         successful += 1

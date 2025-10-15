@@ -87,9 +87,7 @@ class StrictScheduler:
 
         for class_idx, class_obj in enumerate(classes, 1):
             print(f"\n{'='*80}")
-            print(
-                f"📚 [{class_idx}/{len(classes)}] Sınıf: {class_obj.name} (Seviye {class_obj.grade})"
-            )
+            print(f"📚 [{class_idx}/{len(classes)}] Sınıf: {class_obj.name} (Seviye {class_obj.grade})")
             print(f"{'='*80}")
 
             # Get lessons for this class
@@ -111,9 +109,7 @@ class StrictScheduler:
 
             # Schedule each lesson with multiple strategies
             for lesson_info in class_lessons:
-                scheduled = self._schedule_lesson_strict(
-                    class_obj, lesson_info, time_slots_count, classrooms
-                )
+                scheduled = self._schedule_lesson_strict(class_obj, lesson_info, time_slots_count, classrooms)
 
                 total_scheduled += scheduled
 
@@ -179,9 +175,7 @@ class StrictScheduler:
         for lesson in lessons:
             assignment_key = (class_obj.class_id, lesson.lesson_id)
             if assignment_key in assignment_map:
-                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                    lesson.lesson_id, class_obj.grade
-                )
+                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
 
                 if weekly_hours and weekly_hours > 0:
                     teacher_id = assignment_map[assignment_key]
@@ -200,9 +194,7 @@ class StrictScheduler:
 
         return class_lessons
 
-    def _schedule_lesson_strict(
-        self, class_obj, lesson_info: Dict, time_slots_count: int, classrooms: List
-    ) -> int:
+    def _schedule_lesson_strict(self, class_obj, lesson_info: Dict, time_slots_count: int, classrooms: List) -> int:
         """
         Strictly schedule a lesson respecting teacher availability
         Returns number of hours successfully scheduled
@@ -304,9 +296,7 @@ class StrictScheduler:
                         classroom_id = classroom.classroom_id if classroom else 1
 
                         for slot in slots:
-                            self._add_schedule_entry(
-                                class_id, teacher_id, lesson_id, classroom_id, day, slot
-                            )
+                            self._add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                             scheduled += 1
 
                         used_days.add(day)
@@ -350,9 +340,7 @@ class StrictScheduler:
                     classroom = self._find_available_classroom(classrooms, day, slot)
                     classroom_id = classroom.classroom_id if classroom else 1
 
-                    self._add_schedule_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
                     used_days.add(day)
 
@@ -383,9 +371,7 @@ class StrictScheduler:
                     classroom = self._find_available_classroom(classrooms, day, slot)
                     classroom_id = classroom.classroom_id if classroom else 1
 
-                    self._add_schedule_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
 
         return scheduled

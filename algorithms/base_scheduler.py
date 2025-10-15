@@ -87,9 +87,7 @@ class BaseScheduler(ABC):
 
     DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
 
-    def __init__(
-        self, db_manager: Any, progress_callback: Optional[Callable[[str, int], None]] = None
-    ):
+    def __init__(self, db_manager: Any, progress_callback: Optional[Callable[[str, int], None]] = None):
         """
         Initialize base scheduler
 
@@ -103,12 +101,8 @@ class BaseScheduler(ABC):
 
         # State
         self.schedule_entries: List[Dict[str, int]] = []
-        self.teacher_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(
-            set
-        )  # {teacher_id: {(day, slot)}}
-        self.class_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(
-            set
-        )  # {class_id: {(day, slot)}}
+        self.teacher_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(set)  # {teacher_id: {(day, slot)}}
+        self.class_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(set)  # {class_id: {(day, slot)}}
 
     @abstractmethod
     def generate_schedule(self) -> List[Dict]:
@@ -298,9 +292,7 @@ class BaseScheduler(ABC):
         self.class_slots[class_id].add((day, slot))
         self.teacher_slots[teacher_id].add((day, slot))
 
-        self.logger.debug(
-            f"Placed lesson {lesson_id} for class {class_id} on day {day} slot {slot}"
-        )
+        self.logger.debug(f"Placed lesson {lesson_id} for class {class_id} on day {day} slot {slot}")
 
     def _remove_lesson(self, entry: Dict):
         """
@@ -349,9 +341,7 @@ class BaseScheduler(ABC):
 
         for d in days_to_check:
             for s in range(time_slots_count):
-                can_place, _ = self._can_place_lesson(
-                    class_id, teacher_id, d, s, check_availability
-                )
+                can_place, _ = self._can_place_lesson(class_id, teacher_id, d, s, check_availability)
                 if can_place:
                     available_slots.append((d, s))
 
@@ -560,9 +550,7 @@ class BaseScheduler(ABC):
             "coverage_percentage": coverage_percentage,
         }
 
-    def _get_class_lessons(
-        self, class_obj, lessons: List, assignment_map: Dict, teachers: List
-    ) -> List[Dict]:
+    def _get_class_lessons(self, class_obj, lessons: List, assignment_map: Dict, teachers: List) -> List[Dict]:
         """
         Get all lessons assigned to a class with their details
 
@@ -582,9 +570,7 @@ class BaseScheduler(ABC):
             assignment_key = (class_obj.class_id, lesson.lesson_id)
             if assignment_key in assignment_map:
                 # Get weekly hours from curriculum
-                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                    lesson.lesson_id, class_obj.grade
-                )
+                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
 
                 if weekly_hours and weekly_hours > 0:
                     teacher_id = assignment_map[assignment_key]
@@ -603,9 +589,7 @@ class BaseScheduler(ABC):
 
         return class_lessons
 
-    def _find_available_classroom(
-        self, classrooms: List, day: int, time_slot: int
-    ) -> Optional[object]:
+    def _find_available_classroom(self, classrooms: List, day: int, time_slot: int) -> Optional[object]:
         """
         Find an available classroom for a specific day and time slot
 

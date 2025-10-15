@@ -22,25 +22,17 @@ class ConflictResolver:
             entry2 = conflict["entry2"]
 
             # Try to move entry2 to a different time slot
-            self.logger.info(
-                f"Attempting to resolve teacher conflict by moving entry: {entry2}"
-            )
+            self.logger.info(f"Attempting to resolve teacher conflict by moving entry: {entry2}")
             moved = self._move_entry_to_available_slot(entry2)
             if moved:
-                self.logger.info(
-                    f"Successfully resolved teacher conflict by moving entry: {entry2}"
-                )
+                self.logger.info(f"Successfully resolved teacher conflict by moving entry: {entry2}")
                 return True
 
             # If that didn't work, try to move entry1
-            self.logger.info(
-                f"Attempting to resolve teacher conflict by moving entry: {entry1}"
-            )
+            self.logger.info(f"Attempting to resolve teacher conflict by moving entry: {entry1}")
             moved = self._move_entry_to_available_slot(entry1)
             if moved:
-                self.logger.info(
-                    f"Successfully resolved teacher conflict by moving entry: {entry1}"
-                )
+                self.logger.info(f"Successfully resolved teacher conflict by moving entry: {entry1}")
             return moved
         except Exception as e:
             self.logger.error(f"Error resolving teacher conflict: {e}", exc_info=True)
@@ -56,25 +48,17 @@ class ConflictResolver:
             entry2 = conflict["entry2"]
 
             # Try to move entry2 to a different time slot
-            self.logger.info(
-                f"Attempting to resolve class conflict by moving entry: {entry2}"
-            )
+            self.logger.info(f"Attempting to resolve class conflict by moving entry: {entry2}")
             moved = self._move_entry_to_available_slot(entry2)
             if moved:
-                self.logger.info(
-                    f"Successfully resolved class conflict by moving entry: {entry2}"
-                )
+                self.logger.info(f"Successfully resolved class conflict by moving entry: {entry2}")
                 return True
 
             # If that didn't work, try to move entry1
-            self.logger.info(
-                f"Attempting to resolve class conflict by moving entry: {entry1}"
-            )
+            self.logger.info(f"Attempting to resolve class conflict by moving entry: {entry1}")
             moved = self._move_entry_to_available_slot(entry1)
             if moved:
-                self.logger.info(
-                    f"Successfully resolved class conflict by moving entry: {entry1}"
-                )
+                self.logger.info(f"Successfully resolved class conflict by moving entry: {entry1}")
             return moved
         except Exception as e:
             self.logger.error(f"Error resolving class conflict: {e}", exc_info=True)
@@ -111,9 +95,7 @@ class ConflictResolver:
                     continue
 
                 # Check if class is available at this time
-                class_conflict = self._check_class_conflict_at_time(
-                    class_obj.class_id, day, time_slot, entry.entry_id
-                )
+                class_conflict = self._check_class_conflict_at_time(class_obj.class_id, day, time_slot, entry.entry_id)
                 if class_conflict:
                     continue
 
@@ -141,9 +123,7 @@ class ConflictResolver:
         # No available slot found
         return False
 
-    def _check_class_conflict_at_time(
-        self, class_id, day, time_slot, exclude_entry_id=None
-    ):
+    def _check_class_conflict_at_time(self, class_id, day, time_slot, exclude_entry_id=None):
         """Check if a class has a conflict at a specific time"""
         schedule_entries = self.db_manager.get_schedule_by_school_type()
 
@@ -153,18 +133,12 @@ class ConflictResolver:
                 continue
 
             # Check if same class at same time
-            if (
-                entry.class_id == class_id
-                and entry.day == day
-                and entry.time_slot == time_slot
-            ):
+            if entry.class_id == class_id and entry.day == day and entry.time_slot == time_slot:
                 return True
 
         return False
 
-    def _check_teacher_conflict_at_time(
-        self, teacher_id, day, time_slot, exclude_entry_id=None
-    ):
+    def _check_teacher_conflict_at_time(self, teacher_id, day, time_slot, exclude_entry_id=None):
         """Check if a teacher has a conflict at a specific time"""
         schedule_entries = self.db_manager.get_schedule_by_school_type()
 
@@ -174,11 +148,7 @@ class ConflictResolver:
                 continue
 
             # Check if same teacher at same time
-            if (
-                entry.teacher_id == teacher_id
-                and entry.day == day
-                and entry.time_slot == time_slot
-            ):
+            if entry.teacher_id == teacher_id and entry.day == day and entry.time_slot == time_slot:
                 return True
 
         return False
@@ -203,9 +173,7 @@ class ConflictResolver:
                 else:
                     # For other types of conflicts, try a generic approach
                     entry1 = conflict["entry1"]
-                    self.logger.info(
-                        f"Attempting to resolve generic conflict by moving entry: {entry1}"
-                    )
+                    self.logger.info(f"Attempting to resolve generic conflict by moving entry: {entry1}")
                     resolved = self._move_entry_to_available_slot(entry1)
 
                 if resolved:

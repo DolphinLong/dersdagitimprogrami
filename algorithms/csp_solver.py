@@ -139,9 +139,7 @@ class ArcConsistency:
 
         return revised
 
-    def _build_constraint_map(
-        self, variables: List[CSPVariable], constraints: List[CSPConstraint]
-    ) -> Dict:
+    def _build_constraint_map(self, variables: List[CSPVariable], constraints: List[CSPConstraint]) -> Dict:
         """Her değişken için hangi kısıtlamalar var?"""
         constraint_map = defaultdict(list)
         for constraint in constraints:
@@ -293,9 +291,7 @@ class CSPSolver:
 
             if new_domains is not None:
                 # Consistency korunuyor - devam et
-                result = self._backtrack(
-                    assignment, variables, new_domains, constraints, max_backtracks
-                )
+                result = self._backtrack(assignment, variables, new_domains, constraints, max_backtracks)
                 if result is not None:
                     return result
 
@@ -305,9 +301,7 @@ class CSPSolver:
 
         return None
 
-    def _select_unassigned_variable(
-        self, assignment: Dict, variables: List[CSPVariable], domains: Dict
-    ) -> CSPVariable:
+    def _select_unassigned_variable(self, assignment: Dict, variables: List[CSPVariable], domains: Dict) -> CSPVariable:
         """MRV heuristic - en az domain'i olan değişkeni seç"""
         unassigned = [v for v in variables if v not in assignment]
 

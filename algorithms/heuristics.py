@@ -64,9 +64,7 @@ class HeuristicManager:
         # En yüksek degree'ye sahip olanı seç
         return max(unassigned, key=lambda v: degree_map[v])
 
-    def combined_heuristic(
-        self, variables: List, domains: Dict, constraints: List, assignment: Dict
-    ) -> any:
+    def combined_heuristic(self, variables: List, domains: Dict, constraints: List, assignment: Dict) -> any:
         """
         MRV + Degree Kombinasyonu
         Önce MRV, eşitlik durumunda Degree
@@ -160,9 +158,7 @@ class HeuristicManager:
 
         return [value for _, value in value_constraints]
 
-    def fail_first_heuristic(
-        self, variables: List, domains: Dict, constraints: List, assignment: Dict
-    ) -> any:
+    def fail_first_heuristic(self, variables: List, domains: Dict, constraints: List, assignment: Dict) -> any:
         """
         Fail-First Principle
         Başarısız olma ihtimali yüksek olan değişkeni önce dene

@@ -95,9 +95,7 @@ class ParallelScheduler:
         if not self.available_schedulers:
             raise ImportError("No schedulers available for parallel execution")
 
-        self.logger.info(
-            f"Parallel scheduler initialized with {len(self.available_schedulers)} algorithms"
-        )
+        self.logger.info(f"Parallel scheduler initialized with {len(self.available_schedulers)} algorithms")
 
     def generate_schedule(self) -> List[Dict]:
         """
@@ -140,18 +138,14 @@ class ParallelScheduler:
                     result = future.result(timeout=self.timeout)
                     if result:
                         results.append(result)
-                        print(
-                            f"✅ {scheduler_name}: {result['coverage']:.1f}% coverage in {result['time']:.2f}s"
-                        )
+                        print(f"✅ {scheduler_name}: {result['coverage']:.1f}% coverage in {result['time']:.2f}s")
                     else:
                         print(f"❌ {scheduler_name}: Failed")
                 except Exception as e:
                     print(f"❌ {scheduler_name}: Error - {str(e)}")
                     self.logger.error(f"Scheduler {scheduler_name} failed: {e}")
 
-                self._report_progress(
-                    f"{completed}/{len(self.available_schedulers)} tamamlandı", progress
-                )
+                self._report_progress(f"{completed}/{len(self.available_schedulers)} tamamlandı", progress)
 
         elapsed = time.time() - start_time
 
@@ -269,9 +263,7 @@ class ParallelScheduler:
 
         return conflicts
 
-    def _calculate_score(
-        self, schedule: List[Dict], coverage: float, conflicts: int, time_taken: float
-    ) -> float:
+    def _calculate_score(self, schedule: List[Dict], coverage: float, conflicts: int, time_taken: float) -> float:
         """
         Calculate overall score for a schedule
 

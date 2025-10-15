@@ -111,9 +111,7 @@ class SimulatedAnnealing:
 
             # İlerleme raporu (her 10 sıcaklık düşüşünde)
             if self.iterations % (self.iterations_per_temp * 10) == 0:
-                print(
-                    f"   🌡️  T={temperature:.2f}, En iyi skor: {best_score:.2f}, İyileştirme: {self.improvements}"
-                )
+                print(f"   🌡️  T={temperature:.2f}, En iyi skor: {best_score:.2f}, İyileştirme: {self.improvements}")
 
         print(f"\n   ✅ Simulated Annealing tamamlandı")
         print(f"      Toplam iterasyon: {self.iterations}")
@@ -341,9 +339,7 @@ class ScheduleNeighborGenerator:
                     else:
                         # Ardışık değil - önceki blogu kaydet
                         if len(current_block) > 0:
-                            lesson_blocks.append(
-                                {"day": day, "slots": current_slots, "indices": current_indices}
-                            )
+                            lesson_blocks.append({"day": day, "slots": current_slots, "indices": current_indices})
 
                         # Yeni blok başlat
                         current_block = [slot]
@@ -352,18 +348,14 @@ class ScheduleNeighborGenerator:
 
                 # Son bloğu kaydet
                 if len(current_block) > 0:
-                    lesson_blocks.append(
-                        {"day": day, "slots": current_slots, "indices": current_indices}
-                    )
+                    lesson_blocks.append({"day": day, "slots": current_slots, "indices": current_indices})
 
             blocks[key] = lesson_blocks
 
         return blocks
 
 
-def adaptive_backtrack_limit(
-    num_classes: int, num_teachers: int, avg_lessons_per_class: int
-) -> int:
+def adaptive_backtrack_limit(num_classes: int, num_teachers: int, avg_lessons_per_class: int) -> int:
     """
     Problem boyutuna göre adaptif backtrack limiti
 

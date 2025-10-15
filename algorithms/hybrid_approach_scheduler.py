@@ -81,16 +81,12 @@ class HybridApproachScheduler:
             raise ImportError("SimplePerfectScheduler not available")
 
         if not ULTRA_AGGRESSIVE_AVAILABLE:
-            self.logger.warning(
-                "UltraAggressiveScheduler not available - will use SimplePerfect only"
-            )
+            self.logger.warning("UltraAggressiveScheduler not available - will use SimplePerfect only")
 
         # Initialize schedulers
         self.simple_perfect = SimplePerfectScheduler(db_manager)
         self.ultra_aggressive = (
-            UltraAggressiveScheduler(db_manager, progress_callback)
-            if ULTRA_AGGRESSIVE_AVAILABLE
-            else None
+            UltraAggressiveScheduler(db_manager, progress_callback) if ULTRA_AGGRESSIVE_AVAILABLE else None
         )
 
     def generate_schedule(self) -> List[Dict]:
@@ -282,16 +278,12 @@ class HybridApproachScheduler:
             teacher_id = assignment_map[key]
 
             # Check if this lesson needs more hours
-            weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                lesson.lesson_id, class_obj.grade
-            )
+            weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
             if not weekly_hours:
                 continue
 
             scheduled_hours = sum(
-                1
-                for e in schedule
-                if e["class_id"] == class_id and e["lesson_id"] == lesson.lesson_id
+                1 for e in schedule if e["class_id"] == class_id and e["lesson_id"] == lesson.lesson_id
             )
 
             if scheduled_hours >= weekly_hours:
@@ -314,9 +306,7 @@ class HybridApproachScheduler:
 
         return False
 
-    def _can_place_at_slot(
-        self, schedule: List[Dict], class_id: int, teacher_id: int, day: int, slot: int
-    ) -> bool:
+    def _can_place_at_slot(self, schedule: List[Dict], class_id: int, teacher_id: int, day: int, slot: int) -> bool:
         """Check if lesson can be placed at slot"""
         # Check class conflict
         for entry in schedule:
@@ -325,11 +315,7 @@ class HybridApproachScheduler:
 
         # Check teacher conflict
         for entry in schedule:
-            if (
-                entry["teacher_id"] == teacher_id
-                and entry["day"] == day
-                and entry["time_slot"] == slot
-            ):
+            if entry["teacher_id"] == teacher_id and entry["day"] == day and entry["time_slot"] == slot:
                 return False
 
         # Check teacher availability
@@ -384,9 +370,7 @@ class HybridApproachScheduler:
                 "total_slots": class_total_slots,
                 "scheduled": class_scheduled,
                 "empty_slots": empty_slots,
-                "percentage": (
-                    (class_scheduled / class_total_slots * 100) if class_total_slots > 0 else 100
-                ),
+                "percentage": ((class_scheduled / class_total_slots * 100) if class_total_slots > 0 else 100),
             }
 
         return {

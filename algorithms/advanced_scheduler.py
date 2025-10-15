@@ -72,7 +72,6 @@ class AdvancedScheduler(BaseScheduler):
             self.db_manager.set_setting("scheduler_weights", self.weights)
 
         def generate_schedule(self) -> List[Dict]:
-
             """
 
             Generate optimized schedule using lesson assignments
@@ -89,8 +88,6 @@ class AdvancedScheduler(BaseScheduler):
 
             self.logger.info("=" * 70)
 
-    
-
             try:
 
                 # Get all required data
@@ -103,19 +100,13 @@ class AdvancedScheduler(BaseScheduler):
 
                 classrooms = self.db_manager.get_all_classrooms()
 
-    
-
                 # Get lesson assignments (from schedule_entries table)
 
                 assignments = self.db_manager.get_schedule_by_school_type()
 
-    
-
                 # Get existing schedule to avoid conflicts
 
                 existing_schedule = self.db_manager.get_schedule_program_by_school_type()
-
-    
 
                 # Get school configuration using BaseScheduler method
 
@@ -124,8 +115,6 @@ class AdvancedScheduler(BaseScheduler):
                 school_type = config["school_type"]
 
                 time_slots_count = config["time_slots_count"]
-
-    
 
                 self.logger.info("\n📊 Configuration:")
 
@@ -145,8 +134,6 @@ class AdvancedScheduler(BaseScheduler):
 
                 self.logger.info(f"   Existing Schedule: {len(existing_schedule)} entries")
 
-    
-
                 # Build assignment map: {(class_id, lesson_id): teacher_id}
 
                 assignment_map = {}
@@ -157,15 +144,7 @@ class AdvancedScheduler(BaseScheduler):
 
                     assignment_map[key] = assignment.teacher_id
 
-    
-
-                self.logger.info(
-
-                    f"\n✅ Created {len(assignment_map)} unique lesson-teacher assignments"
-
-                )
-
-    
+                self.logger.info(f"\n✅ Created {len(assignment_map)} unique lesson-teacher assignments")
 
                 # Initialize schedule with existing entries using BaseScheduler state management
 
@@ -175,37 +154,20 @@ class AdvancedScheduler(BaseScheduler):
 
                 self.class_slots.clear()
 
-    
-
                 # Load existing schedule using BaseScheduler _place_lesson method
 
                 for entry in existing_schedule:
 
                     self._place_lesson(
-
                         class_id=entry.class_id,
-
                         lesson_id=entry.lesson_id,
-
                         teacher_id=entry.teacher_id,
-
                         day=entry.day,
-
                         slot=entry.time_slot,
-
                         classroom_id=entry.classroom_id,
-
                     )
 
-    
-
-                self.logger.info(
-
-                    f"📋 Loaded {len(self.schedule_entries)} existing schedule entries"
-
-                )
-
-    
+                self.logger.info(f"📋 Loaded {len(self.schedule_entries)} existing schedule entries")
 
                 # Process each class
 
@@ -214,24 +176,14 @@ class AdvancedScheduler(BaseScheduler):
                     self.logger.info("\n" + "=" * 70)
 
                     self.logger.info(
-
                         f"📚 [{class_idx}/{len(classes)}] Scheduling: {class_obj.name} (Grade {class_obj.grade})"
-
                     )
 
                     self.logger.info("=" * 70)
 
-    
-
                     # Get lessons for this class (using inherited method)
 
-                    class_lessons = super()._get_class_lessons(
-
-                        class_obj, lessons, assignment_map, teachers
-
-                    )
-
-    
+                    class_lessons = super()._get_class_lessons(class_obj, lessons, assignment_map, teachers)
 
                     if not class_lessons:
 
@@ -239,61 +191,31 @@ class AdvancedScheduler(BaseScheduler):
 
                         continue
 
-    
-
                     # Sort lessons by priority (weekly hours descending)
 
                     class_lessons.sort(key=lambda x: x["weekly_hours"], reverse=True)
-
-    
 
                     # Schedule each lesson
 
                     for lesson_info in class_lessons:
 
-                        success = self._schedule_lesson_smart(
-
-                            class_obj, lesson_info, time_slots_count, classrooms
-
-                        )
-
-    
+                        success = self._schedule_lesson_smart(class_obj, lesson_info, time_slots_count, classrooms)
 
                         if not success:
 
-                            self.logger.warning(
-
-                                f"⚠️  Warning: Could not fully schedule {lesson_info['lesson_name']}"
-
-                            )
-
-    
+                            self.logger.warning(f"⚠️  Warning: Could not fully schedule {lesson_info['lesson_name']}")
 
                     # Summary for this class
 
-                    class_total = len(
-
-                        [e for e in self.schedule_entries if e["class_id"] == class_obj.class_id]
-
-                    )
+                    class_total = len([e for e in self.schedule_entries if e["class_id"] == class_obj.class_id])
 
                     expected_total = sum(l["weekly_hours"] for l in class_lessons)
 
-                    coverage = (
-
-                        (class_total / expected_total * 100) if expected_total > 0 else 0
-
-                    )
-
-    
+                    coverage = (class_total / expected_total * 100) if expected_total > 0 else 0
 
                     self.logger.info(
-
                         f"\n📊 Class Summary: {class_total}/{expected_total} hours scheduled ({coverage:.1f}%)"
-
                     )
-
-    
 
                 # Final summary and conflict check
 
@@ -305,8 +227,6 @@ class AdvancedScheduler(BaseScheduler):
 
                 self.logger.info(f"📊 Total entries: {len(self.schedule_entries)}")
 
-    
-
                 # Check conflicts using inherited BaseScheduler method
 
                 conflicts = self._detect_conflicts()
@@ -315,11 +235,7 @@ class AdvancedScheduler(BaseScheduler):
 
                     self.logger.warning(f"⚠️  {len(conflicts)} conflicts detected!")
 
-                    resolved = self._attempt_conflict_resolution(
-
-                        conflicts, time_slots_count
-
-                    )
+                    resolved = self._attempt_conflict_resolution(conflicts, time_slots_count)
 
                     self.logger.info(f"✅ Resolved {resolved} conflicts")
 
@@ -327,29 +243,19 @@ class AdvancedScheduler(BaseScheduler):
 
                     self.logger.info("✅ No conflicts detected!")
 
-    
-
                 # Save updated schedule to database using BaseScheduler method
 
                 self.logger.info("\n💾 Saving schedule to database...")
 
                 if self._save_schedule():
 
-                    self.logger.info(
-
-                        f"✅ Saved {len(self.schedule_entries)} schedule entries to database"
-
-                    )
+                    self.logger.info(f"✅ Saved {len(self.schedule_entries)} schedule entries to database")
 
                 else:
 
                     self.logger.error("❌ Failed to save schedule to database")
 
-    
-
                 return self.schedule_entries
-
-    
 
             except Exception as e:
 
@@ -427,9 +333,7 @@ class AdvancedScheduler(BaseScheduler):
                 )
 
                 # Find available classroom for this time slot (using inherited method)
-                available_classroom = self._find_available_classroom(
-                    classrooms, day, slots[0]
-                )
+                available_classroom = self._find_available_classroom(classrooms, day, slots[0])
 
                 if available_classroom:
                     classroom_id = available_classroom.classroom_id
@@ -450,9 +354,7 @@ class AdvancedScheduler(BaseScheduler):
 
                 scheduled_blocks.append({"day": day, "slots": slots})
             else:
-                self.logger.warning(
-                    f"   ❌ Could not find valid placement for block {block_idx + 1}"
-                )
+                self.logger.warning(f"   ❌ Could not find valid placement for block {block_idx + 1}")
                 # Try single-slot fallback
                 for day in range(5):
                     for slot in range(time_slots_count):
@@ -460,15 +362,9 @@ class AdvancedScheduler(BaseScheduler):
                             class_obj.class_id, teacher_id, day, [slot], check_availability=False
                         ):
                             # Find available classroom for fallback placement (using inherited method)
-                            available_classroom = self._find_available_classroom(
-                                classrooms, day, slot
-                            )
+                            available_classroom = self._find_available_classroom(classrooms, day, slot)
 
-                            fallback_classroom_id = (
-                                available_classroom.classroom_id
-                                if available_classroom
-                                else 1
-                            )
+                            fallback_classroom_id = available_classroom.classroom_id if available_classroom else 1
 
                             # Use BaseScheduler state management for fallback placement
                             self._place_lesson(
@@ -480,22 +376,15 @@ class AdvancedScheduler(BaseScheduler):
                                 fallback_classroom_id,
                             )
                             scheduled_hours += 1
-                            self.logger.warning(
-                                f"   ⚠️  Fallback: Placed 1 hour on day {day+1}, slot {slot+1}"
-                            )
+                            self.logger.warning(f"   ⚠️  Fallback: Placed 1 hour on day {day+1}, slot {slot+1}")
 
                             if scheduled_hours >= block_size:
                                 break
-                    if (
-                        scheduled_hours
-                        >= len([s for b in scheduled_blocks for s in b["slots"]]) + block_size
-                    ):
+                    if scheduled_hours >= len([s for b in scheduled_blocks for s in b["slots"]]) + block_size:
                         break
 
         success_rate = (scheduled_hours / weekly_hours * 100) if weekly_hours > 0 else 0
-        self.logger.info(
-            f"\n   📊 Result: {scheduled_hours}/{weekly_hours} hours ({success_rate:.1f}%)"
-        )
+        self.logger.info(f"\n   📊 Result: {scheduled_hours}/{weekly_hours} hours ({success_rate:.1f}%)")
 
         return scheduled_hours >= weekly_hours  # Enforce 100% success
 
@@ -558,9 +447,7 @@ class AdvancedScheduler(BaseScheduler):
         score = 100.0  # Base score
 
         # Get existing schedule for this class on this day from BaseScheduler state
-        day_schedule = [
-            e for e in self.schedule_entries if e["class_id"] == class_id and e["day"] == day
-        ]
+        day_schedule = [e for e in self.schedule_entries if e["class_id"] == class_id and e["day"] == day]
 
         # 1. Same day penalty - avoid scheduling same lesson twice on same day
         same_lesson_today = any(e["lesson_id"] == lesson_id for e in day_schedule)
@@ -609,10 +496,7 @@ class AdvancedScheduler(BaseScheduler):
         # 6. Consecutive bonus - slight preference for consecutive lessons
         if day_schedule:
             for slot in slots:
-                if any(
-                    e["time_slot"] == slot - 1 or e["time_slot"] == slot + 1
-                    for e in day_schedule
-                ):
+                if any(e["time_slot"] == slot - 1 or e["time_slot"] == slot + 1 for e in day_schedule):
                     score += self.weights["consecutive_bonus"]
 
         # 7. Prefer earlier days if possible for better distribution
@@ -674,8 +558,7 @@ class AdvancedScheduler(BaseScheduler):
                             alternative_found = True
                             resolved += 1
                             self.logger.info(
-                                f"   🔄 Moved conflicting lesson to Day {new_day+1}, "
-                                f"Slot {new_slot+1}"
+                                f"   🔄 Moved conflicting lesson to Day {new_day+1}, " f"Slot {new_slot+1}"
                             )
                             break
 

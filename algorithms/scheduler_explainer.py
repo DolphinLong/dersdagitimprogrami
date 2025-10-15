@@ -84,9 +84,7 @@ class SchedulerExplainer:
 
     def log_warning(self, message: str, context: Dict = None):
         """Bir uyarı kaydet"""
-        self.warnings.append(
-            {"message": message, "context": context or {}, "timestamp": datetime.now()}
-        )
+        self.warnings.append({"message": message, "context": context or {}, "timestamp": datetime.now()})
 
     def analyze_failures(self) -> Dict:
         """
@@ -144,9 +142,7 @@ class SchedulerExplainer:
             )
 
         # 3. Çakışma fazlalığı
-        conflict_count = (
-            self.stats[self.REASON_TEACHER_CONFLICT] + self.stats[self.REASON_CLASS_CONFLICT]
-        )
+        conflict_count = self.stats[self.REASON_TEACHER_CONFLICT] + self.stats[self.REASON_CLASS_CONFLICT]
         if conflict_count > 10:
             issues.append(
                 f"🔴 ÇAKIŞMA FAZLALIĞI: {conflict_count} çakışma tespit edildi. "
@@ -179,14 +175,11 @@ class SchedulerExplainer:
         # Başarısızlık nedenlerine göre öneriler
         if self.stats[self.REASON_TEACHER_UNAVAILABLE] > 0:
             recommendations.append(
-                "💡 Öğretmenlerin uygunluk takvimlerini gözden geçirin ve "
-                "müsait oldukları gün/saatleri artırın."
+                "💡 Öğretmenlerin uygunluk takvimlerini gözden geçirin ve " "müsait oldukları gün/saatleri artırın."
             )
 
         if self.stats[self.REASON_NO_SLOTS] > 0:
-            recommendations.append(
-                "💡 Haftalık ders saati sayısını artırmayı düşünün (örn: 7'den 8'e)."
-            )
+            recommendations.append("💡 Haftalık ders saati sayısını artırmayı düşünün (örn: 7'den 8'e).")
 
         if self.stats[self.REASON_DOMAIN_EXHAUSTED] > 0:
             recommendations.append("💡 Bazı derslerin haftalık saat sayısını azaltmayı düşünün.")
@@ -205,8 +198,7 @@ class SchedulerExplainer:
 
         if success_rate < 80:
             recommendations.append(
-                f"💡 Başarı oranı düşük ({success_rate:.1f}%). "
-                f"Sınıf veya ders sayısını azaltmayı düşünün."
+                f"💡 Başarı oranı düşük ({success_rate:.1f}%). " f"Sınıf veya ders sayısını azaltmayı düşünün."
             )
 
         return recommendations
@@ -262,17 +254,11 @@ class SchedulerExplainer:
             report.append("📝 Başarısız Dersler (ilk 10):")
             for i, failure in enumerate(self.failures[:10], 1):
                 success_rate = (
-                    (failure.scheduled_hours / failure.required_hours * 100)
-                    if failure.required_hours > 0
-                    else 0
+                    (failure.scheduled_hours / failure.required_hours * 100) if failure.required_hours > 0 else 0
                 )
+                report.append(f"   {i}. {failure.class_name} - {failure.lesson_name} " f"({failure.teacher_name})")
                 report.append(
-                    f"   {i}. {failure.class_name} - {failure.lesson_name} "
-                    f"({failure.teacher_name})"
-                )
-                report.append(
-                    f"      Yerleşen: {failure.scheduled_hours}/{failure.required_hours} saat "
-                    f"({success_rate:.0f}%)"
+                    f"      Yerleşen: {failure.scheduled_hours}/{failure.required_hours} saat " f"({success_rate:.0f}%)"
                 )
                 report.append(f"      Neden: {self._get_reason_name(failure.reason)}")
             report.append("")

@@ -102,9 +102,7 @@ class EnhancedStrictScheduler:
                 total_required += lesson_info["weekly_hours"]
 
                 # İlk deneme: Normal yerleştirme
-                scheduled = self._schedule_lesson_enhanced(
-                    class_obj, lesson_info, time_slots_count, classrooms
-                )
+                scheduled = self._schedule_lesson_enhanced(class_obj, lesson_info, time_slots_count, classrooms)
 
                 total_scheduled += scheduled
 
@@ -144,9 +142,7 @@ class EnhancedStrictScheduler:
         if failed_lessons:
             print(f"\n⚠️  {len(failed_lessons)} ders tam yerleştirilemedi:")
             for fail in failed_lessons[:5]:
-                print(
-                    f"   • {fail['class']} - {fail['lesson']}: {fail['scheduled']}/{fail['required']} saat"
-                )
+                print(f"   • {fail['class']} - {fail['lesson']}: {fail['scheduled']}/{fail['required']} saat")
         else:
             print(f"\n🎉 TÜM DERSLER BAŞARIYLA YERLEŞTİRİLDİ!")
 
@@ -177,9 +173,7 @@ class EnhancedStrictScheduler:
         for lesson in lessons:
             assignment_key = (class_obj.class_id, lesson.lesson_id)
             if assignment_key in assignment_map:
-                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
-                    lesson.lesson_id, class_obj.grade
-                )
+                weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
 
                 if weekly_hours and weekly_hours > 0:
                     teacher_id = assignment_map[assignment_key]
@@ -198,9 +192,7 @@ class EnhancedStrictScheduler:
 
         return class_lessons
 
-    def _schedule_lesson_enhanced(
-        self, class_obj, lesson_info: Dict, time_slots_count: int, classrooms: List
-    ) -> int:
+    def _schedule_lesson_enhanced(self, class_obj, lesson_info: Dict, time_slots_count: int, classrooms: List) -> int:
         """
         Geliştirilmiş ders yerleştirme - Optimal dağılım stratejisi:
         6 saat: 2+2+2 (3 gün), 5 saat: 2+2+1, 4 saat: 2+2, 3 saat: 2+1
@@ -288,9 +280,7 @@ class EnhancedStrictScheduler:
                 class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms, 2
             )
         elif weekly_hours == 1:
-            scheduled_hours += self._try_smart_singles(
-                class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms
-            )
+            scheduled_hours += self._try_smart_singles(class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms)
 
         # Son çare
         # ÖNEMLİ: 2 saatlik dersler için fallback yok (yukarıda zaten blok olarak yerleştirildi)
@@ -380,9 +370,7 @@ class EnhancedStrictScheduler:
                 classroom_id = classroom.classroom_id if classroom else 1
 
                 for slot in slots:
-                    self._add_schedule_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
                     self.slot_pressure[day][slot] += 1
 
@@ -428,9 +416,7 @@ class EnhancedStrictScheduler:
                 classroom_id = classroom.classroom_id if classroom else 1
 
                 for slot in slots:
-                    self._add_schedule_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
                     # Yoğunluğu güncelle
                     self.slot_pressure[day][slot] += 1
@@ -505,9 +491,7 @@ class EnhancedStrictScheduler:
                     classroom = self._find_available_classroom(classrooms, day, slot)
                     classroom_id = classroom.classroom_id if classroom else 1
 
-                    self._add_schedule_entry(
-                        class_id, teacher_id, lesson_id, classroom_id, day, slot
-                    )
+                    self._add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
                     scheduled += 1
 
         return scheduled
@@ -522,11 +506,7 @@ class EnhancedStrictScheduler:
             # Bu günde bu dersin mevcut slotlarını bul
             existing_slots = []
             for entry in self.schedule_entries:
-                if (
-                    entry["class_id"] == class_id
-                    and entry["lesson_id"] == lesson_id
-                    and entry["day"] == day
-                ):
+                if entry["class_id"] == class_id and entry["lesson_id"] == lesson_id and entry["day"] == day:
                     existing_slots.append(entry["time_slot"])
 
             # Eğer bu günde bu ders zaten varsa
@@ -558,9 +538,7 @@ class EnhancedStrictScheduler:
 
         return True
 
-    def _would_create_three_consecutive_lessons(
-        self, class_id: int, lesson_id: int, day: int, slot: int
-    ) -> bool:
+    def _would_create_three_consecutive_lessons(self, class_id: int, lesson_id: int, day: int, slot: int) -> bool:
         """
         Bu slot'a ders yerleştirilirse 3 saat üst üste aynı ders olur mu?
         Returns True if placing would create 3 consecutive same lessons

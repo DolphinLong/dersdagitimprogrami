@@ -104,9 +104,7 @@ class InteractiveScheduler:
         """Check if entry is locked"""
         return entry_index in self.locked_entries
 
-    def move_entry(
-        self, entry_index: int, new_day: int, new_slot: int
-    ) -> Tuple[bool, Optional[str]]:
+    def move_entry(self, entry_index: int, new_day: int, new_slot: int) -> Tuple[bool, Optional[str]]:
         """
         Move an entry to a new time slot
 
@@ -149,8 +147,7 @@ class InteractiveScheduler:
         self._detect_conflicts()
 
         self.logger.info(
-            f"Moved entry {entry_index} from Day {old_day} Slot {old_slot} "
-            f"to Day {new_day} Slot {new_slot}"
+            f"Moved entry {entry_index} from Day {old_day} Slot {old_slot} " f"to Day {new_day} Slot {new_slot}"
         )
 
         return True, None
@@ -186,9 +183,7 @@ class InteractiveScheduler:
 
                 if can_place:
                     # Calculate score for this slot
-                    score = self._score_slot(
-                        entry["class_id"], entry["lesson_id"], entry["teacher_id"], day, slot
-                    )
+                    score = self._score_slot(entry["class_id"], entry["lesson_id"], entry["teacher_id"], day, slot)
 
                     suggestions.append(
                         {
@@ -272,9 +267,7 @@ class InteractiveScheduler:
         self._save_to_history()
 
         # Update locked entries indices
-        self.locked_entries = {
-            i if i < entry_index else i - 1 for i in self.locked_entries if i != entry_index
-        }
+        self.locked_entries = {i if i < entry_index else i - 1 for i in self.locked_entries if i != entry_index}
 
         # Update conflicts
         self._detect_conflicts()
@@ -442,9 +435,7 @@ class InteractiveScheduler:
                     }
                 )
 
-    def _score_slot(
-        self, class_id: int, lesson_id: int, teacher_id: int, day: int, slot: int
-    ) -> float:
+    def _score_slot(self, class_id: int, lesson_id: int, teacher_id: int, day: int, slot: int) -> float:
         """Score a slot for quality"""
         score = 50.0  # Base score
 
@@ -460,9 +451,7 @@ class InteractiveScheduler:
             score -= 10
 
         # Check for gaps
-        class_slots_today = [
-            e["time_slot"] for e in self.schedule if e["class_id"] == class_id and e["day"] == day
-        ]
+        class_slots_today = [e["time_slot"] for e in self.schedule if e["class_id"] == class_id and e["day"] == day]
 
         if class_slots_today:
             min_slot = min(class_slots_today)
@@ -472,9 +461,7 @@ class InteractiveScheduler:
             if min_slot <= slot <= max_slot:
                 # Check if creates gap
                 all_slots = sorted(class_slots_today + [slot])
-                has_gap = any(
-                    all_slots[i + 1] - all_slots[i] > 1 for i in range(len(all_slots) - 1)
-                )
+                has_gap = any(all_slots[i + 1] - all_slots[i] > 1 for i in range(len(all_slots) - 1))
                 if has_gap:
                     score -= 20
                 else:
@@ -523,13 +510,7 @@ class InteractiveScheduler:
 
         for class_id in set(e["class_id"] for e in self.schedule):
             for day in range(5):
-                slots = sorted(
-                    [
-                        e["time_slot"]
-                        for e in self.schedule
-                        if e["class_id"] == class_id and e["day"] == day
-                    ]
-                )
+                slots = sorted([e["time_slot"] for e in self.schedule if e["class_id"] == class_id and e["day"] == day])
 
                 if len(slots) > 1:
                     for i in range(len(slots) - 1):
