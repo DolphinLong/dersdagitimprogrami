@@ -131,14 +131,20 @@ class LessonDialog(QDialog):
                 # Add new lesson
                 lesson_id = db_manager.add_lesson(lesson_name)
                 if not lesson_id:
-                    # This could happen if the lesson name is not unique
+                    # This could happen if there's a database error
                     create_styled_message_box(
                         self,
                         "Hata",
-                        f"'{lesson_name}' adında bir ders zaten mevcut veya eklenemedi.",
+                        f"'{lesson_name}' dersi eklenirken bir hata oluştu. Lütfen tekrar deneyin.",
                         QMessageBox.Critical,
                     ).exec_()
                     return
+                else:
+                    # Check if this is an existing lesson (returned existing ID)
+                    existing_lessons = db_manager.get_all_lessons()
+                    is_existing = any(l.lesson_id == lesson_id and l.name == lesson_name for l in existing_lessons)
+                    if is_existing:
+                        logging.info(f"Using existing lesson '{lesson_name}' with ID {lesson_id}")
 
             # Step 2: Save the curriculum data from the table
             for i in range(self.curriculum_table.rowCount()):

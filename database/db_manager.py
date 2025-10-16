@@ -348,11 +348,12 @@ class DatabaseManager:
         """Add a new unique lesson name for the current school type."""
         if not self._ensure_connection():
             return None
+        
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        school_type = self._get_current_school_type()
+        
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-
             # Check if lesson already exists for this school type
             cursor.execute(
                 "SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?",
@@ -361,7 +362,7 @@ class DatabaseManager:
             existing = cursor.fetchone()
             if existing:
                 logging.info(f"Lesson '{name}' already exists for school type '{school_type}'")
-                return None  # Lesson already exists for this school type
+                return existing["lesson_id"]  # Return existing lesson_id instead of None
 
             # Insert new lesson
             cursor.execute(
@@ -377,6 +378,25 @@ class DatabaseManager:
                 row = cursor.fetchone()
                 lesson_id = row["lesson_id"] if row else None
             return lesson_id
+        except sqlite3.IntegrityError as e:
+            # This happens when UNIQUE constraint is violated
+            logging.warning(f"Lesson '{name}' already exists for school type '{school_type}': {e}")
+            # Rollback the failed transaction
+            try:
+                conn.rollback()
+            except:
+                pass
+            # Try to get the existing lesson_id
+            try:
+                cursor.execute(
+                    "SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?",
+                    (name, school_type),
+                )
+                row = cursor.fetchone()
+                return row["lesson_id"] if row else None
+            except Exception as ex:
+                logging.error(f"Error fetching existing lesson: {ex}")
+                return None
         except sqlite3.Error as e:
             logging.error(f"Error adding lesson: {e}")
             return None
