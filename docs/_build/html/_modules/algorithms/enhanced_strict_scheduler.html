@@ -1,0 +1,734 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.enhanced_strict_scheduler &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.enhanced_strict_scheduler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.enhanced_strict_scheduler öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Enhanced Strict Scheduler - %100 Doluluk İçin İyileştirilmiş</span>
+<span class="sd">Backtracking ve akıllı slot önceliklendirme ile</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="c1"># Set encoding for Windows</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EnhancedStrictScheduler">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.enhanced_strict_scheduler.EnhancedStrictScheduler">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EnhancedStrictScheduler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Geliştirilmiş scheduler:</span>
+<span class="sd">    - Backtracking ile geri izleme</span>
+<span class="sd">    - Dinamik slot önceliklendirme</span>
+<span class="sd">    - Akıllı çakışma çözme</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SCHOOL_TIME_SLOTS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">&quot;Lise&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Anadolu Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Fen Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Sosyal Bilimler Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="EnhancedStrictScheduler.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.enhanced_strict_scheduler.EnhancedStrictScheduler.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teacher_usage</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">))</span>  <span class="c1"># {teacher_id: {day: {slots}}}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_usage</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">))</span>  <span class="c1"># {class_id: {day: {slots}}}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>  <span class="c1"># {day: {slot: pressure_count}}</span></div>
+
+
+<div class="viewcode-block" id="EnhancedStrictScheduler.generate_schedule">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.enhanced_strict_scheduler.EnhancedStrictScheduler.generate_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ana program oluşturma fonksiyonu&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🚀 ENHANCED STRICT SCHEDULER - Backtracking + Akıllı Önceliklendirme&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+        <span class="c1"># Başlangıç</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teacher_usage</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_usage</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Verileri al</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+        <span class="n">teachers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+        <span class="n">lessons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">()</span>
+        <span class="n">classrooms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classrooms</span><span class="p">()</span>
+        <span class="n">assignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;Lise&quot;</span>
+        <span class="n">time_slots_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHOOL_TIME_SLOTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">school_type</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 Konfigürasyon:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Okul Türü: </span><span class="si">{</span><span class="n">school_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Günlük Saat: </span><span class="si">{</span><span class="n">time_slots_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Sınıf: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span><span class="si">}</span><span class="s2"> | Öğretmen: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">teachers</span><span class="p">)</span><span class="si">}</span><span class="s2"> | Ders: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lessons</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Atamalar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">assignments</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Atama haritası oluştur</span>
+        <span class="n">assignment_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">assignment</span> <span class="ow">in</span> <span class="n">assignments</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">assignment</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="n">assignment_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">assignment</span><span class="o">.</span><span class="n">teacher_id</span>
+
+        <span class="c1"># 1. Aşama: Tüm dersleri yerleştirmeyi dene</span>
+        <span class="n">total_required</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">failed_lessons</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Sınıfları önceliklendir (seviye bazlı)</span>
+        <span class="n">classes_sorted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">classes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">grade</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">class_idx</span><span class="p">,</span> <span class="n">class_obj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">classes_sorted</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📚 [</span><span class="si">{</span><span class="n">class_idx</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (Seviye </span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">class_lessons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_class_lessons</span><span class="p">(</span><span class="n">class_obj</span><span class="p">,</span> <span class="n">lessons</span><span class="p">,</span> <span class="n">assignment_map</span><span class="p">,</span> <span class="n">teachers</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">class_lessons</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠️  Ders ataması bulunamadı&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Dersleri önceliklendir (saate göre, sonra branşa göre)</span>
+            <span class="n">class_lessons</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;lesson_name&quot;</span><span class="p">]))</span>
+
+            <span class="k">for</span> <span class="n">lesson_info</span> <span class="ow">in</span> <span class="n">class_lessons</span><span class="p">:</span>
+                <span class="n">total_required</span> <span class="o">+=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">]</span>
+
+                <span class="c1"># İlk deneme: Normal yerleştirme</span>
+                <span class="n">scheduled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schedule_lesson_enhanced</span><span class="p">(</span><span class="n">class_obj</span><span class="p">,</span> <span class="n">lesson_info</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">)</span>
+
+                <span class="n">total_scheduled</span> <span class="o">+=</span> <span class="n">scheduled</span>
+
+                <span class="c1"># Başarısız ise backtracking dene</span>
+                <span class="k">if</span> <span class="n">scheduled</span> <span class="o">&lt;</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   🔄 Backtracking deneniyor...&quot;</span><span class="p">)</span>
+                    <span class="n">additional</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schedule_with_backtracking</span><span class="p">(</span>
+                        <span class="n">class_obj</span><span class="p">,</span>
+                        <span class="n">lesson_info</span><span class="p">,</span>
+                        <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">scheduled</span><span class="p">,</span>
+                        <span class="n">time_slots_count</span><span class="p">,</span>
+                        <span class="n">classrooms</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">total_scheduled</span> <span class="o">+=</span> <span class="n">additional</span>
+                    <span class="n">scheduled</span> <span class="o">+=</span> <span class="n">additional</span>
+
+                <span class="k">if</span> <span class="n">scheduled</span> <span class="o">&lt;</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">]:</span>
+                    <span class="n">failed_lessons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                            <span class="s2">&quot;lesson&quot;</span><span class="p">:</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;lesson_name&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;teacher&quot;</span><span class="p">:</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;teacher_name&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;scheduled&quot;</span><span class="p">:</span> <span class="n">scheduled</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># Sonuç raporu</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🎯 SONUÇ RAPORU&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📊 Toplam Gereksinim: </span><span class="si">{</span><span class="n">total_required</span><span class="si">}</span><span class="s2"> saat&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ Yerleştirilen: </span><span class="si">{</span><span class="n">total_scheduled</span><span class="si">}</span><span class="s2"> saat&quot;</span><span class="p">)</span>
+        <span class="n">coverage</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_scheduled</span> <span class="o">/</span> <span class="n">total_required</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_required</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📈 Kapsama Oranı: </span><span class="si">{</span><span class="n">coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">failed_lessons</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⚠️  </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_lessons</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders tam yerleştirilemedi:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fail</span> <span class="ow">in</span> <span class="n">failed_lessons</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • </span><span class="si">{</span><span class="n">fail</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">fail</span><span class="p">[</span><span class="s1">&#39;lesson&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">fail</span><span class="p">[</span><span class="s1">&#39;scheduled&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fail</span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> saat&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🎉 TÜM DERSLER BAŞARIYLA YERLEŞTİRİLDİ!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Veritabanına kaydet</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">💾 Veritabanına kaydediliyor...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">clear_schedule</span><span class="p">()</span>
+
+        <span class="n">saved_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">add_schedule_program</span><span class="p">(</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;classroom_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">],</span>
+            <span class="p">):</span>
+                <span class="n">saved_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ </span><span class="si">{</span><span class="n">saved_count</span><span class="si">}</span><span class="s2"> program girişi kaydedildi&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_class_lessons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_obj</span><span class="p">,</span> <span class="n">lessons</span><span class="p">,</span> <span class="n">assignment_map</span><span class="p">,</span> <span class="n">teachers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sınıfın derslerini al&quot;&quot;&quot;</span>
+        <span class="n">class_lessons</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">lesson</span> <span class="ow">in</span> <span class="n">lessons</span><span class="p">:</span>
+            <span class="n">assignment_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">assignment_key</span> <span class="ow">in</span> <span class="n">assignment_map</span><span class="p">:</span>
+                <span class="n">weekly_hours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_weekly_hours_for_lesson</span><span class="p">(</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">weekly_hours</span> <span class="ow">and</span> <span class="n">weekly_hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">assignment_map</span><span class="p">[</span><span class="n">assignment_key</span><span class="p">]</span>
+                    <span class="n">teacher</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_teacher_by_id</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">teacher</span><span class="p">:</span>
+                        <span class="n">class_lessons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;lesson_id&quot;</span><span class="p">:</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span>
+                                <span class="s2">&quot;lesson_name&quot;</span><span class="p">:</span> <span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="s2">&quot;teacher_id&quot;</span><span class="p">:</span> <span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span>
+                                <span class="s2">&quot;teacher_name&quot;</span><span class="p">:</span> <span class="n">teacher</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="s2">&quot;weekly_hours&quot;</span><span class="p">:</span> <span class="n">weekly_hours</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">class_lessons</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_schedule_lesson_enhanced</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_obj</span><span class="p">,</span> <span class="n">lesson_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Geliştirilmiş ders yerleştirme - Optimal dağılım stratejisi:</span>
+<span class="sd">        6 saat: 2+2+2 (3 gün), 5 saat: 2+2+1, 4 saat: 2+2, 3 saat: 2+1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lesson_name</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;lesson_name&quot;</span><span class="p">]</span>
+        <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">]</span>
+        <span class="n">teacher_name</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;teacher_name&quot;</span><span class="p">]</span>
+        <span class="n">weekly_hours</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">]</span>
+        <span class="n">lesson_id</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">]</span>
+        <span class="n">class_id</span> <span class="o">=</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   📝 </span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">weekly_hours</span><span class="si">}</span><span class="s2"> saat) - </span><span class="si">{</span><span class="n">teacher_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">scheduled_hours</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">used_days</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># Blok yerleştirmede kullanılan günler</span>
+
+        <span class="c1"># Haftalık saat sayısına göre optimal dağılım</span>
+        <span class="k">if</span> <span class="n">weekly_hours</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">num_double_blocks</span> <span class="o">=</span> <span class="n">weekly_hours</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">scheduled_hours</span><span class="p">,</span> <span class="n">used_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_blocks_strict</span><span class="p">(</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">num_double_blocks</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">,</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduled_hours</span> <span class="o">&lt;</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                <span class="n">remaining</span> <span class="o">=</span> <span class="n">weekly_hours</span> <span class="o">-</span> <span class="n">scheduled_hours</span>
+                <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_singles</span><span class="p">(</span>
+                    <span class="n">class_id</span><span class="p">,</span>
+                    <span class="n">teacher_id</span><span class="p">,</span>
+                    <span class="n">lesson_id</span><span class="p">,</span>
+                    <span class="n">remaining</span><span class="p">,</span>
+                    <span class="n">time_slots_count</span><span class="p">,</span>
+                    <span class="n">classrooms</span><span class="p">,</span>
+                    <span class="n">exclude_days</span><span class="o">=</span><span class="n">used_days</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">weekly_hours</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">scheduled_hours</span><span class="p">,</span> <span class="n">used_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_blocks_strict</span><span class="p">(</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">,</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduled_hours</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_singles</span><span class="p">(</span>
+                    <span class="n">class_id</span><span class="p">,</span>
+                    <span class="n">teacher_id</span><span class="p">,</span>
+                    <span class="n">lesson_id</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">time_slots_count</span><span class="p">,</span>
+                    <span class="n">classrooms</span><span class="p">,</span>
+                    <span class="n">exclude_days</span><span class="o">=</span><span class="n">used_days</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">remaining</span> <span class="o">=</span> <span class="n">weekly_hours</span> <span class="o">-</span> <span class="n">scheduled_hours</span>
+                <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_any_slot</span><span class="p">(</span>
+                    <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">weekly_hours</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">scheduled_hours</span><span class="p">,</span> <span class="n">used_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_blocks_strict</span><span class="p">(</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">,</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduled_hours</span> <span class="o">&lt;</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                <span class="n">remaining</span> <span class="o">=</span> <span class="n">weekly_hours</span> <span class="o">-</span> <span class="n">scheduled_hours</span>
+                <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_any_slot</span><span class="p">(</span>
+                    <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">weekly_hours</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">scheduled_hours</span><span class="p">,</span> <span class="n">used_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_blocks_strict</span><span class="p">(</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">,</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduled_hours</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_singles</span><span class="p">(</span>
+                    <span class="n">class_id</span><span class="p">,</span>
+                    <span class="n">teacher_id</span><span class="p">,</span>
+                    <span class="n">lesson_id</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">time_slots_count</span><span class="p">,</span>
+                    <span class="n">classrooms</span><span class="p">,</span>
+                    <span class="n">exclude_days</span><span class="o">=</span><span class="n">used_days</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">remaining</span> <span class="o">=</span> <span class="n">weekly_hours</span> <span class="o">-</span> <span class="n">scheduled_hours</span>
+                <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_any_slot</span><span class="p">(</span>
+                    <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">weekly_hours</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># 2 saat: MUTLAKA tek blok (ardışık 2 saat) olarak yerleştir</span>
+            <span class="c1"># Fallback YOK - ya blok olarak yerleşir ya hiç yerleşmez</span>
+            <span class="n">scheduled_hours</span><span class="p">,</span> <span class="n">used_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_blocks_strict</span><span class="p">(</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">,</span> <span class="mi">2</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">weekly_hours</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_smart_singles</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">)</span>
+
+        <span class="c1"># Son çare</span>
+        <span class="c1"># ÖNEMLİ: 2 saatlik dersler için fallback yok (yukarıda zaten blok olarak yerleştirildi)</span>
+        <span class="k">if</span> <span class="n">scheduled_hours</span> <span class="o">&lt;</span> <span class="n">weekly_hours</span> <span class="ow">and</span> <span class="n">weekly_hours</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">remaining</span> <span class="o">=</span> <span class="n">weekly_hours</span> <span class="o">-</span> <span class="n">scheduled_hours</span>
+            <span class="n">scheduled_hours</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_any_slot</span><span class="p">(</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">,</span> <span class="n">classrooms</span>
+            <span class="p">)</span>
+
+        <span class="n">rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">scheduled_hours</span> <span class="o">/</span> <span class="n">weekly_hours</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">weekly_hours</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✅&quot;</span> <span class="k">if</span> <span class="n">rate</span> <span class="o">==</span> <span class="mi">100</span> <span class="k">else</span> <span class="s2">&quot;⚠️&quot;</span> <span class="k">if</span> <span class="n">rate</span> <span class="o">&gt;=</span> <span class="mi">80</span> <span class="k">else</span> <span class="s2">&quot;❌&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">scheduled_hours</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">weekly_hours</span><span class="si">}</span><span class="s2"> saat (</span><span class="si">{</span><span class="n">rate</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">scheduled_hours</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_schedule_with_backtracking</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_obj</span><span class="p">,</span>
+        <span class="n">lesson_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+        <span class="n">hours_needed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Backtracking ile yerleştirme&quot;&quot;&quot;</span>
+        <span class="n">class_id</span> <span class="o">=</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span>
+        <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">]</span>
+        <span class="n">lesson_id</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">]</span>
+
+        <span class="n">scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_attempts</span> <span class="o">=</span> <span class="mi">20</span>
+
+        <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_attempts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">scheduled</span> <span class="o">&gt;=</span> <span class="n">hours_needed</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Rastgele bir gün ve slot seç</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">slot</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_slots_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_lesson</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="p">[</span><span class="n">slot</span><span class="p">],</span> <span class="n">lesson_id</span><span class="p">):</span>
+                <span class="n">classroom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_available_classroom</span><span class="p">(</span><span class="n">classrooms</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                <span class="n">classroom_id</span> <span class="o">=</span> <span class="n">classroom</span><span class="o">.</span><span class="n">classroom_id</span> <span class="k">if</span> <span class="n">classroom</span> <span class="k">else</span> <span class="mi">1</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                <span class="n">scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">scheduled</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_try_smart_blocks_strict</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Belirli sayıda blok yerleştir - Her blok FARKLI bir güne</span>
+<span class="sd">        Örn: 2+2+2 için num_blocks=3, block_size=2</span>
+<span class="sd">        Returns: (scheduled_count, used_days_set)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">used_days</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">blocks_placed</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Slot yoğunluğuna göre sırala (az yoğun olanlar önce)</span>
+        <span class="n">slot_scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">start_slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span> <span class="o">-</span> <span class="n">block_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">slots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start_slot</span><span class="p">,</span> <span class="n">start_slot</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">))</span>
+                <span class="n">pressure</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">)</span>
+                <span class="n">slot_scores</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pressure</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span><span class="p">))</span>
+
+        <span class="n">slot_scores</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># Az yoğun olanlar önce</span>
+
+        <span class="k">for</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span> <span class="ow">in</span> <span class="n">slot_scores</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">blocks_placed</span> <span class="o">&gt;=</span> <span class="n">num_blocks</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">used_days</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_lesson</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">):</span>
+                <span class="n">classroom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_available_classroom</span><span class="p">(</span><span class="n">classrooms</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">classroom_id</span> <span class="o">=</span> <span class="n">classroom</span><span class="o">.</span><span class="n">classroom_id</span> <span class="k">if</span> <span class="n">classroom</span> <span class="k">else</span> <span class="mi">1</span>
+
+                <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                    <span class="n">scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="n">used_days</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">day</span><span class="p">)</span>
+                <span class="n">blocks_placed</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">scheduled</span><span class="p">,</span> <span class="n">used_days</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_try_smart_blocks</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">total_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Akıllı blok yerleştirme - az yoğun slotları tercih et (eski yöntem - yedek)&quot;&quot;&quot;</span>
+        <span class="n">scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">num_blocks</span> <span class="o">=</span> <span class="n">total_hours</span> <span class="o">//</span> <span class="n">block_size</span>
+
+        <span class="c1"># Slot yoğunluğuna göre sırala (az yoğun olanlar önce)</span>
+        <span class="n">slot_scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">start_slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span> <span class="o">-</span> <span class="n">block_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">slots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start_slot</span><span class="p">,</span> <span class="n">start_slot</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">))</span>
+                <span class="n">pressure</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">)</span>
+                <span class="n">slot_scores</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pressure</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span><span class="p">))</span>
+
+        <span class="n">slot_scores</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># Az yoğun olanlar önce</span>
+
+        <span class="n">used_days</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span> <span class="ow">in</span> <span class="n">slot_scores</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">scheduled</span> <span class="o">&gt;=</span> <span class="n">num_blocks</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">used_days</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_lesson</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">):</span>
+                <span class="n">classroom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_available_classroom</span><span class="p">(</span><span class="n">classrooms</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slots</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">classroom_id</span> <span class="o">=</span> <span class="n">classroom</span><span class="o">.</span><span class="n">classroom_id</span> <span class="k">if</span> <span class="n">classroom</span> <span class="k">else</span> <span class="mi">1</span>
+
+                <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                    <span class="n">scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1"># Yoğunluğu güncelle</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="n">used_days</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">day</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">scheduled</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_try_smart_singles</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hours_needed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">exclude_days</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Akıllı tekli slot yerleştirme</span>
+<span class="sd">        exclude_days: Bu günlere yerleştirme yapma (aynı güne 2+1 olmasın diye)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">exclude_days</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">exclude_days</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># Tüm slotları yoğunluğa göre sırala</span>
+        <span class="n">slot_scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="c1"># ÖNEMLI: Aynı güne yerleştirme yapma</span>
+            <span class="k">if</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">exclude_days</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span><span class="p">):</span>
+                <span class="n">pressure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span>
+                <span class="n">slot_scores</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pressure</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">))</span>
+
+        <span class="n">slot_scores</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># Az yoğun olanlar önce</span>
+
+        <span class="k">for</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slot_scores</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">scheduled</span> <span class="o">&gt;=</span> <span class="n">hours_needed</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_lesson</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="p">[</span><span class="n">slot</span><span class="p">],</span> <span class="n">lesson_id</span><span class="p">):</span>
+                <span class="n">classroom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_available_classroom</span><span class="p">(</span><span class="n">classrooms</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                <span class="n">classroom_id</span> <span class="o">=</span> <span class="n">classroom</span><span class="o">.</span><span class="n">classroom_id</span> <span class="k">if</span> <span class="n">classroom</span> <span class="k">else</span> <span class="mi">1</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                <span class="n">scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">slot_pressure</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">scheduled</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_try_any_slot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hours_needed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Son çare: herhangi bir boş slot&quot;&quot;&quot;</span>
+        <span class="n">scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">scheduled</span> <span class="o">&gt;=</span> <span class="n">hours_needed</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_lesson</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="p">[</span><span class="n">slot</span><span class="p">],</span> <span class="n">lesson_id</span><span class="p">):</span>
+                    <span class="n">classroom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_available_classroom</span><span class="p">(</span><span class="n">classrooms</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                    <span class="n">classroom_id</span> <span class="o">=</span> <span class="n">classroom</span><span class="o">.</span><span class="n">classroom_id</span> <span class="k">if</span> <span class="n">classroom</span> <span class="k">else</span> <span class="mi">1</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                    <span class="n">scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">scheduled</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_can_place_lesson</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slots</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ders yerleştirilebilir mi kontrol et&quot;&quot;&quot;</span>
+        <span class="c1"># ÖNEMLİ: Aynı güne aynı dersi BÖLÜNMÜŞ şekilde yerleştirme</span>
+        <span class="c1"># Eğer bu günde bu sınıfta bu ders zaten varsa, ardışık olmalı</span>
+        <span class="k">if</span> <span class="n">lesson_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Bu günde bu dersin mevcut slotlarını bul</span>
+            <span class="n">existing_slots</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">lesson_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">day</span><span class="p">:</span>
+                    <span class="n">existing_slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">])</span>
+
+            <span class="c1"># Eğer bu günde bu ders zaten varsa</span>
+            <span class="k">if</span> <span class="n">existing_slots</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">new_slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
+                    <span class="c1"># Yeni slot, mevcut slotlardan en az biriyle ardışık olmalı</span>
+                    <span class="n">min_distance</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">new_slot</span> <span class="o">-</span> <span class="n">existing</span><span class="p">)</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">existing_slots</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">min_distance</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># Hiçbir mevcut slotla ardışık değil -&gt; ENGELLE</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
+            <span class="c1"># Öğretmen uygunluğu (ZORUNLU)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">is_teacher_available</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1"># Sınıf çakışması</span>
+            <span class="k">if</span> <span class="n">slot</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_usage</span><span class="p">[</span><span class="n">class_id</span><span class="p">][</span><span class="n">day</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1"># Öğretmen çakışması</span>
+            <span class="k">if</span> <span class="n">slot</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher_usage</span><span class="p">[</span><span class="n">teacher_id</span><span class="p">][</span><span class="n">day</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1"># ÖNEMLİ: 3 saat üst üste aynı ders kontrolü</span>
+            <span class="k">if</span> <span class="n">lesson_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_would_create_three_consecutive_lessons</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_would_create_three_consecutive_lessons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Bu slot&#39;a ders yerleştirilirse 3 saat üst üste aynı ders olur mu?</span>
+<span class="sd">        Returns True if placing would create 3 consecutive same lessons</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Bu sınıfın bu gündeki tüm derslerini bul</span>
+        <span class="n">class_schedule_today</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">day</span><span class="p">:</span>
+                <span class="n">class_schedule_today</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">]))</span>
+
+        <span class="c1"># Slot&#39;a göre sırala</span>
+        <span class="n">class_schedule_today</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Şimdi bu yeni slot&#39;u ekleyip kontrol edelim</span>
+        <span class="c1"># Önceki 2 slot&#39;a bak</span>
+        <span class="n">consecutive_before</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">check_slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">slot</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">slot</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">check_slot</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="c1"># Bu slot&#39;ta aynı ders var mı?</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">class_schedule_today</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">check_slot</span> <span class="ow">and</span> <span class="n">l</span> <span class="o">==</span> <span class="n">lesson_id</span><span class="p">:</span>
+                    <span class="n">consecutive_before</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="k">break</span>  <span class="c1"># Ardışıklık bozuldu</span>
+
+        <span class="c1"># Sonraki 2 slot&#39;a bak</span>
+        <span class="n">consecutive_after</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">check_slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">slot</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">slot</span> <span class="o">+</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="c1"># Bu slot&#39;ta aynı ders var mı?</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">class_schedule_today</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">check_slot</span> <span class="ow">and</span> <span class="n">l</span> <span class="o">==</span> <span class="n">lesson_id</span><span class="p">:</span>
+                    <span class="n">consecutive_after</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="k">break</span>  <span class="c1"># Ardışıklık bozuldu</span>
+
+        <span class="c1"># Toplam ardışık ders sayısı (önceki + bu slot + sonraki)</span>
+        <span class="n">total_consecutive</span> <span class="o">=</span> <span class="n">consecutive_before</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">consecutive_after</span>
+
+        <span class="c1"># 3 veya daha fazla ardışık ders olacaksa engelle</span>
+        <span class="k">return</span> <span class="n">total_consecutive</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_schedule_entry</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classroom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Program girişi ekle ve izleme tablolarını güncelle&quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;class_id&quot;</span><span class="p">:</span> <span class="n">class_id</span><span class="p">,</span>
+            <span class="s2">&quot;teacher_id&quot;</span><span class="p">:</span> <span class="n">teacher_id</span><span class="p">,</span>
+            <span class="s2">&quot;lesson_id&quot;</span><span class="p">:</span> <span class="n">lesson_id</span><span class="p">,</span>
+            <span class="s2">&quot;classroom_id&quot;</span><span class="p">:</span> <span class="n">classroom_id</span><span class="p">,</span>
+            <span class="s2">&quot;day&quot;</span><span class="p">:</span> <span class="n">day</span><span class="p">,</span>
+            <span class="s2">&quot;time_slot&quot;</span><span class="p">:</span> <span class="n">time_slot</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_usage</span><span class="p">[</span><span class="n">class_id</span><span class="p">][</span><span class="n">day</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">time_slot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teacher_usage</span><span class="p">[</span><span class="n">teacher_id</span><span class="p">][</span><span class="n">day</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">time_slot</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_available_classroom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classrooms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Uygun sınıf bul&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">classroom</span> <span class="ow">in</span> <span class="n">classrooms</span><span class="p">:</span>
+            <span class="c1"># Basit kontrol - geliştirilmesi gerekebilir</span>
+            <span class="k">return</span> <span class="n">classroom</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

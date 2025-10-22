@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.heuristics &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.heuristics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.heuristics öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Heuristics - Sezgisel Yöntemler</span>
+<span class="sd">MRV, Degree, LCV ve diğer heuristic&#39;ler</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="c1"># Set encoding for Windows</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="HeuristicManager">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HeuristicManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tüm heuristic&#39;leri yöneten sınıf&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HeuristicManager.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="HeuristicManager.mrv_heuristic">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager.mrv_heuristic">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mrv_heuristic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        MRV (Minimum Remaining Values) Heuristic</span>
+<span class="sd">        En az domain değeri olan değişkeni seç</span>
+
+<span class="sd">        Returns: En kısıtlı değişken</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">unassigned</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Domain boyutuna göre sırala</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">unassigned</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">domains</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">[])))</span></div>
+
+
+<div class="viewcode-block" id="HeuristicManager.degree_heuristic">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager.degree_heuristic">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">degree_heuristic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Degree Heuristic</span>
+<span class="sd">        En çok kısıtlamaya sahip değişkeni seç</span>
+
+<span class="sd">        Returns: En çok kısıtlamalı değişken</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">unassigned</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Her değişken için kısıtlama sayısını hesapla</span>
+        <span class="n">degree_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">unassigned</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                    <span class="c1"># Atanmamış diğer değişkenlerle kaç kısıtlaması var?</span>
+                    <span class="k">for</span> <span class="n">other_var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">other_var</span> <span class="o">!=</span> <span class="n">var</span> <span class="ow">and</span> <span class="n">other_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">:</span>
+                            <span class="n">degree_map</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># En yüksek degree&#39;ye sahip olanı seç</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">unassigned</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">degree_map</span><span class="p">[</span><span class="n">v</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="HeuristicManager.combined_heuristic">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager.combined_heuristic">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">combined_heuristic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        MRV + Degree Kombinasyonu</span>
+<span class="sd">        Önce MRV, eşitlik durumunda Degree</span>
+
+<span class="sd">        Returns: En uygun değişken</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">unassigned</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># MRV skorları</span>
+        <span class="n">mrv_scores</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">domains</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">unassigned</span><span class="p">}</span>
+
+        <span class="c1"># En küçük domain boyutunu bul</span>
+        <span class="n">min_domain_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mrv_scores</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="c1"># Aynı domain boyutuna sahip olanları bul</span>
+        <span class="n">mrv_candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">unassigned</span> <span class="k">if</span> <span class="n">mrv_scores</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">==</span> <span class="n">min_domain_size</span><span class="p">]</span>
+
+        <span class="c1"># Tek aday varsa onu döndür</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mrv_candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mrv_candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Birden fazla aday varsa degree ile ayır</span>
+        <span class="n">degree_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">mrv_candidates</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">other_var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">other_var</span> <span class="o">!=</span> <span class="n">var</span> <span class="ow">and</span> <span class="n">other_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">:</span>
+                            <span class="n">degree_map</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># En yüksek degree&#39;ye sahip olanı seç</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">mrv_candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">degree_map</span><span class="p">[</span><span class="n">v</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="HeuristicManager.lcv_heuristic">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager.lcv_heuristic">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lcv_heuristic</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">variable</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span>
+        <span class="n">domain</span><span class="p">:</span> <span class="n">Set</span><span class="p">,</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+        <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        LCV (Least Constraining Value) Heuristic</span>
+<span class="sd">        Diğer değişkenleri en az kısıtlayan değeri önce seç</span>
+
+<span class="sd">        Returns: Sıralanmış domain değerleri</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">domain</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c1"># Her değer için kısıtlama sayısını hesapla</span>
+        <span class="n">value_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">domain</span><span class="p">:</span>
+            <span class="c1"># Bu değer atanırsa kaç değişkeni etkiler?</span>
+            <span class="n">constraint_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># Test ataması</span>
+            <span class="n">test_assignment</span> <span class="o">=</span> <span class="n">assignment</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">test_assignment</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+
+            <span class="c1"># İlişkili değişkenleri kontrol et</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">other_var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">other_var</span> <span class="o">!=</span> <span class="n">variable</span> <span class="ow">and</span> <span class="n">other_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">:</span>
+                            <span class="c1"># Bu değişkenin domain&#39;inde kaç değer kaldı?</span>
+                            <span class="n">remaining_values</span> <span class="o">=</span> <span class="mi">0</span>
+
+                            <span class="k">for</span> <span class="n">other_value</span> <span class="ow">in</span> <span class="n">domains</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">other_var</span><span class="p">,</span> <span class="p">[]):</span>
+                                <span class="c1"># Test et</span>
+                                <span class="n">test_assignment</span><span class="p">[</span><span class="n">other_var</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">other_value</span><span class="p">]</span>
+
+                                <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">is_satisfied</span><span class="p">(</span><span class="n">test_assignment</span><span class="p">):</span>
+                                    <span class="n">remaining_values</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                                <span class="k">del</span> <span class="n">test_assignment</span><span class="p">[</span><span class="n">other_var</span><span class="p">]</span>
+
+                            <span class="c1"># Az değer kaldıysa kısıtlama fazla</span>
+                            <span class="n">constraint_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">domains</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">other_var</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">-</span> <span class="n">remaining_values</span>
+
+            <span class="n">value_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">constraint_count</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+
+        <span class="c1"># Küçükten büyüğe sırala (az kısıtlayan önce)</span>
+        <span class="n">value_constraints</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">value</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_constraints</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="HeuristicManager.fail_first_heuristic">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.HeuristicManager.fail_first_heuristic">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fail_first_heuristic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fail-First Principle</span>
+<span class="sd">        Başarısız olma ihtimali yüksek olan değişkeni önce dene</span>
+<span class="sd">        (Erken başarısızlık, daha hızlı backtrack)</span>
+
+<span class="sd">        Returns: En riskli değişken</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">unassigned</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Risk skorları hesapla</span>
+        <span class="n">risk_scores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">unassigned</span><span class="p">:</span>
+            <span class="c1"># Domain boyutu (küçük = riskli)</span>
+            <span class="n">domain_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">domains</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="p">[]))</span>
+
+            <span class="c1"># Kısıtlama sayısı (fazla = riskli)</span>
+            <span class="n">constraint_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+
+            <span class="c1"># Risk skoru: düşük domain + yüksek constraint = yüksek risk</span>
+            <span class="n">risk</span> <span class="o">=</span> <span class="n">constraint_count</span> <span class="o">/</span> <span class="p">(</span><span class="n">domain_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">risk_scores</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">risk</span>
+
+        <span class="c1"># En yüksek risk skoruna sahip olanı seç</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">unassigned</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">risk_scores</span><span class="p">[</span><span class="n">v</span><span class="p">])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ScheduleHeuristics">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.ScheduleHeuristics">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScheduleHeuristics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ders programı için özel heuristic&#39;ler&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ScheduleHeuristics.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.ScheduleHeuristics.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_heuristics</span> <span class="o">=</span> <span class="n">HeuristicManager</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ScheduleHeuristics.prioritize_lessons">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.ScheduleHeuristics.prioritize_lessons">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prioritize_lessons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_lessons</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dersleri önceliklendirme stratejisi</span>
+
+<span class="sd">        Kriterler:</span>
+<span class="sd">        1. Haftalık saat sayısı (fazla olan önce)</span>
+<span class="sd">        2. Zorluk derecesi (zor olan önce)</span>
+<span class="sd">        3. Öğretmen müsaitlik durumu</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">difficulty_scores</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;Fizik&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s2">&quot;Kimya&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s2">&quot;Biyoloji&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;Türk Dili ve Edebiyatı&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;Geometri&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s2">&quot;İngilizce&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+            <span class="s2">&quot;Tarih&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">&quot;Coğrafya&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">&quot;Felsefe&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Sıralama anahtarı</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">priority_key</span><span class="p">(</span><span class="n">lesson_info</span><span class="p">):</span>
+            <span class="n">weekly_hours</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weekly_hours&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">lesson_name</span> <span class="o">=</span> <span class="n">lesson_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lesson_name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">difficulty</span> <span class="o">=</span> <span class="n">difficulty_scores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lesson_name</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+            <span class="c1"># Öncelik: haftalık saat (yüksek), zorluk (yüksek)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">weekly_hours</span><span class="p">,</span> <span class="o">-</span><span class="n">difficulty</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">class_lessons</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">priority_key</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleHeuristics.optimal_block_distribution">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.ScheduleHeuristics.optimal_block_distribution">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimal_block_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Haftalık saate göre optimal blok dağılımı</span>
+
+<span class="sd">        Örnekler:</span>
+<span class="sd">        - 6 saat: [2, 2, 2] (3 gün)</span>
+<span class="sd">        - 5 saat: [2, 2, 1] (3 gün)</span>
+<span class="sd">        - 4 saat: [2, 2] (2 gün)</span>
+<span class="sd">        - 3 saat: [2, 1] (2 gün)</span>
+<span class="sd">        - 2 saat: [2] (1 gün)</span>
+<span class="sd">        - 1 saat: [1] (1 gün)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">weekly_hours</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">weekly_hours</span>
+
+        <span class="c1"># 2&#39;li bloklar halinde dağıt</span>
+        <span class="k">while</span> <span class="n">remaining</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">remaining</span> <span class="o">-=</span> <span class="mi">2</span>
+
+        <span class="c1"># Kalan tek saati ekle</span>
+        <span class="k">if</span> <span class="n">remaining</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">blocks</span></div>
+
+
+<div class="viewcode-block" id="ScheduleHeuristics.preferred_time_slots">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.heuristics.ScheduleHeuristics.preferred_time_slots">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preferred_time_slots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ders için tercih edilen slotlar</span>
+
+<span class="sd">        Zor dersler: Sabah (0-3)</span>
+<span class="sd">        Orta dersler: Gün ortası (2-5)</span>
+<span class="sd">        Hafif dersler: Herhangi (0-7)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">difficult_lessons</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Fizik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Kimya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Biyoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Türk Dili ve Edebiyatı&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Geometri&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">light_lessons</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;Beden Eğitimi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Oyun&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Spor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">lesson_name</span> <span class="ow">in</span> <span class="n">difficult_lessons</span><span class="p">:</span>
+            <span class="c1"># Sabah saatleri öncelikli</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">lesson_name</span> <span class="ow">in</span> <span class="n">light_lessons</span><span class="p">:</span>
+            <span class="c1"># Tüm saatler eşit</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Gün ortası öncelikli</span>
+            <span class="n">mid_slots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">)))</span>
+            <span class="n">other_slots</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mid_slots</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">mid_slots</span> <span class="o">+</span> <span class="n">other_slots</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

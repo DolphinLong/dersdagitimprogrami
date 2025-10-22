@@ -10,9 +10,11 @@ Hybrid Optimal Scheduler - Tüm Teknikleri Birleştiren En Güçlü Scheduler
 
 import io
 import sys
+import time
+import logging
+import functools
 from collections import defaultdict
-from copy import deepcopy
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 # Set encoding for Windows
 if sys.platform.startswith("win"):
@@ -67,6 +69,58 @@ except ImportError:
     print("⚠️  Explainer bulunamadı")
 
 
+class PerformanceOptimizer:
+    """Performans iyileştirmeleri için yardımcı sınıf"""
+
+    def __init__(self):
+        self.cache = {}
+        self.call_count = defaultdict(int)
+        self.total_time = defaultdict(float)
+
+    def timing_decorator(self, func):
+        """Fonksiyon çalışma süresini ölçer"""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+
+            func_name = func.__name__
+            self.call_count[func_name] += 1
+            self.total_time[func_name] += (end_time - start_time)
+
+            return result
+        return wrapper
+
+    def cache_result(self, key, result, ttl=300):
+        """Sonucu önbellekle"""
+        self.cache[key] = {
+            'result': result,
+            'timestamp': time.time(),
+            'ttl': ttl
+        }
+
+    def get_cached_result(self, key):
+        """Önbellekten sonucu al"""
+        if key in self.cache:
+            cache_entry = self.cache[key]
+            if time.time() - cache_entry['timestamp'] < cache_entry['ttl']:
+                return cache_entry['result']
+            else:
+                del self.cache[key]
+        return None
+
+    def get_performance_report(self):
+        """Performans raporunu döndür"""
+        report = []
+        for func_name in self.call_count:
+            count = self.call_count[func_name]
+            total = self.total_time[func_name]
+            avg = total / count if count > 0 else 0
+            report.append(f"{func_name}: {count} çağrı, toplam {total:.3f}s, ortalama {avg:.3f}s")
+        return report
+
+
 class HybridOptimalScheduler:
     """
     En Güçlü Scheduler - Tüm Teknikleri Birleştirir
@@ -95,6 +149,9 @@ class HybridOptimalScheduler:
         self.explainer = SchedulerExplainer(db_manager) if EXPLAINER_AVAILABLE else None
         self.soft_constraints = SoftConstraintManager(db_manager) if SOFT_CONSTRAINTS_AVAILABLE else None
         self.heuristics = ScheduleHeuristics(db_manager) if HEURISTICS_AVAILABLE else None
+
+        # Performance optimizer ekleme
+        self.performance_optimizer = PerformanceOptimizer()
 
         # Yedek: Simple Perfect Scheduler
         try:
@@ -139,22 +196,33 @@ class HybridOptimalScheduler:
         print(f"✅ İlk çözüm hazır: {len(initial_schedule)} ders yerleştirildi")
 
         # 3. SOFT CONSTRAINT OPTIMİZASYONU
-        # ÖNEMLİ: Simulated Annealing devre dışı bırakıldı
-        # Çünkü blok bütünlüğünü bozabilir (2+2+2, 2+2+1 kuralı)
-        # Simple Perfect Scheduler zaten optimal dağılımı yapıyor
-        print("\n" + "=" * 80)
-        print("ℹ️  AŞAMA 2: Optimizasyon Atlandı (Blok Bütünlüğü Korundu)")
-        print("=" * 80)
-        print("   • Simple Perfect Scheduler zaten optimal dağılım yapıyor")
-        print("   • Blok kuralları: 2+2+2, 2+2+1, 2+2, 2+1, 2, 1")
-        print("   • Her blok farklı günde")
-        print("   • Öğretmen uygunluğu ZORUNLU")
-        optimized_schedule = initial_schedule
+        import yaml
+        
+        # Load scheduler configuration
+        try:
+            with open('config/scheduler_config.yaml', 'r', encoding='utf-8') as f:
+                scheduler_config = yaml.safe_load(f)
+            use_annealing = scheduler_config.get('algorithms', {}).get('hybrid_optimal', {}).get('simulated_annealing', {}).get('enabled', False)
+        except (IOError, yaml.YAMLError) as e:
+            print(f"⚠️  Yapılandırma okunamadı, optimizasyon atlanıyor: {e}")
+            use_annealing = False
+
+        if use_annealing and LOCAL_SEARCH_AVAILABLE and self.soft_constraints:
+            print("\n" + "=" * 80)
+            print("🔥 AŞAMA 2: Optimizasyon (Simulated Annealing)")
+            print("=" * 80)
+            optimized_schedule = self._optimize_with_annealing(initial_schedule, config)
+            print(f"✅ Optimizasyon tamamlandı: {len(optimized_schedule)} ders")
+        else:
+            print("\n" + "=" * 80)
+            print("ℹ️  AŞAMA 2: Optimizasyon Atlandı (Yapılandırmada devre dışı)")
+            print("=" * 80)
+            optimized_schedule = initial_schedule
 
         # Soft constraint skorunu göster (bilgi amaçlı)
         if SOFT_CONSTRAINTS_AVAILABLE:
-            result = self.soft_constraints.evaluate_schedule(initial_schedule)
-            print(f"\n📊 Soft Constraint Skoru: {result['total_score']:.2f} (bilgi amaçlı)")
+            result = self.soft_constraints.evaluate_schedule(optimized_schedule)
+            print(f"\n📊 Soft Constraint Skoru: {result['total_score']:.2f}")
 
         # 4. FİNAL VALİDASYON VE RAPORLAMA
         print("\n" + "=" * 80)

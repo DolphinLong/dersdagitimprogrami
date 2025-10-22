@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config Modülü &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../genindex.html" />
+    <link rel="search" title="Ara" href="../search.html" />
+    <link rel="next" title="Reports Modülü" href="reports.html" />
+    <link rel="prev" title="Utils Modülü" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils Modülü</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Config Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-config.config_loader">Config Loader</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config.config_loader.ConfigLoader"><code class="docutils literal notranslate"><span class="pre">ConfigLoader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.config_loader.ConfigLoader.__init__"><code class="docutils literal notranslate"><span class="pre">ConfigLoader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.config_loader.ConfigLoader.load_config"><code class="docutils literal notranslate"><span class="pre">ConfigLoader.load_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.config_loader.ConfigLoader.get_config_value"><code class="docutils literal notranslate"><span class="pre">ConfigLoader.get_config_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.config_loader.ConfigLoader.save_config"><code class="docutils literal notranslate"><span class="pre">ConfigLoader.save_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.config_loader.ConfigLoader.reload_config"><code class="docutils literal notranslate"><span class="pre">ConfigLoader.reload_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.config_loader.get_config"><code class="docutils literal notranslate"><span class="pre">get_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.config_loader.get_config_value"><code class="docutils literal notranslate"><span class="pre">get_config_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#kullanim-ornekleri">Kullanım Örnekleri</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#yapilandirma-yukleme">Yapılandırma Yükleme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#yapilandirma-degistirme">Yapılandırma Değiştirme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#global-config-kullanimi">Global Config Kullanımı</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Config Modülü</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/config.rst.txt" rel="nofollow"> Sayfa kaynağını görüntüle</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="config-modulu">
+<h1>Config Modülü<a class="headerlink" href="#config-modulu" title="Link to this heading"></a></h1>
+<p>Bu modül, yapılandırma yönetimini sağlar.</p>
+<section id="module-config.config_loader">
+<span id="config-loader"></span><h2>Config Loader<a class="headerlink" href="#module-config.config_loader" title="Link to this heading"></a></h2>
+<p>Configuration loader with validation
+Loads configuration from YAML files and validates against schema</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="config.config_loader.ConfigLoader">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.config_loader.</span></span><span class="sig-name descname"><span class="pre">ConfigLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/config/config_loader.html#ConfigLoader"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.ConfigLoader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Loads and validates scheduler configuration</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="config.config_loader.ConfigLoader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/config/config_loader.html#ConfigLoader.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.ConfigLoader.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.config_loader.ConfigLoader.load_config">
+<span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(Python v3.14 içinde)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/config/config_loader.html#ConfigLoader.load_config"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.ConfigLoader.load_config" title="Link to this definition"></a></dt>
+<dd><p>Load and validate configuration from file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Dönüşler<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Configuration dictionary if valid, default config if validation fails</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.config_loader.ConfigLoader.get_config_value">
+<span class="sig-name descname"><span class="pre">get_config_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../_modules/config/config_loader.html#ConfigLoader.get_config_value"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.ConfigLoader.get_config_value" title="Link to this definition"></a></dt>
+<dd><p>Get a specific configuration value using dot notation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametreler<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_path</strong> – Path to the config value using dot notation (e.g. ‘algorithms.hybrid_optimal.enabled’)</p></li>
+<li><p><strong>default</strong> – Default value if the key doesn’t exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Dönüşler<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configuration value or default</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.config_loader.ConfigLoader.save_config">
+<span class="sig-name descname"><span class="pre">save_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(Python v3.14 içinde)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/config/config_loader.html#ConfigLoader.save_config"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.ConfigLoader.save_config" title="Link to this definition"></a></dt>
+<dd><p>Save configuration to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametreler<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – Configuration dictionary to save</p></li>
+<li><p><strong>path</strong> – Path to save to (defaults to config_path)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Dönüşler<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if successful, False otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.config_loader.ConfigLoader.reload_config">
+<span class="sig-name descname"><span class="pre">reload_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(Python v3.14 içinde)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/config/config_loader.html#ConfigLoader.reload_config"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.ConfigLoader.reload_config" title="Link to this definition"></a></dt>
+<dd><p>Reload the configuration from file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Dönüşler<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Configuration dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.config_loader.get_config">
+<span class="sig-prename descclassname"><span class="pre">config.config_loader.</span></span><span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(Python v3.14 içinde)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/config/config_loader.html#get_config"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.get_config" title="Link to this definition"></a></dt>
+<dd><p>Get the global configuration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Dönüşler<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Configuration dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.config_loader.get_config_value">
+<span class="sig-prename descclassname"><span class="pre">config.config_loader.</span></span><span class="sig-name descname"><span class="pre">get_config_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(Python v3.14 içinde)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../_modules/config/config_loader.html#get_config_value"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#config.config_loader.get_config_value" title="Link to this definition"></a></dt>
+<dd><p>Get a specific configuration value using dot notation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametreler<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_path</strong> – Path to the config value using dot notation</p></li>
+<li><p><strong>default</strong> – Default value if the key doesn’t exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Dönüşler<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configuration value or default</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="kullanim-ornekleri">
+<h2>Kullanım Örnekleri<a class="headerlink" href="#kullanim-ornekleri" title="Link to this heading"></a></h2>
+<section id="yapilandirma-yukleme">
+<h3>Yapılandırma Yükleme<a class="headerlink" href="#yapilandirma-yukleme" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">config.config_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigLoader</span>
+
+<span class="c1"># Config yükle</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">ConfigLoader</span><span class="p">(</span><span class="s2">&quot;config/scheduler_config.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># Değer al</span>
+<span class="n">max_iterations</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;algorithms.ultra_aggressive.max_iterations&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max iterations: </span><span class="si">{</span><span class="n">max_iterations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="yapilandirma-degistirme">
+<h3>Yapılandırma Değiştirme<a class="headerlink" href="#yapilandirma-degistirme" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Değer değiştir</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;algorithms.ultra_aggressive.max_iterations&quot;</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+
+<span class="c1"># Kaydet</span>
+<span class="n">config</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="global-config-kullanimi">
+<h3>Global Config Kullanımı<a class="headerlink" href="#global-config-kullanimi" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">config.config_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_config</span>
+
+<span class="c1"># Global config instance</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">get_config</span><span class="p">()</span>
+
+<span class="c1"># Kullan</span>
+<span class="n">log_level</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logging.level&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utils.html" class="btn btn-neutral float-left" title="Utils Modülü" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Önceki</a>
+        <a href="reports.html" class="btn btn-neutral float-right" title="Reports Modülü" accesskey="n" rel="next">Sonraki <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

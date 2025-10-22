@@ -1,0 +1,808 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.ultra_aggressive_scheduler &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.ultra_aggressive_scheduler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.ultra_aggressive_scheduler öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Ultra Aggressive Scheduler - %100 Doluluk Hedefli</span>
+<span class="sd">Boş hücre KALMAYANA kadar sürekli iyileştirme yapar!</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="c1"># Set encoding for Windows</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">algorithms.teacher_availability_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">TeacherAvailabilityCache</span>
+
+
+<div class="viewcode-block" id="UltraAggressiveScheduler">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.ultra_aggressive_scheduler.UltraAggressiveScheduler">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UltraAggressiveScheduler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    %100 Doluluk Hedefli Ultra Agresif Scheduler</span>
+
+<span class="sd">    Strateji:</span>
+<span class="sd">    1. İlk tur: Simple Perfect Scheduler ile başla</span>
+<span class="sd">    2. Boş hücre analizi: Hangi sınıfta kaç saat eksik?</span>
+<span class="sd">    3. İteratif iyileştirme: Boş hücreleri doldurmaya çalış</span>
+<span class="sd">    4. Relaxation: Gerekirse kuralları esnet (kontrollü)</span>
+<span class="sd">    5. Sürekli deneme: Tablo dolana kadar dur!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SCHOOL_TIME_SLOTS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">&quot;Lise&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Anadolu Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Fen Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Sosyal Bilimler Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="UltraAggressiveScheduler.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.ultra_aggressive_scheduler.UltraAggressiveScheduler.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span> <span class="o">=</span> <span class="n">progress_callback</span>  <span class="c1"># UI için callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">3000</span>  <span class="c1"># Maksimum deneme sayısı (DÜŞÜRÜLDÜ: 10000 -&gt; 3000)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>  <span class="c1"># Force DEBUG level for this logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">availability_cache</span> <span class="o">=</span> <span class="n">TeacherAvailabilityCache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UltraAggressiveScheduler.generate_schedule">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.ultra_aggressive_scheduler.UltraAggressiveScheduler.generate_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ana program oluşturma - %100 doluluk hedefli&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🚀 ULTRA AGGRESSIVE SCHEDULER - %100 DOLULUK HEDEFLİ&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;💪 Boş hücre KALMAYANA kadar sürekli iyileştirme yapılacak!&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Başlangıç zamanı</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># Konfigürasyon</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_configuration</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c1"># 1. AŞAMA: Simple Perfect Scheduler ile başla</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📋 AŞAMA 1: İlk çözüm oluşturuluyor...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;İlk çözüm oluşturuluyor...&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">initial_schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_initial_solution</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="n">initial_schedule</span>
+
+        <span class="c1"># 2. AŞAMA: Kapsama analizi</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 AŞAMA 2: Kapsama analizi yapılıyor...&quot;</span><span class="p">)</span>
+        <span class="n">coverage_report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_coverage</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">initial_coverage</span> <span class="o">=</span> <span class="n">coverage_report</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   ✅ İlk kapsama: </span><span class="si">{</span><span class="n">initial_coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   📊 Yerleşen: </span><span class="si">{</span><span class="n">coverage_report</span><span class="p">[</span><span class="s1">&#39;total_scheduled&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="n">coverage_report</span><span class="p">[</span><span class="s1">&#39;total_required&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> saat&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 3. AŞAMA: İteratif iyileştirme - %100 dolana kadar!</span>
+        <span class="k">if</span> <span class="n">initial_coverage</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">💪 AŞAMA 3: İTERATİF İYİLEŞTİRME BAŞLIYOR...&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   🎯 Hedef: %100 doluluk&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ⚡ Maksimum deneme: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterative_improvement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">,</span> <span class="n">coverage_report</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># 4. AŞAMA: Final analiz</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 AŞAMA 4: Final kapsama analizi...&quot;</span><span class="p">)</span>
+        <span class="n">final_coverage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_coverage</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="c1"># Sonuç raporu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print_final_report</span><span class="p">(</span><span class="n">initial_coverage</span><span class="p">,</span> <span class="n">final_coverage</span><span class="p">,</span> <span class="n">elapsed_time</span><span class="p">)</span>
+
+        <span class="c1"># 5. AŞAMA: Final Validation - Çakışma Kontrolü</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🔍 AŞAMA 5: Final çakışma kontrolü...&quot;</span><span class="p">)</span>
+        <span class="n">conflicts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_no_conflicts</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">conflicts</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ⚠️  </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">conflicts</span><span class="p">)</span><span class="si">}</span><span class="s2"> çakışma tespit edildi!&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">conflict</span> <span class="ow">in</span> <span class="n">conflicts</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>  <span class="c1"># İlk 5&#39;ini göster</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      • </span><span class="si">{</span><span class="n">conflict</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Çakışmaları temizle</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   🔧 Çakışmalar temizleniyor...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_conflicts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">)</span>
+
+            <span class="c1"># Tekrar kontrol et</span>
+            <span class="n">conflicts_after</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_no_conflicts</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">conflicts_after</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ⚠️  Hala </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">conflicts_after</span><span class="p">)</span><span class="si">}</span><span class="s2"> çakışma var (temizlenemedi)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ✅ Tüm çakışmalar temizlendi!&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ✅ Çakışma yok!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 6. AŞAMA: Veritabanına kaydet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_database</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Tamamlandı!&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Konfigürasyon hazırla&quot;&quot;&quot;</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+        <span class="n">teachers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+        <span class="n">lessons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">()</span>
+        <span class="n">classrooms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classrooms</span><span class="p">()</span>
+        <span class="n">assignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;Lise&quot;</span>
+        <span class="n">time_slots_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHOOL_TIME_SLOTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">school_type</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📊 Konfigürasyon:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Okul: </span><span class="si">{</span><span class="n">school_type</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">time_slots_count</span><span class="si">}</span><span class="s2"> saat/gün)&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Sınıf: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span><span class="si">}</span><span class="s2"> | Öğretmen: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">teachers</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Ders: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lessons</span><span class="p">)</span><span class="si">}</span><span class="s2"> | Atama: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">assignments</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Atama haritası</span>
+        <span class="n">assignment_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">assignment</span> <span class="ow">in</span> <span class="n">assignments</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">assignment</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="n">assignment_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">assignment</span><span class="o">.</span><span class="n">teacher_id</span>
+
+        <span class="c1"># Hızlı arama için sözlükler</span>
+        <span class="n">lessons_by_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">:</span> <span class="n">lesson</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">lesson</span> <span class="ow">in</span> <span class="n">lessons</span><span class="p">}</span>
+        <span class="n">classes_by_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">:</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">class_obj</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">}</span>
+        <span class="n">teachers_by_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">:</span> <span class="n">teacher</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">teacher</span> <span class="ow">in</span> <span class="n">teachers</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
+            <span class="s2">&quot;teachers&quot;</span><span class="p">:</span> <span class="n">teachers</span><span class="p">,</span>
+            <span class="s2">&quot;lessons&quot;</span><span class="p">:</span> <span class="n">lessons</span><span class="p">,</span>
+            <span class="s2">&quot;classrooms&quot;</span><span class="p">:</span> <span class="n">classrooms</span><span class="p">,</span>
+            <span class="s2">&quot;assignments&quot;</span><span class="p">:</span> <span class="n">assignments</span><span class="p">,</span>
+            <span class="s2">&quot;assignment_map&quot;</span><span class="p">:</span> <span class="n">assignment_map</span><span class="p">,</span>
+            <span class="s2">&quot;school_type&quot;</span><span class="p">:</span> <span class="n">school_type</span><span class="p">,</span>
+            <span class="s2">&quot;time_slots_count&quot;</span><span class="p">:</span> <span class="n">time_slots_count</span><span class="p">,</span>
+            <span class="s2">&quot;lessons_by_id&quot;</span><span class="p">:</span> <span class="n">lessons_by_id</span><span class="p">,</span>
+            <span class="s2">&quot;classes_by_id&quot;</span><span class="p">:</span> <span class="n">classes_by_id</span><span class="p">,</span>
+            <span class="s2">&quot;teachers_by_id&quot;</span><span class="p">:</span> <span class="n">teachers_by_id</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_initial_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;İlk çözümü oluştur - Simple Perfect Scheduler kullan&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">algorithms.simple_perfect_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimplePerfectScheduler</span>
+
+            <span class="n">scheduler</span> <span class="o">=</span> <span class="n">SimplePerfectScheduler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">generate_schedule</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SimplePerfectScheduler unavailable or failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;⚠️  Simple Perfect Scheduler bulunamadı, boş döndürülüyor&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_coverage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Detaylı kapsama analizi</span>
+
+<span class="sd">        ÖNEMLI:</span>
+<span class="sd">        - GERÇEK DOLULUK = Yerleşen / TOPLAM SLOT SAYISI (5 gün × N saat)</span>
+<span class="sd">        - DERS GEREKSİNİMİ = Haftalık ders saati (MEB müfredatı)</span>
+
+<span class="sd">        Kullanıcı GERÇEK DOLULUK istiyor (UI&#39;de boş hücre görünmemeli!)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># GERÇEK DOLULUK hesabı (UI bazlı)</span>
+        <span class="n">total_slots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;time_slots_count&quot;</span><span class="p">]</span>
+        <span class="n">total_scheduled</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">)</span>
+
+        <span class="c1"># Ders gereksinim hesabı (MEB müfredatı - backward compatibility)</span>
+        <span class="n">total_required</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Sınıf bazlı analiz</span>
+        <span class="n">class_coverage</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">class_obj</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]:</span>
+            <span class="c1"># Bu sınıfın TOPLAM SLOT SAYISI (5 gün × N saat)</span>
+            <span class="n">class_total_slots</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;time_slots_count&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Bu sınıfın ders gereksinimleri (MEB müfredatı)</span>
+            <span class="n">class_required</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">lesson</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;lessons&quot;</span><span class="p">]:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;assignment_map&quot;</span><span class="p">]:</span>
+                    <span class="n">weekly_hours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_weekly_hours_for_lesson</span><span class="p">(</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                        <span class="n">class_required</span> <span class="o">+=</span> <span class="n">weekly_hours</span>
+                        <span class="n">total_required</span> <span class="o">+=</span> <span class="n">weekly_hours</span>
+
+            <span class="c1"># Bu sınıfa yerleşen saatler</span>
+            <span class="n">class_scheduled</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">:</span>
+                    <span class="n">class_scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Boş slotları bul</span>
+            <span class="n">occupied_slots</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">:</span>
+                    <span class="n">occupied_slots</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">]))</span>
+
+            <span class="c1"># Tüm olası slotlar</span>
+            <span class="n">empty_slots</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;time_slots_count&quot;</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">occupied_slots</span><span class="p">:</span>
+                        <span class="n">empty_slots</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">))</span>
+
+            <span class="c1"># GERÇEK doluluk yüzdesi (UI bazlı)</span>
+            <span class="n">class_percentage</span> <span class="o">=</span> <span class="p">(</span><span class="n">class_scheduled</span> <span class="o">/</span> <span class="n">class_total_slots</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">class_total_slots</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">100</span>
+
+            <span class="n">class_coverage</span><span class="p">[</span><span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;class_name&quot;</span><span class="p">:</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;total_slots&quot;</span><span class="p">:</span> <span class="n">class_total_slots</span><span class="p">,</span>  <span class="c1"># GERÇEK slot sayısı</span>
+                <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="n">class_required</span><span class="p">,</span>  <span class="c1"># MEB müfredatı (backward compatibility)</span>
+                <span class="s2">&quot;scheduled&quot;</span><span class="p">:</span> <span class="n">class_scheduled</span><span class="p">,</span>
+                <span class="s2">&quot;empty_slots&quot;</span><span class="p">:</span> <span class="n">empty_slots</span><span class="p">,</span>
+                <span class="s2">&quot;percentage&quot;</span><span class="p">:</span> <span class="n">class_percentage</span><span class="p">,</span>  <span class="c1"># GERÇEK doluluk!</span>
+            <span class="p">}</span>
+
+        <span class="c1"># GERÇEK genel doluluk (UI bazlı)</span>
+        <span class="n">overall_percentage</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_scheduled</span> <span class="o">/</span> <span class="n">total_slots</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_slots</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">100</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;total_slots&quot;</span><span class="p">:</span> <span class="n">total_slots</span><span class="p">,</span>  <span class="c1"># GERÇEK slot sayısı</span>
+            <span class="s2">&quot;total_required&quot;</span><span class="p">:</span> <span class="n">total_required</span><span class="p">,</span>  <span class="c1"># MEB müfredatı (backward compatibility)</span>
+            <span class="s2">&quot;total_scheduled&quot;</span><span class="p">:</span> <span class="n">total_scheduled</span><span class="p">,</span>
+            <span class="s2">&quot;overall_percentage&quot;</span><span class="p">:</span> <span class="n">overall_percentage</span><span class="p">,</span>  <span class="c1"># GERÇEK doluluk!</span>
+            <span class="s2">&quot;class_coverage&quot;</span><span class="p">:</span> <span class="n">class_coverage</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iterative_improvement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">coverage</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;İteratif iyileştirme - boş hücreleri doldur&quot;&quot;&quot;</span>
+
+        <span class="n">current_schedule</span> <span class="o">=</span> <span class="n">schedule</span><span class="p">[:]</span>
+        <span class="n">best_schedule</span> <span class="o">=</span> <span class="n">schedule</span><span class="p">[:]</span>
+        <span class="n">best_coverage</span> <span class="o">=</span> <span class="n">coverage</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">no_improvement_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_no_improvement</span> <span class="o">=</span> <span class="mi">200</span>  <span class="c1"># 200 denemede iyileşme yoksa dur (ARTİRILDI: 50 -&gt; 200)</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span> <span class="ow">and</span> <span class="n">best_coverage</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Progress raporu</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   🔄 İterasyon </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2">: Kapsama %</span><span class="si">{</span><span class="n">best_coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">progress</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">best_coverage</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;İterasyon </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - %</span><span class="si">{</span><span class="n">best_coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dolu&quot;</span><span class="p">,</span> <span class="n">progress</span><span class="p">)</span>
+
+            <span class="c1"># Boş hücreleri doldurmaya çalış</span>
+            <span class="n">new_schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fill_empty_cells</span><span class="p">(</span><span class="n">current_schedule</span><span class="p">[:],</span> <span class="n">coverage</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+            <span class="c1"># Yeni kapsama hesapla</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span> <span class="o">=</span> <span class="n">new_schedule</span>
+            <span class="n">new_coverage_report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_coverage</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">new_coverage</span> <span class="o">=</span> <span class="n">new_coverage_report</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span>
+
+            <span class="c1"># İyileşme var mı?</span>
+            <span class="k">if</span> <span class="n">new_coverage</span> <span class="o">&gt;</span> <span class="n">best_coverage</span><span class="p">:</span>
+                <span class="n">best_schedule</span> <span class="o">=</span> <span class="n">new_schedule</span><span class="p">[:]</span>
+                <span class="n">best_coverage</span> <span class="o">=</span> <span class="n">new_coverage</span>
+                <span class="n">current_schedule</span> <span class="o">=</span> <span class="n">new_schedule</span><span class="p">[:]</span>
+                <span class="n">coverage</span> <span class="o">=</span> <span class="n">new_coverage_report</span>
+                <span class="n">no_improvement_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ✅ İyileşme! Yeni kapsama: %</span><span class="si">{</span><span class="n">best_coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">best_coverage</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   🎉 %100 DOLULUK SAĞLANDI!&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">no_improvement_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="c1"># Küçük rastgele değişiklik yap (local search)</span>
+                <span class="n">current_schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_perturbation</span><span class="p">(</span><span class="n">best_schedule</span><span class="p">[:],</span> <span class="n">config</span><span class="p">)</span>
+
+            <span class="c1"># Çok uzun süredir iyileşme yoksa stratejiler değiştir</span>
+            <span class="k">if</span> <span class="n">no_improvement_count</span> <span class="o">&gt;=</span> <span class="n">max_no_improvement</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   ⚠️  </span><span class="si">{</span><span class="n">max_no_improvement</span><span class="si">}</span><span class="s2"> iterasyonda iyileşme yok&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   💪 Relaxation stratejileri devreye giriyor...&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Daha agresif stratejiler dene</span>
+                <span class="n">current_schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aggressive_filling</span><span class="p">(</span><span class="n">best_schedule</span><span class="p">[:],</span> <span class="n">coverage</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+                <span class="n">no_improvement_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Final mesaj</span>
+        <span class="k">if</span> <span class="n">best_coverage</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   🎉 BAŞARILI! %100 doluluk sağlandı (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> iterasyon)&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   ⚠️  Maksimum iterasyon limitine ulaşıldı&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   📊 Elde edilen kapsama: %</span><span class="si">{</span><span class="n">best_coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">best_schedule</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fill_empty_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">coverage</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Boş hücreleri doldurmaya çalış</span>
+
+<span class="sd">        GÜÇLENDIRILMIŞ: Çakışma kontrolü ile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Rastgele bir sınıf seç (kapsama düşük olanları tercih et)</span>
+        <span class="n">class_priorities</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">coverage</span><span class="p">[</span><span class="s2">&quot;class_coverage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;percentage&quot;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">class_info</span> <span class="ow">in</span> <span class="n">class_priorities</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">class_info</span><span class="p">[</span><span class="s2">&quot;percentage&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">empty_slots</span> <span class="o">=</span> <span class="n">class_info</span><span class="p">[</span><span class="s2">&quot;empty_slots&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">empty_slots</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Rastgele bir boş slot seç</span>
+            <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">empty_slots</span><span class="p">)</span>
+
+            <span class="c1"># ÇAKIŞMA KONTROLÜ: Bu slot gerçekten boş mu?</span>
+            <span class="n">is_occupied</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">day</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">slot</span><span class="p">:</span>
+                    <span class="n">is_occupied</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">is_occupied</span><span class="p">:</span>
+                <span class="c1"># Bu slot zaten dolu, atlayalım</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Bu slota ders yerleştirmeye çalış</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_place_lesson_in_slot</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">schedule</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_try_place_lesson_in_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tries to place a suitable lesson in a specific slot and logs detailed reasons on failure.&quot;&quot;&quot;</span>
+        <span class="n">class_obj</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">class_id</span> <span class="o">==</span> <span class="n">class_id</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">class_obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">lessons_to_try</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;lessons&quot;</span><span class="p">])</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">lessons_to_try</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">lesson</span> <span class="ow">in</span> <span class="n">lessons_to_try</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;assignment_map&quot;</span><span class="p">]:</span>
+                <span class="k">continue</span>
+
+            <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;assignment_map&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">weekly_hours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_weekly_hours_for_lesson</span><span class="p">(</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">scheduled_hours</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">schedule</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_id</span> <span class="ow">and</span> <span class="n">e</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduled_hours</span> <span class="o">&gt;=</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">can_place</span><span class="p">,</span> <span class="n">reason</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_at_slot_detailed</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">can_place</span><span class="p">:</span>
+                <span class="n">classroom_id</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;classrooms&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">classroom_id</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;classrooms&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="n">schedule</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s2">&quot;class_id&quot;</span><span class="p">:</span> <span class="n">class_id</span><span class="p">,</span> <span class="s2">&quot;teacher_id&quot;</span><span class="p">:</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="s2">&quot;lesson_id&quot;</span><span class="p">:</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span>
+                    <span class="s2">&quot;classroom_id&quot;</span><span class="p">:</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">:</span> <span class="n">day</span><span class="p">,</span> <span class="s2">&quot;time_slot&quot;</span><span class="p">:</span> <span class="n">slot</span><span class="p">,</span>
+                <span class="p">})</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Log the specific reason for this lesson failing</span>
+                <span class="n">class_name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;classes_by_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ID </span><span class="si">{</span><span class="n">class_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">lesson_name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;lessons_by_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ID </span><span class="si">{</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">teacher_name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;teachers_by_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ID </span><span class="si">{</span><span class="n">teacher_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">day_name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Pazartesi&quot;</span><span class="p">,</span> <span class="s2">&quot;Salı&quot;</span><span class="p">,</span> <span class="s2">&quot;Çarşamba&quot;</span><span class="p">,</span> <span class="s2">&quot;Perşembe&quot;</span><span class="p">,</span> <span class="s2">&quot;Cuma&quot;</span><span class="p">][</span><span class="n">day</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AÇIKLAMA] Deneme Başarısız: Sınıf &#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">&#39;, Ders &#39;</span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2">&#39;, Öğretmen &#39;</span><span class="si">{</span><span class="n">teacher_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;için &#39;</span><span class="si">{</span><span class="n">day_name</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">slot</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">. Saat&#39; slotu denendi. Sebep: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_can_place_at_slot_detailed</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a lesson can be placed, returning a detailed reason on failure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Class Conflict Check</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">day</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">slot</span><span class="p">:</span>
+                <span class="n">lesson</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;lessons_by_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">],</span> <span class="s2">&quot;Bilinmeyen Ders&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Sınıf çakışması: Bu slot zaten &#39;</span><span class="si">{</span><span class="n">lesson</span><span class="si">}</span><span class="s2">&#39; dersi ile dolu.&quot;</span>
+
+        <span class="c1"># 2. Teacher Conflict Check</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">teacher_id</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">day</span> <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">slot</span><span class="p">:</span>
+                <span class="n">conflicting_class</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;classes_by_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span> <span class="s2">&quot;Bilinmeyen Sınıf&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Öğretmen çakışması: Öğretmen bu saatte &#39;</span><span class="si">{</span><span class="n">conflicting_class</span><span class="si">}</span><span class="s2">&#39; sınıfında derste.&quot;</span>
+
+        <span class="c1"># 3. Teacher Availability Check (using the cache)</span>
+        <span class="c1"># This check is for explanation purposes. The algorithm can decide to ignore it.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">availability_cache</span><span class="o">.</span><span class="n">is_available</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Öğretmen uygunluğu: Öğretmen bu saatte müsait değil.&quot;</span>
+
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_can_place_at_slot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="c1"># Added config</span>
+        <span class="n">lesson_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Simple conflict check, returns boolean.&quot;&quot;&quot;</span>
+        <span class="n">can_place</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_at_slot_detailed</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">can_place</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_random_perturbation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rastgele küçük değişiklik yap (local search) - ÇAKIŞMA KONTROLLÜ&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">schedule</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">schedule</span>
+
+        <span class="c1"># 10 deneme hakkı ver</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+            <span class="n">new_schedule</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">]</span>
+
+            <span class="c1"># Strateji: Bir dersi başka bir boş slota taşı</span>
+            <span class="c1"># En az yerleşmiş sınıflardan birini seç</span>
+            <span class="n">coverage_report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_coverage</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">class_priorities</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">coverage_report</span><span class="p">[</span><span class="s2">&quot;class_coverage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;percentage&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">class_priorities</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">class_id_to_move</span> <span class="o">=</span> <span class="n">class_priorities</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Bu sınıfa ait bir dersi ve boş bir slotu seç</span>
+            <span class="n">entries_to_move</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">new_schedule</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">class_id_to_move</span><span class="p">]</span>
+            <span class="n">empty_slots</span> <span class="o">=</span> <span class="n">coverage_report</span><span class="p">[</span><span class="s2">&quot;class_coverage&quot;</span><span class="p">][</span><span class="n">class_id_to_move</span><span class="p">][</span><span class="s2">&quot;empty_slots&quot;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">entries_to_move</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">empty_slots</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">entry_to_move_idx</span> <span class="o">=</span> <span class="n">new_schedule</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">entries_to_move</span><span class="p">))</span>
+            <span class="n">original_entry</span> <span class="o">=</span> <span class="n">new_schedule</span><span class="p">[</span><span class="n">entry_to_move_idx</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+            <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">empty_slots</span><span class="p">)</span>
+
+            <span class="c1"># Değişikliği uygula</span>
+            <span class="n">new_schedule</span><span class="p">[</span><span class="n">entry_to_move_idx</span><span class="p">][</span><span class="s2">&quot;day&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">day</span>
+            <span class="n">new_schedule</span><span class="p">[</span><span class="n">entry_to_move_idx</span><span class="p">][</span><span class="s2">&quot;time_slot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">slot</span>
+
+            <span class="c1"># Çakışma kontrolü yap</span>
+            <span class="c1"># Geçici olarak dersi çıkarıp o slotun boş olup olmadığını kontrol et</span>
+            <span class="n">temp_schedule</span> <span class="o">=</span> <span class="n">new_schedule</span><span class="p">[:</span><span class="n">entry_to_move_idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">new_schedule</span><span class="p">[</span><span class="n">entry_to_move_idx</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
+
+            <span class="n">can_place</span><span class="p">,</span> <span class="n">reason</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_place_at_slot_detailed</span><span class="p">(</span>
+                <span class="n">temp_schedule</span><span class="p">,</span> <span class="n">original_entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span> <span class="n">original_entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">],</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">config</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">can_place</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[PERTURBATION] Ders (ID: </span><span class="si">{</span><span class="n">original_entry</span><span class="p">[</span><span class="s1">&#39;lesson_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) yeni slota taşındı: Sınıf </span><span class="si">{</span><span class="n">original_entry</span><span class="p">[</span><span class="s1">&#39;class_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> -&gt; Gün </span><span class="si">{</span><span class="n">day</span><span class="si">}</span><span class="s2">, Saat </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">new_schedule</span>  <span class="c1"># Çakışma yok, yeni programı döndür</span>
+
+        <span class="c1"># 10 denemede de başarılı olamazsa, orijinal programı döndür</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;[PERTURBATION] Rastgele taşıma denemeleri başarısız, çakışma riski nedeniyle değişiklik yapılmadı.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">schedule</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_aggressive_filling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">coverage</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Agresif doldurma - kuralları esnet&quot;&quot;&quot;</span>
+
+        <span class="n">new_schedule</span> <span class="o">=</span> <span class="n">schedule</span><span class="p">[:]</span>
+
+        <span class="c1"># Tüm boş hücreleri bul</span>
+        <span class="n">all_empty_cells</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">class_info</span> <span class="ow">in</span> <span class="n">coverage</span><span class="p">[</span><span class="s2">&quot;class_coverage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">class_info</span><span class="p">[</span><span class="s2">&quot;empty_slots&quot;</span><span class="p">]:</span>
+                <span class="n">all_empty_cells</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">class_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">))</span>
+
+        <span class="c1"># Her boş hücreyi doldurmaya çalış (öğretmen uygunluğu esnetilmiş)</span>
+        <span class="k">for</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">all_empty_cells</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_try_place_lesson_in_slot</span><span class="p">(</span><span class="n">new_schedule</span><span class="p">,</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_schedule</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_print_final_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_coverage</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">final_coverage</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">elapsed_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Final rapor yazdır&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;📊 FİNAL RAPOR&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⏱️  Süre: </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> saniye&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🔄 İterasyon: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📈 KAPSAMA ANALİZİ:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Başlangıç: %</span><span class="si">{</span><span class="n">initial_coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Bitiş: %</span><span class="si">{</span><span class="n">final_coverage</span><span class="p">[</span><span class="s1">&#39;overall_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">improvement</span> <span class="o">=</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">initial_coverage</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • İyileşme: +%</span><span class="si">{</span><span class="n">improvement</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 DETAY:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Toplam slot sayısı: </span><span class="si">{</span><span class="n">final_coverage</span><span class="p">[</span><span class="s1">&#39;total_slots&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> slot&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Yerleşen: </span><span class="si">{</span><span class="n">final_coverage</span><span class="p">[</span><span class="s1">&#39;total_scheduled&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> slot&quot;</span><span class="p">)</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;total_slots&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;total_scheduled&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Boş: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2"> slot&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Sınıf bazlı rapor</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🏫 SINIF BAZLI KAPSAMA:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">class_info</span> <span class="ow">in</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;class_coverage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✅&quot;</span> <span class="k">if</span> <span class="n">class_info</span><span class="p">[</span><span class="s2">&quot;percentage&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">100</span> <span class="k">else</span> <span class="s2">&quot;⚠️&quot;</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">class_info</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_info</span><span class="p">[</span><span class="s1">&#39;scheduled&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">class_info</span><span class="p">[</span><span class="s1">&#39;total_slots&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> slot &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(%</span><span class="si">{</span><span class="n">class_info</span><span class="p">[</span><span class="s1">&#39;percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">class_info</span><span class="p">[</span><span class="s2">&quot;empty_slots&quot;</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Boş slot: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">class_info</span><span class="p">[</span><span class="s1">&#39;empty_slots&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> adet&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Başarı durumu</span>
+        <span class="k">if</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🎉 MÜKEMMEL! %100 DOLULUK SAĞLANDI!&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">95</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ ÇOK İYİ! %</span><span class="si">{</span><span class="n">final_coverage</span><span class="p">[</span><span class="s1">&#39;overall_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> doluluk&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">final_coverage</span><span class="p">[</span><span class="s2">&quot;overall_percentage&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">85</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">👍 İYİ! %</span><span class="si">{</span><span class="n">final_coverage</span><span class="p">[</span><span class="s1">&#39;overall_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> doluluk&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⚠️  DİKKAT! Sadece %</span><span class="si">{</span><span class="n">final_coverage</span><span class="p">[</span><span class="s1">&#39;overall_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> doluluk&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Öğretmen uygunluğunu veya ders atamalarını kontrol edin&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Veritabanına kaydet&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">💾 Veritabanına kaydediliyor...&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">clear_schedule</span><span class="p">()</span>
+
+        <span class="n">saved</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">add_schedule_program</span><span class="p">(</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;classroom_id&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">],</span>
+            <span class="p">):</span>
+                <span class="n">saved</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ </span><span class="si">{</span><span class="n">saved</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> kayıt tamamlandı&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_no_conflicts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Çakışma kontrolü yap</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: Çakışma mesajları (boş liste = çakışma yok)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">conflicts</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Sınıf bazlı çakışma kontrolü</span>
+        <span class="n">class_slots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">class_slots</span><span class="p">:</span>
+                <span class="n">class_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">class_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="n">class_slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">class_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">days_tr</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Pazartesi&quot;</span><span class="p">,</span> <span class="s2">&quot;Salı&quot;</span><span class="p">,</span> <span class="s2">&quot;Çarşamba&quot;</span><span class="p">,</span> <span class="s2">&quot;Perşembe&quot;</span><span class="p">,</span> <span class="s2">&quot;Cuma&quot;</span><span class="p">]</span>
+                <span class="n">day_name</span> <span class="o">=</span> <span class="n">days_tr</span><span class="p">[</span><span class="n">day</span><span class="p">]</span> <span class="k">if</span> <span class="n">day</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Gün </span><span class="si">{</span><span class="n">day</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="n">lessons</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                    <span class="n">lesson</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">])</span>
+                    <span class="n">lesson_name</span> <span class="o">=</span> <span class="n">lesson</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">lesson</span> <span class="k">else</span> <span class="s2">&quot;?&quot;</span>
+                    <span class="n">lessons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lesson_name</span><span class="p">)</span>
+
+                <span class="n">conflict_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Sınıf ID </span><span class="si">{</span><span class="n">class_id</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">day_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">slot</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">. saat: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lessons</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">conflicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict_msg</span><span class="p">)</span>
+
+        <span class="c1"># Öğretmen bazlı çakışma kontrolü</span>
+        <span class="n">teacher_slots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">teacher_slots</span><span class="p">:</span>
+                <span class="n">teacher_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">teacher_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="n">teacher_slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">days_tr</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Pazartesi&quot;</span><span class="p">,</span> <span class="s2">&quot;Salı&quot;</span><span class="p">,</span> <span class="s2">&quot;Çarşamba&quot;</span><span class="p">,</span> <span class="s2">&quot;Perşembe&quot;</span><span class="p">,</span> <span class="s2">&quot;Cuma&quot;</span><span class="p">]</span>
+                <span class="n">day_name</span> <span class="o">=</span> <span class="n">days_tr</span><span class="p">[</span><span class="n">day</span><span class="p">]</span> <span class="k">if</span> <span class="n">day</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Gün </span><span class="si">{</span><span class="n">day</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="n">teacher</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_teacher_by_id</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span>
+                <span class="n">teacher_name</span> <span class="o">=</span> <span class="n">teacher</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">teacher</span> <span class="k">else</span> <span class="s2">&quot;?&quot;</span>
+
+                <span class="n">lessons</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                    <span class="n">lesson</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">])</span>
+                    <span class="n">lesson_name</span> <span class="o">=</span> <span class="n">lesson</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">lesson</span> <span class="k">else</span> <span class="s2">&quot;?&quot;</span>
+                    <span class="n">lessons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lesson_name</span><span class="p">)</span>
+
+                <span class="n">conflict_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Öğretmen </span><span class="si">{</span><span class="n">teacher_name</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">day_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">slot</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">. saat: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lessons</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">conflicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict_msg</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">conflicts</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_remove_conflicts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Çakışmaları temizle</span>
+
+<span class="sd">        Strateji: Aynı slotta birden fazla ders varsa, sadece BİRİNİ tut</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Sınıf bazlı deduplicate</span>
+        <span class="n">seen_slots</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">cleaned_schedule</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_slots</span><span class="p">:</span>
+                <span class="n">cleaned_schedule</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                <span class="n">seen_slots</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="c1"># Öğretmen bazlı deduplicate</span>
+        <span class="n">teacher_seen_slots</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">final_schedule</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">cleaned_schedule</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">teacher_seen_slots</span><span class="p">:</span>
+                <span class="n">final_schedule</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                <span class="n">teacher_seen_slots</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">final_schedule</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_report_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">percentage</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Progress callback&#39;e bildir&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">percentage</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Progress callback raised an exception in UltraAggressiveScheduler: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

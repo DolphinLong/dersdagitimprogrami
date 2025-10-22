@@ -1,0 +1,457 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ui.dialogs.teacher_dialog &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../../genindex.html" />
+    <link rel="search" title="Ara" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">ui.dialogs.teacher_dialog</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ui.dialogs.teacher_dialog öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Teacher dialog for the Class Scheduling Program</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QFont</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QComboBox</span><span class="p">,</span>
+    <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QLineEdit</span><span class="p">,</span>
+    <span class="n">QMessageBox</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.teacher_availability_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">TeacherAvailabilityDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.school_type_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchoolTypeDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_styled_message_box</span>
+
+
+<div class="viewcode-block" id="TeacherDialog">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TeacherDialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog for adding or editing teachers&quot;&quot;&quot;</span>
+
+    <span class="c1"># Define school types and their subjects</span>
+    <span class="n">SCHOOL_SUBJECTS</span> <span class="o">=</span> <span class="n">SchoolTypeDialog</span><span class="o">.</span><span class="n">SCHOOL_TYPES</span>
+
+<div class="viewcode-block" id="TeacherDialog.__init__">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">teacher</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span> <span class="o">=</span> <span class="n">teacher</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Öğretmen Ekle/Düzenle&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFixedSize</span><span class="p">(</span><span class="mi">450</span><span class="p">,</span> <span class="mi">320</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_ui</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">populate_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_styles</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populate_subjects</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TeacherDialog.setup_ui">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.setup_ui">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the user interface with modern design&quot;&quot;&quot;</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+
+        <span class="c1"># Title with modern styling</span>
+        <span class="n">title_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Öğretmen Ekle/Düzenle&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;font-size: 16px; font-weight: bold; margin: 10px;&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title_label</span><span class="p">)</span>
+
+        <span class="c1"># Name input with modern styling</span>
+        <span class="n">name_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">name_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Ad Soyad:&quot;</span><span class="p">)</span>
+        <span class="n">name_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;fieldLabel&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;inputField&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Öğretmenin tam adını girin&quot;</span><span class="p">)</span>
+        <span class="n">name_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">name_label</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">name_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">name_layout</span><span class="p">)</span>
+
+        <span class="c1"># Subject input with modern styling</span>
+        <span class="n">subject_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">subject_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Branş:&quot;</span><span class="p">)</span>
+        <span class="n">subject_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;fieldLabel&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;inputField&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">setEditable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Branş seçin veya girin&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Apply styling directly to the combo box view</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">view</span><span class="p">()</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            background: white;</span>
+<span class="sd">            color: #212529;</span>
+<span class="sd">            selection-background-color: #3498db;</span>
+<span class="sd">            selection-color: white;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">subject_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">subject_label</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">subject_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">subject_layout</span><span class="p">)</span>
+
+        <span class="c1"># Availability button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">availability_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;🕒 Uygunluk Ayarları&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">availability_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;availabilityButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">availability_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">open_availability_dialog</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">availability_button</span><span class="p">)</span>
+
+        <span class="c1"># Buttons with modern styling</span>
+        <span class="n">button_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;✅ Kaydet&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;saveButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_teacher</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;❌ İptal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;cancelButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="p">)</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">button_layout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+
+        <span class="c1"># Set focus to name input</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TeacherDialog.apply_styles">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.apply_styles">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply modern styles with improved design&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QDialog {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #ffffff, stop: 1 #f8f9fa);</span>
+<span class="sd">                border-radius: 12px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QLabel {</span>
+<span class="sd">                color: #212529;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #title {</span>
+<span class="sd">                font-size: 18px;</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">                margin-bottom: 10px;</span>
+<span class="sd">                text-align: center;</span>
+<span class="sd">            }</span>
+<span class="sd">            #fieldLabel {</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: #3498db;</span>
+<span class="sd">            }</span>
+<span class="sd">            QLineEdit, QComboBox {</span>
+<span class="sd">                padding: 12px;</span>
+<span class="sd">                border: 2px solid #cccccc;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">                background: white;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                min-height: 20px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QLineEdit:focus, QComboBox:focus {</span>
+<span class="sd">                border: 2px solid #3498db;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox::drop-down {</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView {</span>
+<span class="sd">                background: white;</span>
+<span class="sd">                color: #212529;</span>
+<span class="sd">                selection-background-color: #3498db;</span>
+<span class="sd">                selection-color: white;</span>
+<span class="sd">                border: 1px solid #cccccc;</span>
+<span class="sd">                outline: 0px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView::item {</span>
+<span class="sd">                background: white;</span>
+<span class="sd">                color: #212529;</span>
+<span class="sd">                padding: 8px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView::item:selected {</span>
+<span class="sd">                background: #3498db;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton {</span>
+<span class="sd">                padding: 12px 20px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                min-height: 20px;</span>
+<span class="sd">                min-width: 100px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2980b9, stop: 1 #2573a7);</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:pressed {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2573a7, stop: 1 #1f618d);</span>
+<span class="sd">            }</span>
+<span class="sd">            #saveButton {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #27ae60, stop: 1 #219653);</span>
+<span class="sd">            }</span>
+<span class="sd">            #saveButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #219653, stop: 1 #1e8449);</span>
+<span class="sd">            }</span>
+<span class="sd">            #cancelButton {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #e74c3c, stop: 1 #c0392b);</span>
+<span class="sd">            }</span>
+<span class="sd">            #cancelButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #c0392b, stop: 1 #a93226);</span>
+<span class="sd">            }</span>
+<span class="sd">            #availabilityButton {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #9b59b6, stop: 1 #8e44ad);</span>
+<span class="sd">            }</span>
+<span class="sd">            #availabilityButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #8e44ad, stop: 1 #7d3c98);</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TeacherDialog.populate_subjects">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.populate_subjects">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_subjects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate subject dropdown based on school type&quot;&quot;&quot;</span>
+        <span class="c1"># Clear existing items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Get school type from database</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span>
+
+        <span class="c1"># If no school type is set, default to &quot;Lise&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">school_type</span><span class="p">:</span>
+            <span class="n">school_type</span> <span class="o">=</span> <span class="s2">&quot;Lise&quot;</span>
+
+        <span class="c1"># Get subjects for the school type</span>
+        <span class="n">subjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHOOL_SUBJECTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">school_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHOOL_SUBJECTS</span><span class="p">[</span><span class="s2">&quot;Lise&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Add subjects to combo box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">subjects</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TeacherDialog.populate_data">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.populate_data">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate dialog with existing teacher data&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># Set the subject in the combo box</span>
+        <span class="n">subject_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="o">.</span><span class="n">subject</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="n">subject_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">setEditText</span><span class="p">(</span><span class="n">subject_text</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TeacherDialog.open_availability_dialog">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.open_availability_dialog">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_availability_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open teacher availability dialog&quot;&quot;&quot;</span>
+        <span class="c1"># If this is a new teacher, save it first</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">subject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">subject</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Lütfen önce öğretmen adı ve branşını girin.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span>
+                <span class="p">)</span>
+                <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Add new teacher</span>
+            <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">add_teacher</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">teacher_id</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmen eklenirken bir hata oluştu.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span>
+                <span class="p">)</span>
+                <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Get the newly created teacher</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_teacher_by_id</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span>
+
+        <span class="c1"># Open availability dialog</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="p">:</span>
+            <span class="n">dialog</span> <span class="o">=</span> <span class="n">TeacherAvailabilityDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="p">)</span>
+            <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TeacherDialog.save_teacher">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.teacher_dialog.TeacherDialog.save_teacher">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_teacher</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save teacher data&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subject_input</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">subject</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Lütfen tüm alanları doldurun.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span>
+            <span class="p">)</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="p">:</span>
+                <span class="c1"># Update existing teacher</span>
+                <span class="n">success</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">update_teacher</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmen bilgileri başarıyla güncellendi.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Öğretmen bilgileri güncellenirken bir hata oluştu.&quot;</span><span class="p">,</span>
+                        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Add new teacher</span>
+                <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">add_teacher</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">teacher_id</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmen başarıyla eklendi.&quot;</span><span class="p">)</span>
+                    <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmen eklenirken bir hata oluştu.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span>
+                    <span class="p">)</span>
+                    <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Öğretmen kaydedilirken bir hata oluştu: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

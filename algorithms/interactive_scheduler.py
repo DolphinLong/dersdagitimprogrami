@@ -5,10 +5,11 @@ Allows users to lock entries, get suggestions, and validate in real-time
 """
 
 import io
-import logging
 import sys
+import time
+import threading
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Callable, Tuple
 
 # Set encoding for Windows
 if sys.platform.startswith("win"):
@@ -49,7 +50,20 @@ class InteractiveScheduler:
 
         # History for undo/redo
         self.history: List[List[Dict]] = []
-        self.history_index: int = -1
+        self.history_index = -1
+
+        # Real-time optimization thread
+        self.optimization_thread = None
+        self.stop_optimization = threading.Event()
+
+        # Performance monitoring
+        self.performance_stats = {
+            'total_moves': 0,
+            'conflicts_resolved': 0,
+            'optimization_time': 0.0,
+            'suggestions_generated': 0
+        }
+
         self.max_history: int = 50
 
         # Conflict tracking
@@ -197,7 +211,167 @@ class InteractiveScheduler:
         # Sort by score (descending)
         suggestions.sort(key=lambda x: x["score"], reverse=True)
 
-        return suggestions[:max_suggestions]
+    def start_realtime_optimization(self, interval: float = 1.0):
+        """Gerçek zamanlı optimizasyon thread'ini başlat"""
+        if self.optimization_thread and self.optimization_thread.is_alive():
+            return
+
+        self.stop_optimization.clear()
+        self.optimization_thread = threading.Thread(target=self._realtime_optimization_loop, args=(interval,))
+        self.optimization_thread.daemon = True
+        self.optimization_thread.start()
+        self.logger.info("Gerçek zamanlı optimizasyon başlatıldı")
+
+    def stop_realtime_optimization(self):
+        """Gerçek zamanlı optimizasyon thread'ini durdur"""
+        self.stop_optimization.set()
+        if self.optimization_thread:
+            self.optimization_thread.join(timeout=2.0)
+        self.logger.info("Gerçek zamanlı optimizasyon durduruldu")
+
+    def _realtime_optimization_loop(self, interval: float):
+        """Gerçek zamanlı optimizasyon döngüsü"""
+        while not self.stop_optimization.is_set():
+            try:
+                # Performansı kaydet
+                start_time = time.time()
+
+                # Çakışmaları tespit et ve otomatik çözmeye çalış
+                initial_conflicts = len(self.conflicts)
+                if initial_conflicts > 0:
+                    self._auto_resolve_conflicts()
+
+                # Performansı güncelle
+                end_time = time.time()
+                self.performance_stats['optimization_time'] += (end_time - start_time)
+
+                # Kısa bir bekleme
+                time.sleep(interval)
+
+            except Exception as e:
+                self.logger.error(f"Gerçek zamanlı optimizasyon hatası: {e}")
+                time.sleep(interval)
+
+    def _auto_resolve_conflicts(self):
+        """Otomatik çakışma çözümü"""
+        if not self.conflicts:
+            return
+
+        resolved_count = 0
+
+        for conflict in self.conflicts[:]:  # Copy list to avoid modification during iteration
+            if self._try_resolve_conflict(conflict):
+                self.conflicts.remove(conflict)
+                resolved_count += 1
+
+        if resolved_count > 0:
+            self.performance_stats['conflicts_resolved'] += resolved_count
+            self.logger.info(f"Otomatik olarak {resolved_count} çakışma çözüldü")
+
+    def _try_resolve_conflict(self, conflict: Dict) -> bool:
+        """Tek bir çakışmayı çözmeye çalış"""
+        try:
+            # Basit heuristic: Rastgele bir çakışan entry'i başka bir slot'a taşı
+            conflicting_entries = conflict.get('entries', [])
+
+            if len(conflicting_entries) >= 2:
+                # İlk entry'i başka bir slot'a taşı
+                entry_to_move = conflicting_entries[0]
+                entry_index = self._find_entry_index(entry_to_move)
+
+                if entry_index >= 0 and not self.is_locked(entry_index):
+                    # Uygun alternatif slotlar bul
+                    alternatives = self.suggest_alternatives(entry_index, max_suggestions=3)
+
+                    for alt in alternatives:
+                        success, _ = self.move_entry(entry_index, alt['day'], alt['slot'])
+                        if success:
+                            return True
+
+        except Exception as e:
+            self.logger.warning(f"Çakışma çözümü hatası: {e}")
+
+        return False
+
+    def _find_entry_index(self, target_entry: Dict) -> int:
+        """Entry'nin schedule'daki index'ini bul"""
+        for i, entry in enumerate(self.schedule):
+            if (entry['class_id'] == target_entry['class_id'] and
+                entry['teacher_id'] == target_entry['teacher_id'] and
+                entry['lesson_id'] == target_entry['lesson_id'] and
+                entry['day'] == target_entry['day'] and
+                entry['time_slot'] == target_entry['time_slot']):
+                return i
+        return -1
+
+    def _score_slot(self, class_id: int, lesson_id: int, teacher_id: int, day: int, slot: int) -> float:
+        """Slot için puan hesapla (yüksek = daha iyi)"""
+        score = 50.0  # Base score
+
+        # Gün tercihi (Pazartesi daha iyi)
+        score += (4 - day) * 2
+
+        # Slot tercihi (Sabah saatleri daha iyi)
+        if slot <= 2:
+            score += 10
+        elif slot <= 4:
+            score += 5
+        elif slot >= 6:
+            score -= 5
+
+        # Öğretmen uygunluğu kontrolü
+        try:
+            if not self.db_manager.is_teacher_available(teacher_id, day, slot):
+                score -= 20
+        except:
+            pass
+
+        return score
+
+    def _get_slot_reason(self, day: int, slot: int, score: float) -> str:
+        """Slot için neden açıklama"""
+        reasons = []
+
+        if score >= 60:
+            reasons.append("Mükemmel tercih")
+        elif score >= 50:
+            reasons.append("İyi tercih")
+        elif score >= 40:
+            reasons.append("Uygun tercih")
+        else:
+            reasons.append("Son çare")
+
+        day_names = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
+        reasons.append(f"{day_names[day]} günü")
+
+        if slot <= 2:
+            reasons.append("Sabah saati")
+        elif slot >= 6:
+            reasons.append("Akşam saati")
+
+        return ", ".join(reasons)
+
+    def get_performance_report(self) -> Dict:
+        """Performans istatistiklerini döndür"""
+        return self.performance_stats.copy()
+
+    def get_quality_score(self) -> float:
+        """Schedule kalite puanını hesapla (0-100)"""
+        if not self.schedule:
+            return 100.0
+
+        # Çakışma sayısı bazlı puanlama
+        conflict_penalty = len(self.conflicts) * 10
+
+        # Kilitli entry bonus
+        locked_bonus = len(self.locked_entries) * 2
+
+        # Hareket sayısı bonus
+        move_bonus = min(self.performance_stats['total_moves'] * 0.5, 20)
+
+        score = 100.0 - conflict_penalty + locked_bonus + move_bonus
+
+        return max(0.0, min(100.0, score))
 
     def add_entry(
         self, class_id: int, teacher_id: int, lesson_id: int, classroom_id: int, day: int, slot: int

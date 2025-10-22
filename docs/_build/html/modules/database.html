@@ -1,0 +1,712 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database Modülü &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../genindex.html" />
+    <link rel="search" title="Ara" href="../search.html" />
+    <link rel="next" title="UI Modülü" href="ui.html" />
+    <link rel="prev" title="Algorithms Modülü" href="algorithms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Database Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-database.db_manager">Database Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#database.db_manager.DatabaseManager"><code class="docutils literal notranslate"><span class="pre">DatabaseManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.__init__"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.__enter__"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.__enter__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.__exit__"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.__exit__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.__del__"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.__del__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_connection"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.close_connection"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.close_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_school_type"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.set_school_type"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.set_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_setting"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_setting()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.set_setting"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.set_setting()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.create_tables"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.create_tables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.migrate_existing_data"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.migrate_existing_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.close"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_user"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_lesson"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_lesson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_all_lessons"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_all_lessons()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.update_lesson"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.update_lesson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.delete_lesson"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.delete_lesson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_curriculum_for_lesson"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_curriculum_for_lesson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_lesson_weekly_hours"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_lesson_weekly_hours()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_or_update_curriculum"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_or_update_curriculum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_weekly_hours_for_lesson"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_weekly_hours_for_lesson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_all_teachers"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_all_teachers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_all_classes"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_all_classes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_schedule_by_school_type"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_schedule_by_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_schedule_program_by_school_type"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_schedule_program_by_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_lesson_by_id"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_lesson_by_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_lesson_by_name"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_lesson_by_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_teacher_by_id"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_teacher_by_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_class_by_id"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_class_by_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_classroom_by_id"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_classroom_by_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_schedule_entry"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_schedule_entry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_schedule_by_school_type"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_schedule_by_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_schedule_program"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_schedule_program()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_schedule_for_specific_class"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_schedule_for_specific_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_schedule_for_specific_teacher"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_schedule_for_specific_teacher()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.update_schedule_entry"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.update_schedule_entry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.delete_teacher"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.delete_teacher()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.delete_schedule_entry"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.delete_schedule_entry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.delete_all_schedule_entries"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.delete_all_schedule_entries()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.clear_schedule"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.clear_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.delete_class"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.delete_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_teacher"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_teacher()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.update_teacher"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.update_teacher()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_class"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.update_class"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.update_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_teacher_availability"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_teacher_availability()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.set_teacher_availability"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.set_teacher_availability()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.is_teacher_available"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.is_teacher_available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_all_classrooms"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_all_classrooms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_user"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.add_classroom"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.add_classroom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.get_all_curriculum"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.get_all_curriculum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.find_missing_assignments"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.find_missing_assignments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database.db_manager.DatabaseManager.auto_fill_assignments"><code class="docutils literal notranslate"><span class="pre">DatabaseManager.auto_fill_assignments()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-database.models">Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.User"><code class="docutils literal notranslate"><span class="pre">User</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.User.__init__"><code class="docutils literal notranslate"><span class="pre">User.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.Teacher"><code class="docutils literal notranslate"><span class="pre">Teacher</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.Teacher.__init__"><code class="docutils literal notranslate"><span class="pre">Teacher.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.Class"><code class="docutils literal notranslate"><span class="pre">Class</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.Class.__init__"><code class="docutils literal notranslate"><span class="pre">Class.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.Classroom"><code class="docutils literal notranslate"><span class="pre">Classroom</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.Classroom.__init__"><code class="docutils literal notranslate"><span class="pre">Classroom.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.Lesson"><code class="docutils literal notranslate"><span class="pre">Lesson</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.Lesson.__init__"><code class="docutils literal notranslate"><span class="pre">Lesson.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.Curriculum"><code class="docutils literal notranslate"><span class="pre">Curriculum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.Curriculum.__init__"><code class="docutils literal notranslate"><span class="pre">Curriculum.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#database.models.ScheduleEntry"><code class="docutils literal notranslate"><span class="pre">ScheduleEntry</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database.models.ScheduleEntry.__init__"><code class="docutils literal notranslate"><span class="pre">ScheduleEntry.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#kullanim-ornekleri">Kullanım Örnekleri</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#veritabani-baglantisi">Veritabanı Bağlantısı</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sinif-ekleme">Sınıf Ekleme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ogretmen-ekleme">Öğretmen Ekleme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ders-atama">Ders Atama</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Database Modülü</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/database.rst.txt" rel="nofollow"> Sayfa kaynağını görüntüle</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="database-modulu">
+<h1>Database Modülü<a class="headerlink" href="#database-modulu" title="Link to this heading"></a></h1>
+<p>Bu modül, veritabanı işlemlerini yönetir.</p>
+<section id="module-database.db_manager">
+<span id="database-manager"></span><h2>Database Manager<a class="headerlink" href="#module-database.db_manager" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.db_manager.</span></span><span class="sig-name descname"><span class="pre">DatabaseManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'schedule.db'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Manages database operations for the application</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'schedule.db'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.__enter__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.__enter__" title="Link to this definition"></a></dt>
+<dd><p>Support use as a context manager: with DatabaseManager(…) as db: …</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.__exit__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.__exit__" title="Link to this definition"></a></dt>
+<dd><p>Ensure connections are closed when exiting context manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.__del__">
+<span class="sig-name descname"><span class="pre">__del__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.__del__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.__del__" title="Link to this definition"></a></dt>
+<dd><p>Destructor to ensure DB connection is closed to avoid ResourceWarning.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_connection">
+<span class="sig-name descname"><span class="pre">get_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_connection"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_connection" title="Link to this definition"></a></dt>
+<dd><p>Get a thread-local database connection</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.close_connection">
+<span class="sig-name descname"><span class="pre">close_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.close_connection"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.close_connection" title="Link to this definition"></a></dt>
+<dd><p>Close the thread-local database connection</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_school_type">
+<span class="sig-name descname"><span class="pre">get_school_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_school_type" title="Link to this definition"></a></dt>
+<dd><p>Get the school type from settings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.set_school_type">
+<span class="sig-name descname"><span class="pre">set_school_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">school_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.set_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.set_school_type" title="Link to this definition"></a></dt>
+<dd><p>Set the school type in settings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_setting">
+<span class="sig-name descname"><span class="pre">get_setting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(Python v3.14 içinde)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(Python v3.14 içinde)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_setting"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_setting" title="Link to this definition"></a></dt>
+<dd><p>Get a setting value from the database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.set_setting">
+<span class="sig-name descname"><span class="pre">set_setting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(Python v3.14 içinde)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(Python v3.14 içinde)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.set_setting"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.set_setting" title="Link to this definition"></a></dt>
+<dd><p>Set a setting value in the database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.create_tables">
+<span class="sig-name descname"><span class="pre">create_tables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.create_tables"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.create_tables" title="Link to this definition"></a></dt>
+<dd><p>Create database tables if they don’t exist</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.migrate_existing_data">
+<span class="sig-name descname"><span class="pre">migrate_existing_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.migrate_existing_data"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.migrate_existing_data" title="Link to this definition"></a></dt>
+<dd><p>Handle schema migrations. Currently a placeholder.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.close"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.close" title="Link to this definition"></a></dt>
+<dd><p>Close the database connection</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_user">
+<span class="sig-name descname"><span class="pre">add_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_user"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_user" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_lesson">
+<span class="sig-name descname"><span class="pre">add_lesson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_lesson"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_lesson" title="Link to this definition"></a></dt>
+<dd><p>Add a new unique lesson name for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_all_lessons">
+<span class="sig-name descname"><span class="pre">get_all_lessons</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.Lesson" title="database.models.Lesson"><span class="pre">Lesson</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_all_lessons"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_all_lessons" title="Link to this definition"></a></dt>
+<dd><p>Get all unique lessons for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.update_lesson">
+<span class="sig-name descname"><span class="pre">update_lesson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.update_lesson"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.update_lesson" title="Link to this definition"></a></dt>
+<dd><p>Update a lesson’s name via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.delete_lesson">
+<span class="sig-name descname"><span class="pre">delete_lesson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.delete_lesson"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.delete_lesson" title="Link to this definition"></a></dt>
+<dd><p>Delete a lesson and its associated curriculum entries via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_curriculum_for_lesson">
+<span class="sig-name descname"><span class="pre">get_curriculum_for_lesson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.Curriculum" title="database.models.Curriculum"><span class="pre">Curriculum</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_curriculum_for_lesson"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_curriculum_for_lesson" title="Link to this definition"></a></dt>
+<dd><p>Get all curriculum entries for a specific lesson via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_lesson_weekly_hours">
+<span class="sig-name descname"><span class="pre">add_lesson_weekly_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">school_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_lesson_weekly_hours"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_lesson_weekly_hours" title="Link to this definition"></a></dt>
+<dd><p>Add or update weekly hours for a lesson at a specific grade via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_or_update_curriculum">
+<span class="sig-name descname"><span class="pre">add_or_update_curriculum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_or_update_curriculum"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_or_update_curriculum" title="Link to this definition"></a></dt>
+<dd><p>Add or update a curriculum entry for a lesson at a specific grade via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_weekly_hours_for_lesson">
+<span class="sig-name descname"><span class="pre">get_weekly_hours_for_lesson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_weekly_hours_for_lesson"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_weekly_hours_for_lesson" title="Link to this definition"></a></dt>
+<dd><p>Get the weekly hours for a specific lesson and grade via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_all_teachers">
+<span class="sig-name descname"><span class="pre">get_all_teachers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.Teacher" title="database.models.Teacher"><span class="pre">Teacher</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_all_teachers"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_all_teachers" title="Link to this definition"></a></dt>
+<dd><p>Get all teachers for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_all_classes">
+<span class="sig-name descname"><span class="pre">get_all_classes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.Class" title="database.models.Class"><span class="pre">Class</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_all_classes"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_all_classes" title="Link to this definition"></a></dt>
+<dd><p>Get all classes for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_schedule_by_school_type">
+<span class="sig-name descname"><span class="pre">get_schedule_by_school_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.ScheduleEntry" title="database.models.ScheduleEntry"><span class="pre">ScheduleEntry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_schedule_by_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_schedule_by_school_type" title="Link to this definition"></a></dt>
+<dd><p>Get all schedule entries for the current school type (assignments) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_schedule_program_by_school_type">
+<span class="sig-name descname"><span class="pre">get_schedule_program_by_school_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.ScheduleEntry" title="database.models.ScheduleEntry"><span class="pre">ScheduleEntry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_schedule_program_by_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_schedule_program_by_school_type" title="Link to this definition"></a></dt>
+<dd><p>Get all schedule program for the current school type (timetable) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_lesson_by_id">
+<span class="sig-name descname"><span class="pre">get_lesson_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#database.models.Lesson" title="database.models.Lesson"><span class="pre">Lesson</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_lesson_by_id"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_lesson_by_id" title="Link to this definition"></a></dt>
+<dd><p>Get a lesson by its ID via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_lesson_by_name">
+<span class="sig-name descname"><span class="pre">get_lesson_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#database.models.Lesson" title="database.models.Lesson"><span class="pre">Lesson</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_lesson_by_name"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_lesson_by_name" title="Link to this definition"></a></dt>
+<dd><p>Get a lesson by its name for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_teacher_by_id">
+<span class="sig-name descname"><span class="pre">get_teacher_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#database.models.Teacher" title="database.models.Teacher"><span class="pre">Teacher</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_teacher_by_id"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_teacher_by_id" title="Link to this definition"></a></dt>
+<dd><p>Get a teacher by its ID via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_class_by_id">
+<span class="sig-name descname"><span class="pre">get_class_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#database.models.Class" title="database.models.Class"><span class="pre">Class</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_class_by_id"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_class_by_id" title="Link to this definition"></a></dt>
+<dd><p>Get a class by its ID via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_classroom_by_id">
+<span class="sig-name descname"><span class="pre">get_classroom_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#database.models.Classroom" title="database.models.Classroom"><span class="pre">Classroom</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_classroom_by_id"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_classroom_by_id" title="Link to this definition"></a></dt>
+<dd><p>Get a classroom by its ID via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_schedule_entry">
+<span class="sig-name descname"><span class="pre">add_schedule_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_schedule_entry"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_schedule_entry" title="Link to this definition"></a></dt>
+<dd><p>Add a new schedule entry to schedule_entries table (assignments) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_schedule_by_school_type">
+<span class="sig-name descname"><span class="pre">add_schedule_by_school_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_schedule_by_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_schedule_by_school_type" title="Link to this definition"></a></dt>
+<dd><p>Add a lesson assignment (without schedule details) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_schedule_program">
+<span class="sig-name descname"><span class="pre">add_schedule_program</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_schedule_program"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_schedule_program" title="Link to this definition"></a></dt>
+<dd><p>Add a new schedule program to schedule table (timetable) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_schedule_for_specific_class">
+<span class="sig-name descname"><span class="pre">get_schedule_for_specific_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.ScheduleEntry" title="database.models.ScheduleEntry"><span class="pre">ScheduleEntry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_schedule_for_specific_class"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_schedule_for_specific_class" title="Link to this definition"></a></dt>
+<dd><p>Get schedule program for a specific class (from schedule table) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_schedule_for_specific_teacher">
+<span class="sig-name descname"><span class="pre">get_schedule_for_specific_teacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.ScheduleEntry" title="database.models.ScheduleEntry"><span class="pre">ScheduleEntry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_schedule_for_specific_teacher"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_schedule_for_specific_teacher" title="Link to this definition"></a></dt>
+<dd><p>Get schedule program for a specific teacher via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.update_schedule_entry">
+<span class="sig-name descname"><span class="pre">update_schedule_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.update_schedule_entry"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.update_schedule_entry" title="Link to this definition"></a></dt>
+<dd><p>Update an existing schedule entry via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.delete_teacher">
+<span class="sig-name descname"><span class="pre">delete_teacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.delete_teacher"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.delete_teacher" title="Link to this definition"></a></dt>
+<dd><p>Delete a teacher and all related records via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.delete_schedule_entry">
+<span class="sig-name descname"><span class="pre">delete_schedule_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.delete_schedule_entry"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.delete_schedule_entry" title="Link to this definition"></a></dt>
+<dd><p>Delete a single schedule entry by entry_id via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.delete_all_schedule_entries">
+<span class="sig-name descname"><span class="pre">delete_all_schedule_entries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.delete_all_schedule_entries"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.delete_all_schedule_entries" title="Link to this definition"></a></dt>
+<dd><p>Delete all schedule entries for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.clear_schedule">
+<span class="sig-name descname"><span class="pre">clear_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.clear_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.clear_schedule" title="Link to this definition"></a></dt>
+<dd><p>Clear only the schedule table (not assignments) via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.delete_class">
+<span class="sig-name descname"><span class="pre">delete_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.delete_class"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.delete_class" title="Link to this definition"></a></dt>
+<dd><p>Delete a class via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_teacher">
+<span class="sig-name descname"><span class="pre">add_teacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_teacher"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_teacher" title="Link to this definition"></a></dt>
+<dd><p>Add a new teacher via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.update_teacher">
+<span class="sig-name descname"><span class="pre">update_teacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.update_teacher"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.update_teacher" title="Link to this definition"></a></dt>
+<dd><p>Update an existing teacher via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_class">
+<span class="sig-name descname"><span class="pre">add_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_class"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_class" title="Link to this definition"></a></dt>
+<dd><p>Add a new class via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.update_class">
+<span class="sig-name descname"><span class="pre">update_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.update_class"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.update_class" title="Link to this definition"></a></dt>
+<dd><p>Update an existing class via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_teacher_availability">
+<span class="sig-name descname"><span class="pre">get_teacher_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(Python v3.14 içinde)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_teacher_availability"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_teacher_availability" title="Link to this definition"></a></dt>
+<dd><p>Get teacher availability data via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.set_teacher_availability">
+<span class="sig-name descname"><span class="pre">set_teacher_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_available</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.set_teacher_availability"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.set_teacher_availability" title="Link to this definition"></a></dt>
+<dd><p>Set teacher availability for a specific day and time slot via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.is_teacher_available">
+<span class="sig-name descname"><span class="pre">is_teacher_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(Python v3.14 içinde)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.is_teacher_available"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.is_teacher_available" title="Link to this definition"></a></dt>
+<dd><p>Check if a teacher is available at a specific day and time slot via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_all_classrooms">
+<span class="sig-name descname"><span class="pre">get_all_classrooms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.Classroom" title="database.models.Classroom"><span class="pre">Classroom</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_all_classrooms"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_all_classrooms" title="Link to this definition"></a></dt>
+<dd><p>Get all classrooms for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_user">
+<span class="sig-name descname"><span class="pre">get_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#database.models.User" title="database.models.User"><span class="pre">User</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_user"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_user" title="Link to this definition"></a></dt>
+<dd><p>Get a user by username and password</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.add_classroom">
+<span class="sig-name descname"><span class="pre">add_classroom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(Python v3.14 içinde)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(Python v3.14 içinde)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.add_classroom"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.add_classroom" title="Link to this definition"></a></dt>
+<dd><p>Add a new classroom via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.get_all_curriculum">
+<span class="sig-name descname"><span class="pre">get_all_curriculum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(Python v3.14 içinde)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#database.models.Curriculum" title="database.models.Curriculum"><span class="pre">Curriculum</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.get_all_curriculum"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.get_all_curriculum" title="Link to this definition"></a></dt>
+<dd><p>Get all curriculum entries for the current school type via repository.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.find_missing_assignments">
+<span class="sig-name descname"><span class="pre">find_missing_assignments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(Python v3.14 içinde)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.find_missing_assignments"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.find_missing_assignments" title="Link to this definition"></a></dt>
+<dd><p>Find missing lesson assignments for all classes.
+Returns a dictionary with structure:
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>class_id: {</dt><dd><p>‘class’: Class object,
+‘missing_lessons’: [(lesson_id, lesson_name, weekly_hours), …]</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="database.db_manager.DatabaseManager.auto_fill_assignments">
+<span class="sig-name descname"><span class="pre">auto_fill_assignments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(Python v3.14 içinde)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/database/db_manager.html#DatabaseManager.auto_fill_assignments"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.db_manager.DatabaseManager.auto_fill_assignments" title="Link to this definition"></a></dt>
+<dd><p>Automatically fill missing lesson assignments.
+Tries to match teachers by subject.
+Returns a dictionary with assignment results:
+{</p>
+<blockquote>
+<div><p>‘success’: [(class_name, lesson_name, teacher_name), …],
+‘failed’: [(class_name, lesson_name, reason), …]</p>
+</div></blockquote>
+<p>}</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-database.models">
+<span id="models"></span><h2>Models<a class="headerlink" href="#module-database.models" title="Link to this heading"></a></h2>
+<p>Data models for the Class Scheduling Program</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.User">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">User</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#User"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.User" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>User model</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.User.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#User.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.User.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.Teacher">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">Teacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Teacher"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Teacher" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Teacher model</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.Teacher.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Teacher.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Teacher.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.Class">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">Class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Class"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Class" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class model</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.Class.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Class.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Class.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.Classroom">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">Classroom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Classroom"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Classroom" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Classroom model</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.Classroom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Classroom.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Classroom.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.Lesson">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">Lesson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Lesson"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Lesson" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Lesson model - represents a unique lesson name.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.Lesson.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Lesson.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Lesson.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.Curriculum">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">Curriculum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curriculum_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Curriculum"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Curriculum" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Curriculum model linking lessons to grades and weekly hours.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.Curriculum.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curriculum_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grade</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weekly_hours</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#Curriculum.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.Curriculum.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.ScheduleEntry">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">ScheduleEntry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#ScheduleEntry"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.ScheduleEntry" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(Python v3.14 içinde)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Schedule entry model</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="database.models.ScheduleEntry.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classroom_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_slot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/database/models.html#ScheduleEntry.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#database.models.ScheduleEntry.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="kullanim-ornekleri">
+<h2>Kullanım Örnekleri<a class="headerlink" href="#kullanim-ornekleri" title="Link to this heading"></a></h2>
+<section id="veritabani-baglantisi">
+<h3>Veritabanı Bağlantısı<a class="headerlink" href="#veritabani-baglantisi" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">database.db_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseManager</span>
+
+<span class="c1"># Veritabanı oluştur</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s2">&quot;schedule.db&quot;</span><span class="p">)</span>
+
+<span class="c1"># Context manager ile kullan</span>
+<span class="k">with</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s2">&quot;schedule.db&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="sinif-ekleme">
+<h3>Sınıf Ekleme<a class="headerlink" href="#sinif-ekleme" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sınıf ekle</span>
+<span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;9-A&quot;</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+
+<span class="c1"># Sınıfları listele</span>
+<span class="n">classes</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+<span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">grade</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ogretmen-ekleme">
+<h3>Öğretmen Ekleme<a class="headerlink" href="#ogretmen-ekleme" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Öğretmen ekle</span>
+<span class="n">teacher_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">add_teacher</span><span class="p">(</span><span class="s2">&quot;Ahmet Yılmaz&quot;</span><span class="p">,</span> <span class="s2">&quot;Matematik&quot;</span><span class="p">)</span>
+
+<span class="c1"># Öğretmenleri listele</span>
+<span class="n">teachers</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="ders-atama">
+<h3>Ders Atama<a class="headerlink" href="#ders-atama" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ders atama ekle</span>
+<span class="n">assignment_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">add_lesson_assignment</span><span class="p">(</span>
+    <span class="n">class_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">lesson_id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">teacher_id</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">weekly_hours</span><span class="o">=</span><span class="mi">4</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="algorithms.html" class="btn btn-neutral float-left" title="Algorithms Modülü" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Önceki</a>
+        <a href="ui.html" class="btn btn-neutral float-right" title="UI Modülü" accesskey="n" rel="next">Sonraki <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

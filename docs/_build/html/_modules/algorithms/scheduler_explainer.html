@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.scheduler_explainer &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.scheduler_explainer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.scheduler_explainer öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Scheduler Explainer - Program Oluşturma Açıklayıcı</span>
+<span class="sd">Başarısızlık nedenlerini analiz eder ve raporlar</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="c1"># Set encoding for Windows</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SchedulingFailure">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulingFailure">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchedulingFailure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bir programlama başarısızlığını temsil eder&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SchedulingFailure.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulingFailure.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">lesson_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">teacher_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">required_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">scheduled_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lesson_name</span> <span class="o">=</span> <span class="n">lesson_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_name</span> <span class="o">=</span> <span class="n">class_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teacher_name</span> <span class="o">=</span> <span class="n">teacher_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_hours</span> <span class="o">=</span> <span class="n">required_hours</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduled_hours</span> <span class="o">=</span> <span class="n">scheduled_hours</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reason</span> <span class="o">=</span> <span class="n">reason</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Failure(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">class_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2">: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduled_hours</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">required_hours</span><span class="si">}</span><span class="s2">h - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SchedulerExplainer">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchedulerExplainer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Programlama sürecini açıklayan ve analiz eden sınıf&quot;&quot;&quot;</span>
+
+    <span class="c1"># Başarısızlık nedenleri</span>
+    <span class="n">REASON_TEACHER_UNAVAILABLE</span> <span class="o">=</span> <span class="s2">&quot;teacher_unavailable&quot;</span>
+    <span class="n">REASON_NO_SLOTS</span> <span class="o">=</span> <span class="s2">&quot;no_available_slots&quot;</span>
+    <span class="n">REASON_TEACHER_CONFLICT</span> <span class="o">=</span> <span class="s2">&quot;teacher_conflict&quot;</span>
+    <span class="n">REASON_CLASS_CONFLICT</span> <span class="o">=</span> <span class="s2">&quot;class_conflict&quot;</span>
+    <span class="n">REASON_DOMAIN_EXHAUSTED</span> <span class="o">=</span> <span class="s2">&quot;domain_exhausted&quot;</span>
+    <span class="n">REASON_CONSTRAINT_VIOLATION</span> <span class="o">=</span> <span class="s2">&quot;constraint_violation&quot;</span>
+    <span class="n">REASON_BACKTRACK_LIMIT</span> <span class="o">=</span> <span class="s2">&quot;backtrack_limit_exceeded&quot;</span>
+
+<div class="viewcode-block" id="SchedulerExplainer.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerExplainer.log_failure">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer.log_failure">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_failure</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">lesson_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">teacher_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">required_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">scheduled_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bir başarısızlığı kaydet&quot;&quot;&quot;</span>
+        <span class="n">failure</span> <span class="o">=</span> <span class="n">SchedulingFailure</span><span class="p">(</span>
+            <span class="n">lesson_name</span><span class="p">,</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">teacher_name</span><span class="p">,</span> <span class="n">required_hours</span><span class="p">,</span> <span class="n">scheduled_hours</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">context</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">failure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">reason</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="SchedulerExplainer.log_warning">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer.log_warning">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bir uyarı kaydet&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span> <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="n">context</span> <span class="ow">or</span> <span class="p">{},</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()})</span></div>
+
+
+<div class="viewcode-block" id="SchedulerExplainer.analyze_failures">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer.analyze_failures">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_failures</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Başarısızlıkları analiz et ve rapor oluştur</span>
+
+<span class="sd">        Returns: {</span>
+<span class="sd">            &#39;total_failures&#39;: int,</span>
+<span class="sd">            &#39;reasons&#39;: {reason: count},</span>
+<span class="sd">            &#39;critical_issues&#39;: [...],</span>
+<span class="sd">            &#39;recommendations&#39;: [...]</span>
+<span class="sd">        }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;total_failures&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;reasons&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;critical_issues&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;recommendations&quot;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="p">}</span>
+
+        <span class="c1"># Neden analizi</span>
+        <span class="n">reasons</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
+
+        <span class="c1"># Kritik sorunları belirle</span>
+        <span class="n">critical_issues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identify_critical_issues</span><span class="p">()</span>
+
+        <span class="c1"># Öneriler oluştur</span>
+        <span class="n">recommendations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_recommendations</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;total_failures&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">),</span>
+            <span class="s2">&quot;reasons&quot;</span><span class="p">:</span> <span class="n">reasons</span><span class="p">,</span>
+            <span class="s2">&quot;critical_issues&quot;</span><span class="p">:</span> <span class="n">critical_issues</span><span class="p">,</span>
+            <span class="s2">&quot;recommendations&quot;</span><span class="p">:</span> <span class="n">recommendations</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_identify_critical_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Kritik sorunları belirle&quot;&quot;&quot;</span>
+        <span class="n">issues</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># 1. Öğretmen uygunluğu sorunu</span>
+        <span class="n">unavailable_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_TEACHER_UNAVAILABLE</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">unavailable_count</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;🔴 ÖĞRETMEN UYGUNLUĞU: </span><span class="si">{</span><span class="n">unavailable_count</span><span class="si">}</span><span class="s2"> ders öğretmen müsaitlik &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;sorunu nedeniyle yerleştirilemedi. Öğretmen uygunluk ayarlarını kontrol edin.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 2. Slot yetersizliği</span>
+        <span class="n">no_slots_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_NO_SLOTS</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">no_slots_count</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;🔴 SLOT YETERSİZLİĞİ: </span><span class="si">{</span><span class="n">no_slots_count</span><span class="si">}</span><span class="s2"> ders için uygun slot bulunamadı. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Haftalık ders saati sayısını artırın veya sınıf sayısını azaltın.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 3. Çakışma fazlalığı</span>
+        <span class="n">conflict_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_TEACHER_CONFLICT</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_CLASS_CONFLICT</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">conflict_count</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;🔴 ÇAKIŞMA FAZLALIĞI: </span><span class="si">{</span><span class="n">conflict_count</span><span class="si">}</span><span class="s2"> çakışma tespit edildi. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Öğretmen sayısını artırın veya ders dağılımını gözden geçirin.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 4. Backtrack limiti</span>
+        <span class="n">backtrack_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_BACKTRACK_LIMIT</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">backtrack_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;🔴 BACKTRACK LİMİTİ: Algoritma </span><span class="si">{</span><span class="n">backtrack_count</span><span class="si">}</span><span class="s2"> ders için maksimum &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;deneme limitine ulaştı. Problem çok karmaşık olabilir.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 5. Öğretmen başına düşen ders sayısı kontrolü</span>
+        <span class="n">teacher_loads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_teacher_loads</span><span class="p">()</span>
+        <span class="n">overloaded_teachers</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">load</span> <span class="ow">in</span> <span class="n">teacher_loads</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">load</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">overloaded_teachers</span><span class="p">:</span>
+            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;🔴 ÖĞRETMEN AŞIRI YÜKÜ: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">overloaded_teachers</span><span class="p">)</span><span class="si">}</span><span class="s2"> öğretmen haftada &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;30+ saat ders yüküne sahip. Öğretmen sayısını artırın.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">issues</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_recommendations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Öneriler oluştur&quot;&quot;&quot;</span>
+        <span class="n">recommendations</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Başarısızlık nedenlerine göre öneriler</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_TEACHER_UNAVAILABLE</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s2">&quot;💡 Öğretmenlerin uygunluk takvimlerini gözden geçirin ve &quot;</span> <span class="s2">&quot;müsait oldukları gün/saatleri artırın.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_NO_SLOTS</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;💡 Haftalık ders saati sayısını artırmayı düşünün (örn: 7&#39;den 8&#39;e).&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">REASON_DOMAIN_EXHAUSTED</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;💡 Bazı derslerin haftalık saat sayısını azaltmayı düşünün.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Genel öneriler</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s2">&quot;💡 Problem çok karmaşık görünüyor. Daha basit bir algoritma &quot;</span>
+                <span class="s2">&quot;(Simple Perfect Scheduler) deneyebilirsiniz.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Başarı oranına göre öneri</span>
+        <span class="n">total_required</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">required_hours</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">)</span>
+        <span class="n">total_scheduled</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">scheduled_hours</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">)</span>
+        <span class="n">success_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_scheduled</span> <span class="o">/</span> <span class="n">total_required</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_required</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">100</span>
+
+        <span class="k">if</span> <span class="n">success_rate</span> <span class="o">&lt;</span> <span class="mi">80</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;💡 Başarı oranı düşük (</span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%). &quot;</span> <span class="sa">f</span><span class="s2">&quot;Sınıf veya ders sayısını azaltmayı düşünün.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">recommendations</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_teacher_loads</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Öğretmen yük analizi&quot;&quot;&quot;</span>
+        <span class="n">teacher_loads</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">failure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">:</span>
+            <span class="n">teacher_loads</span><span class="p">[</span><span class="n">failure</span><span class="o">.</span><span class="n">teacher_name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">failure</span><span class="o">.</span><span class="n">scheduled_hours</span>
+
+        <span class="k">return</span> <span class="n">teacher_loads</span>
+
+<div class="viewcode-block" id="SchedulerExplainer.generate_report">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer.generate_report">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detaylı rapor oluştur&quot;&quot;&quot;</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;📊 PROGRAMLAMA SÜREÇ RAPORU&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Özet</span>
+        <span class="n">analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_failures</span><span class="p">()</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🎯 Özet:&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Toplam Başarısızlık: </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;total_failures&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • Uyarı Sayısı: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Neden dağılımı</span>
+        <span class="k">if</span> <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;reasons&quot;</span><span class="p">]:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;📋 Başarısızlık Nedenleri:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">reason</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;reasons&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">reason_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reason_name</span><span class="p">(</span><span class="n">reason</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   • </span><span class="si">{</span><span class="n">reason_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Kritik sorunlar</span>
+        <span class="k">if</span> <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;critical_issues&quot;</span><span class="p">]:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;🔴 Kritik Sorunlar:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;critical_issues&quot;</span><span class="p">]:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">issue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Öneriler</span>
+        <span class="k">if</span> <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;recommendations&quot;</span><span class="p">]:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;💡 Öneriler:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;recommendations&quot;</span><span class="p">]:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">rec</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Detaylı başarısızlık listesi (ilk 10)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;📝 Başarısız Dersler (ilk 10):&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">failure</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="p">[:</span><span class="mi">10</span><span class="p">],</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">success_rate</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">failure</span><span class="o">.</span><span class="n">scheduled_hours</span> <span class="o">/</span> <span class="n">failure</span><span class="o">.</span><span class="n">required_hours</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">failure</span><span class="o">.</span><span class="n">required_hours</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">failure</span><span class="o">.</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">failure</span><span class="o">.</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">failure</span><span class="o">.</span><span class="n">teacher_name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;      Yerleşen: </span><span class="si">{</span><span class="n">failure</span><span class="o">.</span><span class="n">scheduled_hours</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">failure</span><span class="o">.</span><span class="n">required_hours</span><span class="si">}</span><span class="s2"> saat &quot;</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Neden: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_reason_name</span><span class="p">(</span><span class="n">failure</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Öğretmen yük analizi</span>
+        <span class="n">teacher_loads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_teacher_loads</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">teacher_loads</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;👨‍🏫 Öğretmen Yük Analizi:&quot;</span><span class="p">)</span>
+            <span class="n">sorted_teachers</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">teacher_loads</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])[:</span><span class="mi">10</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">teacher</span><span class="p">,</span> <span class="n">load</span> <span class="ow">in</span> <span class="n">sorted_teachers</span><span class="p">:</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;⚠️&quot;</span> <span class="k">if</span> <span class="n">load</span> <span class="o">&gt;</span> <span class="mi">25</span> <span class="k">else</span> <span class="s2">&quot;✅&quot;</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">teacher</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">load</span><span class="si">}</span><span class="s2"> saat/hafta&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_reason_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Neden kodunu insan okunabilir isme çevir&quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_TEACHER_UNAVAILABLE</span><span class="p">:</span> <span class="s2">&quot;Öğretmen Müsait Değil&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_NO_SLOTS</span><span class="p">:</span> <span class="s2">&quot;Uygun Slot Yok&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_TEACHER_CONFLICT</span><span class="p">:</span> <span class="s2">&quot;Öğretmen Çakışması&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_CLASS_CONFLICT</span><span class="p">:</span> <span class="s2">&quot;Sınıf Çakışması&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_DOMAIN_EXHAUSTED</span><span class="p">:</span> <span class="s2">&quot;Domain Tükendi&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_CONSTRAINT_VIOLATION</span><span class="p">:</span> <span class="s2">&quot;Kısıtlama İhlali&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">REASON_BACKTRACK_LIMIT</span><span class="p">:</span> <span class="s2">&quot;Backtrack Limiti Aşıldı&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reason</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SchedulerExplainer.clear">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.scheduler_explainer.SchedulerExplainer.clear">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tüm kayıtları temizle&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failures</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

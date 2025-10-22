@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reports.html_generator &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">reports.html_generator</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>reports.html_generator öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">HTML Report Generator for Class Scheduling Program</span>
+<span class="sd">Creates beautiful, colorful web-based schedule tables</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_color_for_lesson</span>
+
+
+<div class="viewcode-block" id="HTMLScheduleGenerator">
+<a class="viewcode-back" href="../../modules/reports.html#reports.html_generator.HTMLScheduleGenerator">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HTMLScheduleGenerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate beautiful HTML schedule reports&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HTMLScheduleGenerator.__init__">
+<a class="viewcode-back" href="../../modules/reports.html#reports.html_generator.HTMLScheduleGenerator.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span></div>
+
+
+<div class="viewcode-block" id="HTMLScheduleGenerator.generate_class_schedule_html">
+<a class="viewcode-back" href="../../modules/reports.html#reports.html_generator.HTMLScheduleGenerator.generate_class_schedule_html">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_class_schedule_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate HTML schedule for a specific class&quot;&quot;&quot;</span>
+        <span class="n">class_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_class_by_id</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">class_obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;h1&gt;Sınıf bulunamadı!&lt;/h1&gt;&quot;</span>
+
+        <span class="c1"># Get schedule entries</span>
+        <span class="n">schedule_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_for_specific_class</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+
+        <span class="c1"># Group by day and time slot</span>
+        <span class="n">schedule_grid</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">day</span>
+            <span class="n">slot</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">time_slot</span>
+            <span class="k">if</span> <span class="n">day</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">schedule_grid</span><span class="p">:</span>
+                <span class="n">schedule_grid</span><span class="p">[</span><span class="n">day</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">schedule_grid</span><span class="p">[</span><span class="n">day</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+
+        <span class="c1"># HTML generation</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;!DOCTYPE html&gt;</span>
+<span class="s2">        &lt;html lang=&quot;tr&quot;&gt;</span>
+<span class="s2">        &lt;head&gt;</span>
+<span class="s2">            &lt;meta charset=&quot;UTF-8&quot;&gt;</span>
+<span class="s2">            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;</span>
+<span class="s2">            &lt;title&gt;</span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> - Ders Programı&lt;/title&gt;</span>
+<span class="s2">            &lt;style&gt;</span>
+<span class="s2">                body </span><span class="se">{{</span>
+<span class="s2">                    font-family: &#39;Segoe UI&#39;, Tahoma, Geneva, Verdana, sans-serif;</span>
+<span class="s2">                    margin: 0;</span>
+<span class="s2">                    padding: 20px;</span>
+<span class="s2">                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);</span>
+<span class="s2">                    min-height: 100vh;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                .container </span><span class="se">{{</span>
+<span class="s2">                    max-width: 1200px;</span>
+<span class="s2">                    margin: 0 auto;</span>
+<span class="s2">                    background: white;</span>
+<span class="s2">                    border-radius: 20px;</span>
+<span class="s2">                    padding: 30px;</span>
+<span class="s2">                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                h1 </span><span class="se">{{</span>
+<span class="s2">                    color: #2c3e50;</span>
+<span class="s2">                    text-align: center;</span>
+<span class="s2">                    margin-bottom: 30px;</span>
+<span class="s2">                    font-size: 2.5em;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                .schedule-table </span><span class="se">{{</span>
+<span class="s2">                    width: 100%;</span>
+<span class="s2">                    border-collapse: collapse;</span>
+<span class="s2">                    margin-top: 20px;</span>
+<span class="s2">                    font-size: 16px;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                .schedule-table th </span><span class="se">{{</span>
+<span class="s2">                    background: linear-gradient(135deg, #3498db, #2980b9);</span>
+<span class="s2">                    color: white;</span>
+<span class="s2">                    padding: 15px;</span>
+<span class="s2">                    text-align: center;</span>
+<span class="s2">                    font-weight: bold;</span>
+<span class="s2">                    border: 1px solid #2980b9;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                .schedule-table td </span><span class="se">{{</span>
+<span class="s2">                    padding: 15px;</span>
+<span class="s2">                    text-align: center;</span>
+<span class="s2">                    border: 1px solid #ddd;</span>
+<span class="s2">                    vertical-align: middle;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                .time-slot </span><span class="se">{{</span>
+<span class="s2">                    background: linear-gradient(135deg, #27ae60, #229954);</span>
+<span class="s2">                    color: white;</span>
+<span class="s2">                    font-weight: bold;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">                .day-header </span><span class="se">{{</span>
+<span class="s2">                    background: linear-gradient(135deg, #9b59b6, #8e44ad);</span>
+<span class="s2">                    color: white;</span>
+<span class="s2">                    font-weight: bold;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Add lesson-specific colors</span>
+        <span class="n">lessons</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule_entries</span><span class="p">:</span>
+            <span class="n">lesson</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lesson</span><span class="p">:</span>
+                <span class="n">lessons</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">lesson</span> <span class="ow">in</span> <span class="n">lessons</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">generate_color_for_lesson</span><span class="p">(</span><span class="n">lesson</span><span class="p">)</span>
+            <span class="n">html</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                .lesson-</span><span class="si">{</span><span class="nb">hash</span><span class="p">(</span><span class="n">lesson</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">1000</span><span class="si">}</span><span class="s2"> </span><span class="se">{{</span>
+<span class="s2">                    background: linear-gradient(135deg, </span><span class="si">{</span><span class="n">color</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_darken_color</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">name</span><span class="p">())</span><span class="si">}</span><span class="s2">);</span>
+<span class="s2">                    color: white;</span>
+<span class="s2">                    font-weight: bold;</span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+
+        <span class="n">html</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                .empty-slot {</span>
+<span class="s2">                    background-color: #f8f9fa;</span>
+<span class="s2">                    color: #6c757d;</span>
+<span class="s2">                }</span>
+<span class="s2">                .lesson-info {</span>
+<span class="s2">                    font-size: 14px;</span>
+<span class="s2">                    margin: 5px 0;</span>
+<span class="s2">                }</span>
+<span class="s2">                .teacher-name {</span>
+<span class="s2">                    font-size: 12px;</span>
+<span class="s2">                    opacity: 0.9;</span>
+<span class="s2">                }</span>
+<span class="s2">                .classroom-name {</span>
+<span class="s2">                    font-size: 11px;</span>
+<span class="s2">                    opacity: 0.8;</span>
+<span class="s2">                }</span>
+<span class="s2">                @media print {</span>
+<span class="s2">                    body { background: white; }</span>
+<span class="s2">                    .container { box-shadow: none; }</span>
+<span class="s2">                }</span>
+<span class="s2">            &lt;/style&gt;</span>
+<span class="s2">        &lt;/head&gt;</span>
+<span class="s2">        &lt;body&gt;</span>
+<span class="s2">            &lt;div class=&quot;container&quot;&gt;</span>
+<span class="s2">                &lt;h1&gt;📚 </span><span class="si">{class_obj.name}</span><span class="s2"> - Ders Programı&lt;/h1&gt;</span>
+
+<span class="s2">                &lt;table class=&quot;schedule-table&quot;&gt;</span>
+<span class="s2">                    &lt;thead&gt;</span>
+<span class="s2">                        &lt;tr&gt;</span>
+<span class="s2">                            &lt;th class=&quot;day-header&quot;&gt;Gün&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;1. Saat&lt;br&gt;08:00-09:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;2. Saat&lt;br&gt;09:00-10:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;3. Saat&lt;br&gt;10:00-11:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;4. Saat&lt;br&gt;11:00-12:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;5. Saat&lt;br&gt;12:00-13:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;6. Saat&lt;br&gt;13:00-14:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;7. Saat&lt;br&gt;14:00-15:00&lt;/th&gt;</span>
+<span class="s2">                            &lt;th class=&quot;time-slot&quot;&gt;8. Saat&lt;br&gt;15:00-16:00&lt;/th&gt;</span>
+<span class="s2">                        &lt;/tr&gt;</span>
+<span class="s2">                    &lt;/thead&gt;</span>
+<span class="s2">                    &lt;tbody&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">days</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Pazartesi&quot;</span><span class="p">,</span> <span class="s2">&quot;Salı&quot;</span><span class="p">,</span> <span class="s2">&quot;Çarşamba&quot;</span><span class="p">,</span> <span class="s2">&quot;Perşembe&quot;</span><span class="p">,</span> <span class="s2">&quot;Cuma&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">html</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;tr&gt;&lt;td class=&#39;day-header&#39;&gt;</span><span class="si">{</span><span class="n">days</span><span class="p">[</span><span class="n">day</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;/td&gt;&quot;</span>
+
+            <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>  <span class="c1"># Max 8 time slots</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="n">schedule_grid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">:</span>
+                    <span class="n">lesson</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+                    <span class="n">teacher</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_teacher_by_id</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">)</span>
+                    <span class="n">classroom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_classroom_by_id</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">classroom_id</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">lesson</span> <span class="ow">and</span> <span class="n">teacher</span> <span class="ow">and</span> <span class="n">classroom</span><span class="p">:</span>
+                        <span class="n">color_class</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;lesson-</span><span class="si">{</span><span class="nb">hash</span><span class="p">(</span><span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">1000</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="n">html</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                        &lt;td class=&quot;</span><span class="si">{</span><span class="n">color_class</span><span class="si">}</span><span class="s2">&quot;&gt;</span>
+<span class="s2">                            &lt;div class=&quot;lesson-info&quot;&gt;📚 </span><span class="si">{</span><span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/div&gt;</span>
+<span class="s2">                            &lt;div class=&quot;teacher-name&quot;&gt;👨‍🏫 </span><span class="si">{</span><span class="n">teacher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/div&gt;</span>
+<span class="s2">                            &lt;div class=&quot;classroom-name&quot;&gt;🏫 </span><span class="si">{</span><span class="n">classroom</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/div&gt;</span>
+<span class="s2">                        &lt;/td&gt;</span>
+<span class="s2">                        &quot;&quot;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">html</span> <span class="o">+=</span> <span class="s2">&quot;&lt;td class=&#39;empty-slot&#39;&gt;-&lt;/td&gt;&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">html</span> <span class="o">+=</span> <span class="s2">&quot;&lt;td class=&#39;empty-slot&#39;&gt;-&lt;/td&gt;&quot;</span>
+
+            <span class="n">html</span> <span class="o">+=</span> <span class="s2">&quot;&lt;/tr&gt;&quot;</span>
+
+        <span class="n">html</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    &lt;/tbody&gt;</span>
+<span class="s2">                &lt;/table&gt;</span>
+
+<span class="s2">                &lt;div style=&quot;text-align: center; margin-top: 30px; color: #6c757d;&quot;&gt;</span>
+<span class="s2">                    &lt;p&gt;🎨 Renkli ders programı oluşturuldu&lt;/p&gt;</span>
+<span class="s2">                &lt;/div&gt;</span>
+<span class="s2">            &lt;/div&gt;</span>
+<span class="s2">        &lt;/body&gt;</span>
+<span class="s2">        &lt;/html&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">html</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_darken_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hex_color</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Darken a hex color for gradient&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QColor</span>
+
+            <span class="n">color</span> <span class="o">=</span> <span class="n">QColor</span><span class="p">(</span><span class="n">hex_color</span><span class="p">)</span>
+            <span class="c1"># Make it darker</span>
+            <span class="n">darker</span> <span class="o">=</span> <span class="n">QColor</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">red</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">green</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">blue</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">darker</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hex_color</span>
+
+<div class="viewcode-block" id="HTMLScheduleGenerator.save_html_report">
+<a class="viewcode-back" href="../../modules/reports.html#reports.html_generator.HTMLScheduleGenerator.save_html_report">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_html_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save HTML report to file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="n">class_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_class_by_id</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">class_obj</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;class_</span><span class="si">{</span><span class="n">class_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_programi.html&quot;</span>
+
+        <span class="n">html_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_class_schedule_html</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">html_content</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filename</span></div>
+
+
+<div class="viewcode-block" id="HTMLScheduleGenerator.open_in_browser">
+<a class="viewcode-back" href="../../modules/reports.html#reports.html_generator.HTMLScheduleGenerator.open_in_browser">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_in_browser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open HTML report in default browser&quot;&quot;&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_html_report</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">webbrowser</span>
+
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file://</span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filename</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

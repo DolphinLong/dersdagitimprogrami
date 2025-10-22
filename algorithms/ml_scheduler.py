@@ -4,13 +4,9 @@ ML Scheduler - Machine Learning Integration for Schedule Optimization
 Learns from historical schedules to predict optimal placements
 """
 
-import io
+import numpy as np
+from collections import Counter
 import json
-import logging
-import pickle
-import sys
-from collections import defaultdict
-from typing import Dict, List, Optional, Tuple
 
 # Set encoding for Windows
 if sys.platform.startswith("win"):
@@ -49,12 +45,190 @@ class MLScheduler:
         self.historical_schedules: List[Dict] = []
         self.feature_data: List[Dict] = []
 
-        # Model (placeholder - can be replaced with actual ML model)
-        self.model = None
-        self.is_trained = False
+        # AI Models (simplified for now)
+        self.pattern_recognizer = SchedulePatternRecognizer()
+        self.conflict_predictor = ConflictPredictor()
+        self.optimization_suggester = OptimizationSuggester()
 
-        # Feature weights (learned from data)
-        self.learned_weights: Dict[str, float] = {}
+        # Training data
+        self.training_features = []
+        self.training_labels = []
+
+        # Model performance tracking
+        self.model_accuracy = {
+            'pattern_recognition': 0.0,
+            'conflict_prediction': 0.0,
+            'optimization_suggestions': 0.0
+        }
+
+class SchedulePatternRecognizer:
+    """Schedule pattern recognition using statistical analysis"""
+
+    def __init__(self):
+        self.patterns = defaultdict(Counter)
+        self.common_patterns = []
+
+    def analyze_schedule(self, schedule: List[Dict]) -> Dict:
+        """Analyze schedule for patterns"""
+        patterns = {
+            'day_distribution': Counter(),
+            'slot_distribution': Counter(),
+            'teacher_workload': Counter(),
+            'class_workload': Counter(),
+            'lesson_patterns': defaultdict(list)
+        }
+
+        for entry in schedule:
+            day = entry['day']
+            slot = entry['time_slot']
+            teacher_id = entry['teacher_id']
+            class_id = entry['class_id']
+            lesson_id = entry['lesson_id']
+
+            patterns['day_distribution'][day] += 1
+            patterns['slot_distribution'][slot] += 1
+            patterns['teacher_workload'][teacher_id] += 1
+            patterns['class_workload'][class_id] += 1
+
+            # Lesson patterns per class
+            patterns['lesson_patterns'][f"{class_id}_{lesson_id}"].append((day, slot))
+
+        return patterns
+
+    def find_optimal_patterns(self, patterns: Dict) -> List[str]:
+        """Find optimal patterns from historical data"""
+        optimal_patterns = []
+
+        # Find most common successful patterns
+        if patterns['day_distribution']:
+            most_common_day = patterns['day_distribution'].most_common(1)[0][0]
+            optimal_patterns.append(f"Most lessons on day {most_common_day}")
+
+        if patterns['slot_distribution']:
+            most_common_slots = [slot for slot, count in patterns['slot_distribution'].most_common(3)]
+            optimal_patterns.append(f"Popular slots: {most_common_slots}")
+
+        return optimal_patterns
+
+
+class ConflictPredictor:
+    """Predict potential conflicts using historical data"""
+
+    def __init__(self):
+        self.conflict_history = []
+        self.prediction_accuracy = 0.0
+
+    def predict_conflicts(self, schedule: List[Dict], new_entry: Dict) -> List[Dict]:
+        """Predict potential conflicts for a new entry"""
+        potential_conflicts = []
+
+        # Simple heuristic-based prediction
+        new_day = new_entry['day']
+        new_slot = new_entry['time_slot']
+        new_teacher = new_entry['teacher_id']
+        new_class = new_entry['class_id']
+
+        # Check for teacher conflicts
+        teacher_conflicts = [e for e in schedule
+                           if e['teacher_id'] == new_teacher
+                           and e['day'] == new_day
+                           and e['time_slot'] == new_slot]
+
+        if teacher_conflicts:
+            potential_conflicts.append({
+                'type': 'teacher_conflict',
+                'severity': 'high',
+                'description': f'Öğretmen {new_teacher} zaten bu saatte başka bir ders veriyor'
+            })
+
+        # Check for class conflicts
+        class_conflicts = [e for e in schedule
+                          if e['class_id'] == new_class
+                          and e['day'] == new_day
+                          and e['time_slot'] == new_slot]
+
+        if class_conflicts:
+            potential_conflicts.append({
+                'type': 'class_conflict',
+                'severity': 'high',
+                'description': f'Sınıf {new_class} zaten bu saatte başka bir ders alıyor'
+            })
+
+        # Check for consecutive lessons (might be too many)
+        consecutive_count = 0
+        for entry in schedule:
+            if (entry['class_id'] == new_class and
+                entry['day'] == new_day and
+                abs(entry['time_slot'] - new_slot) == 1):
+                consecutive_count += 1
+
+        if consecutive_count >= 3:
+            potential_conflicts.append({
+                'type': 'consecutive_warning',
+                'severity': 'medium',
+                'description': f'Sınıf {new_class} aynı günde çok fazla ardışık ders alacak'
+            })
+
+        return potential_conflicts
+
+    def learn_from_conflicts(self, schedule: List[Dict], actual_conflicts: List[Dict]):
+        """Learn from actual vs predicted conflicts"""
+        # Simple learning - just store patterns
+        self.conflict_history.append({
+            'schedule_size': len(schedule),
+            'conflict_count': len(actual_conflicts),
+            'timestamp': time.time()
+        })
+
+
+class OptimizationSuggester:
+    """Suggest optimizations based on historical data"""
+
+    def __init__(self):
+        self.optimization_history = []
+        self.successful_moves = []
+
+    def suggest_optimizations(self, schedule: List[Dict], conflicts: List[Dict]) -> List[Dict]:
+        """Suggest specific optimizations"""
+        suggestions = []
+
+        if not conflicts:
+            return suggestions
+
+        # Suggest moving conflicting entries
+        for conflict in conflicts:
+            if conflict['type'] == 'teacher_conflict':
+                suggestions.append({
+                    'type': 'move_teacher',
+                    'priority': 'high',
+                    'description': 'Öğretmen çakışmasını çözmek için alternatif slot önerisi',
+                    'action': 'suggest_alternative_slots'
+                })
+            elif conflict['type'] == 'class_conflict':
+                suggestions.append({
+                    'type': 'move_class',
+                    'priority': 'high',
+                    'description': 'Sınıf çakışmasını çözmek için alternatif slot önerisi',
+                    'action': 'suggest_alternative_slots'
+                })
+
+        # General optimizations
+        suggestions.append({
+            'type': 'redistribute',
+            'priority': 'medium',
+            'description': 'Dersleri haftaya daha dengeli dağıt',
+            'action': 'redistribute_lessons'
+        })
+
+        return suggestions
+
+    def record_successful_move(self, move_type: str, before_score: float, after_score: float):
+        """Record successful optimization moves"""
+        self.successful_moves.append({
+            'move_type': move_type,
+            'improvement': after_score - before_score,
+            'timestamp': time.time()
+        })
 
     def extract_features(
         self,

@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.constraint_priority_manager &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.constraint_priority_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.constraint_priority_manager öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Constraint Priority Manager - User-Configurable Constraint Priorities</span>
+<span class="sd">Allows users to set priorities for different scheduling constraints</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntEnum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="c1"># Set encoding for Windows</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ConstraintPriority">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriority">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstraintPriority</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constraint priority levels&quot;&quot;&quot;</span>
+
+    <span class="n">CRITICAL</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Must be satisfied (hard constraint)</span>
+    <span class="n">HIGH</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># Very important</span>
+    <span class="n">MEDIUM</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Important</span>
+    <span class="n">LOW</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Nice to have</span>
+    <span class="n">OPTIONAL</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Can be ignored if necessary</span></div>
+
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstraintPriorityManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manage constraint priorities for scheduling</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">    - User-configurable priorities</span>
+<span class="sd">    - Profile management (save/load)</span>
+<span class="sd">    - Constraint validation</span>
+<span class="sd">    - Priority-based scoring</span>
+<span class="sd">    - Conflict resolution strategies</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Default constraint definitions</span>
+    <span class="n">DEFAULT_CONSTRAINTS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Hard constraints (CRITICAL)</span>
+        <span class="s2">&quot;no_class_conflicts&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;No Class Conflicts&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A class cannot have two lessons at the same time&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;hard&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;no_teacher_conflicts&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;No Teacher Conflicts&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A teacher cannot teach two classes at the same time&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;hard&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;teacher_availability&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Teacher Availability&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Teachers can only teach when they are available&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;hard&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;max_consecutive_same_lesson&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Max Consecutive Same Lesson&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;No more than 2 hours of the same lesson consecutively&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;hard&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="c1"># Soft constraints</span>
+        <span class="s2">&quot;block_integrity&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Block Integrity&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Lessons should be in blocks (2+2+2, 2+2+1, etc.)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;different_days_for_blocks&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Different Days for Blocks&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Each block should be on a different day&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;no_gaps&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;No Gaps&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Students should not have gaps in their schedule&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">MEDIUM</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;difficult_lessons_morning&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Difficult Lessons in Morning&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Math, Physics, etc. should be in morning slots&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">MEDIUM</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;balanced_daily_load&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Balanced Daily Load&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Each day should have similar number of lessons&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">MEDIUM</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;teacher_load_balance&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Teacher Load Balance&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Teachers should have balanced daily workload&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">LOW</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;lesson_spacing&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Lesson Spacing&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Same lesson should be 2-3 days apart&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">LOW</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;lunch_break_preference&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Lunch Break Preference&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Light lessons during lunch hours&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;soft&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="ConstraintPriorityManager.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize constraint priority manager&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="c1"># Current priorities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ConstraintPriority</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Load defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_defaults</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.load_defaults">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.load_defaults">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load default priorities&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">constraint_id</span><span class="p">,</span> <span class="n">constraint_info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">constraint_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint_info</span><span class="p">[</span><span class="s2">&quot;default_priority&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loaded default constraint priorities&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.set_priority">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.set_priority">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">priority</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set priority for a constraint</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            constraint_id: Constraint identifier</span>
+<span class="sd">            priority: Priority level</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if set successfully</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">constraint_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown constraint: </span><span class="si">{</span><span class="n">constraint_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">constraint_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">priority</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set </span><span class="si">{</span><span class="n">constraint_id</span><span class="si">}</span><span class="s2"> priority to </span><span class="si">{</span><span class="n">priority</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.get_priority">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.get_priority">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ConstraintPriority</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get priority for a constraint</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            constraint_id: Constraint identifier</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Priority level or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constraint_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.get_all_priorities">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.get_all_priorities">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_priorities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all constraints with their priorities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict of constraint info with current priorities</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">constraint_id</span><span class="p">,</span> <span class="n">constraint_info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">constraint_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">constraint_info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">constraint_info</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="n">constraint_info</span><span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;default_priority&quot;</span><span class="p">:</span> <span class="n">constraint_info</span><span class="p">[</span><span class="s2">&quot;default_priority&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;current_priority&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constraint_id</span><span class="p">,</span> <span class="n">constraint_info</span><span class="p">[</span><span class="s2">&quot;default_priority&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.get_constraints_by_category">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.get_constraints_by_category">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_constraints_by_category</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get constraints by category</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            category: &#39;hard&#39; or &#39;soft&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict of constraints in that category</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">cid</span><span class="p">:</span> <span class="n">info</span> <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">category</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.get_constraints_by_priority">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.get_constraints_by_priority">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_constraints_by_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">:</span> <span class="n">ConstraintPriority</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get constraints with specific priority</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            priority: Priority level</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of constraint IDs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">cid</span> <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">priority</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.calculate_violation_penalty">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.calculate_violation_penalty">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_violation_penalty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate penalty for violating a constraint</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            constraint_id: Constraint identifier</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Penalty value (higher priority = higher penalty)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_priority</span><span class="p">(</span><span class="n">constraint_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">priority</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Map priority to penalty</span>
+        <span class="n">penalty_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+            <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
+            <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">MEDIUM</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span>
+            <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">LOW</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">penalty_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.should_enforce">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.should_enforce">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">should_enforce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">strict_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if constraint should be enforced</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            constraint_id: Constraint identifier</span>
+<span class="sd">            strict_mode: If True, enforce HIGH and above; if False, enforce CRITICAL only</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if should be enforced</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_priority</span><span class="p">(</span><span class="n">constraint_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">priority</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">strict_mode</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">priority</span> <span class="o">&gt;=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">priority</span> <span class="o">==</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.save_profile">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.save_profile">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Default&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save current priorities to a profile file</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: Output filename</span>
+<span class="sd">            profile_name: Name of the profile</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if saved successfully</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">profile_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;profile_name&quot;</span><span class="p">:</span> <span class="n">profile_name</span><span class="p">,</span>
+            <span class="s2">&quot;priorities&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">cid</span><span class="p">:</span> <span class="n">priority</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">priority</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+        <span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">profile_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to save profile: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.load_profile">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.load_profile">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load priorities from a profile file</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: Input filename</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if loaded successfully</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">profile_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="n">profile_name</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;profile_name&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+            <span class="n">priorities_data</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;priorities&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+            <span class="c1"># Load priorities</span>
+            <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">priority_name</span> <span class="ow">in</span> <span class="n">priorities_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">cid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">priority</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="p">[</span><span class="n">priority_name</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">priority</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid priority &#39;</span><span class="si">{</span><span class="n">priority_name</span><span class="si">}</span><span class="s2">&#39; for </span><span class="si">{</span><span class="n">cid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; from </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profile file not found: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load profile: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.create_preset_profile">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.create_preset_profile">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_preset_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a preset profile</span>
+
+<span class="sd">        Available presets:</span>
+<span class="sd">        - &#39;strict&#39;: All constraints HIGH or CRITICAL</span>
+<span class="sd">        - &#39;balanced&#39;: Mix of priorities (default)</span>
+<span class="sd">        - &#39;flexible&#39;: Most constraints LOW or OPTIONAL</span>
+<span class="sd">        - &#39;speed&#39;: Only CRITICAL constraints enforced</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            preset_name: Name of preset</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if created successfully</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">preset_name</span> <span class="o">==</span> <span class="s2">&quot;strict&quot;</span><span class="p">:</span>
+            <span class="c1"># Strict mode: enforce everything</span>
+            <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="p">[</span><span class="n">cid</span><span class="p">][</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;hard&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span>
+
+        <span class="k">elif</span> <span class="n">preset_name</span> <span class="o">==</span> <span class="s2">&quot;balanced&quot;</span><span class="p">:</span>
+            <span class="c1"># Balanced mode: use defaults</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_defaults</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">preset_name</span> <span class="o">==</span> <span class="s2">&quot;flexible&quot;</span><span class="p">:</span>
+            <span class="c1"># Flexible mode: relax soft constraints</span>
+            <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="p">[</span><span class="n">cid</span><span class="p">][</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;hard&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">LOW</span>
+
+        <span class="k">elif</span> <span class="n">preset_name</span> <span class="o">==</span> <span class="s2">&quot;speed&quot;</span><span class="p">:</span>
+            <span class="c1"># Speed mode: only critical constraints</span>
+            <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="p">[</span><span class="n">cid</span><span class="p">][</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;hard&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">cid</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;no_class_conflicts&quot;</span><span class="p">,</span> <span class="s2">&quot;no_teacher_conflicts&quot;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">OPTIONAL</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown preset: </span><span class="si">{</span><span class="n">preset_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created preset profile: </span><span class="si">{</span><span class="n">preset_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.get_scoring_weights">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.get_scoring_weights">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_scoring_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get scoring weights based on priorities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict of constraint weights for scoring</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">priority</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Map priority to weight</span>
+            <span class="n">weight_map</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
+                <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">HIGH</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">,</span>
+                <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">MEDIUM</span><span class="p">:</span> <span class="mf">20.0</span><span class="p">,</span>
+                <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">LOW</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
+                <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="p">}</span>
+
+            <span class="n">weights</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">weights</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.validate_priorities">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.validate_priorities">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_priorities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate current priorities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of warning messages</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Check if critical constraints are set</span>
+        <span class="n">critical_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;no_class_conflicts&quot;</span><span class="p">,</span> <span class="s2">&quot;no_teacher_conflicts&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">critical_constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: </span><span class="si">{</span><span class="n">cid</span><span class="si">}</span><span class="s2"> should be CRITICAL for valid schedules&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if too many constraints are OPTIONAL</span>
+        <span class="n">optional_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">ConstraintPriority</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">optional_count</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Warning: More than 50</span><span class="si">% o</span><span class="s2">f constraints are OPTIONAL. &quot;</span> <span class="s2">&quot;Schedule quality may be low.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">warnings</span></div>
+
+
+<div class="viewcode-block" id="ConstraintPriorityManager.get_summary">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.constraint_priority_manager.ConstraintPriorityManager.get_summary">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get summary of current priorities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted summary string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CONSTRAINT PRIORITY SUMMARY&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="c1"># Group by priority</span>
+        <span class="n">by_priority</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">priority</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">priorities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">by_priority</span><span class="p">[</span><span class="n">priority</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+
+        <span class="c1"># Display by priority (high to low)</span>
+        <span class="k">for</span> <span class="n">priority</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">by_priority</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">priority</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">priority</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">):&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">by_priority</span><span class="p">[</span><span class="n">priority</span><span class="p">]:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_CONSTRAINTS</span><span class="p">[</span><span class="n">cid</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  • </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Import for defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

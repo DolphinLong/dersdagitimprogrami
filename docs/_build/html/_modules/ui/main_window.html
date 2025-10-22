@@ -1,0 +1,639 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ui.main_window &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">ui.main_window</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ui.main_window öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main window for the Class Scheduling Program</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QFont</span><span class="p">,</span> <span class="n">QIcon</span><span class="p">,</span> <span class="n">QPixmap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QFileDialog</span><span class="p">,</span>
+    <span class="n">QFrame</span><span class="p">,</span>
+    <span class="n">QGridLayout</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QMainWindow</span><span class="p">,</span>
+    <span class="n">QMessageBox</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QScrollArea</span><span class="p">,</span>
+    <span class="n">QStatusBar</span><span class="p">,</span>
+    <span class="n">QTabWidget</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+    <span class="n">QWidget</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reports.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReportGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.backup_restore_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">BackupRestoreDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.class_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.class_list_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassListDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.lesson_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LessonDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.lesson_list_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LessonListDialog</span>
+
+<span class="c1"># Add imports for the new dialogs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.teacher_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">TeacherDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.teacher_list_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">TeacherListDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ui.school_type_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchoolTypeDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.file_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.notifications</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_notification_manager</span>
+
+
+<div class="viewcode-block" id="MainWindow">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MainWindow</span><span class="p">(</span><span class="n">QMainWindow</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main application window with modern dashboard design&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MainWindow.__init__">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Ders Programı&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="mi">800</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span> <span class="o">=</span> <span class="n">ReportGenerator</span><span class="p">(</span><span class="n">db_manager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">(</span><span class="n">db_manager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notification_manager</span> <span class="o">=</span> <span class="n">get_notification_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_ui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_styles</span><span class="p">()</span>
+        <span class="c1"># Show school type selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_school_type_selection</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.setup_ui">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.setup_ui">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the user interface with modern dashboard design&quot;&quot;&quot;</span>
+        <span class="c1"># Create central widget</span>
+        <span class="n">central_widget</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setCentralWidget</span><span class="p">(</span><span class="n">central_widget</span><span class="p">)</span>
+
+        <span class="c1"># Create main layout</span>
+        <span class="n">main_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">central_widget</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">main_layout</span><span class="p">)</span>
+
+        <span class="c1"># Create header</span>
+        <span class="n">header_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+
+        <span class="n">header_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;EĞİTİM KURUMLARI İÇİN DERS PROGRAMI YÖNETİM SİSTEMİ&quot;</span><span class="p">)</span>
+        <span class="n">header_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">header_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;header&quot;</span><span class="p">)</span>
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">header_label</span><span class="p">)</span>
+
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">header_layout</span><span class="p">)</span>
+
+        <span class="c1"># Create dashboard grid layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span> <span class="o">=</span> <span class="n">QGridLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Create dashboard cards</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_cards</span><span class="p">()</span>
+
+        <span class="c1"># Add dashboard to scroll area for better responsiveness</span>
+        <span class="n">scroll_area</span> <span class="o">=</span> <span class="n">QScrollArea</span><span class="p">()</span>
+        <span class="n">scroll_area</span><span class="o">.</span><span class="n">setWidgetResizable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">scroll_area</span><span class="o">.</span><span class="n">setHorizontalScrollBarPolicy</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">ScrollBarAlwaysOff</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">scroll_area</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;dashboardScroll&quot;</span><span class="p">)</span>
+
+        <span class="n">dashboard_widget</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
+        <span class="n">dashboard_widget</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="p">)</span>
+        <span class="n">scroll_area</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="n">dashboard_widget</span><span class="p">)</span>
+
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">scroll_area</span><span class="p">)</span>
+
+        <span class="c1"># Create status bar</span>
+        <span class="n">status_bar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statusBar</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">status_bar</span><span class="p">:</span>
+            <span class="n">status_bar</span><span class="o">.</span><span class="n">showMessage</span><span class="p">(</span><span class="s2">&quot;Sistem hazır&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.create_dashboard_cards">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.create_dashboard_cards">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard_cards</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create dashboard cards for main functions&quot;&quot;&quot;</span>
+        <span class="c1"># Schedule card</span>
+        <span class="n">schedule_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;📅&quot;</span><span class="p">,</span> <span class="s2">&quot;Ders Programı&quot;</span><span class="p">,</span> <span class="s2">&quot;Program oluştur, düzenle ve görüntüle&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_schedule_tab</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">schedule_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Teachers card</span>
+        <span class="n">teachers_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;👨‍🏫&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmenler&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmen ekle, düzenle ve yönet&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_teachers_tab</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">teachers_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Classes card</span>
+        <span class="n">classes_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;📚&quot;</span><span class="p">,</span> <span class="s2">&quot;Sınıflar&quot;</span><span class="p">,</span> <span class="s2">&quot;Sınıf ekle, düzenle ve yönet&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_classes_tab</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">classes_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Lessons card</span>
+        <span class="n">lessons_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;📖&quot;</span><span class="p">,</span> <span class="s2">&quot;Dersler&quot;</span><span class="p">,</span> <span class="s2">&quot;Ders ekle, düzenle ve yönet&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_lessons_tab</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">lessons_card</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Lesson Assignment card</span>
+        <span class="n">lesson_assignment_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;📝&quot;</span><span class="p">,</span> <span class="s2">&quot;Ders Atama&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmenlere ders atama&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_lesson_assignment</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">lesson_assignment_card</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Reports card</span>
+        <span class="n">reports_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;📊&quot;</span><span class="p">,</span> <span class="s2">&quot;Raporlar&quot;</span><span class="p">,</span> <span class="s2">&quot;Program raporlarını oluştur ve dışa aktar&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_reports_tab</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">reports_card</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Backup/Restore card</span>
+        <span class="n">backup_restore_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;💾&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yedekle/Geri Yükle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Veri tabanı yedekleme ve geri yükleme&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_backup_restore</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">backup_restore_card</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Settings card</span>
+        <span class="n">settings_card</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dashboard_card</span><span class="p">(</span>
+            <span class="s2">&quot;⚙️&quot;</span><span class="p">,</span> <span class="s2">&quot;Ayarlar&quot;</span><span class="p">,</span> <span class="s2">&quot;Uygulama ayarlarını yönet&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_settings</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">settings_card</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.create_dashboard_card">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.create_dashboard_card">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard_card</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dashboard card widget&quot;&quot;&quot;</span>
+        <span class="n">card</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">card</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;dashboardCard&quot;</span><span class="p">)</span>
+        <span class="n">card</span><span class="o">.</span><span class="n">setFrameStyle</span><span class="p">(</span><span class="n">QFrame</span><span class="o">.</span><span class="n">StyledPanel</span><span class="p">)</span>
+        <span class="n">card</span><span class="o">.</span><span class="n">setLineWidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+        <span class="c1"># Icon label</span>
+        <span class="n">icon_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;cardIcon&quot;</span><span class="p">)</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">icon_label</span><span class="p">)</span>
+
+        <span class="c1"># Title</span>
+        <span class="n">title_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;cardTitle&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title_label</span><span class="p">)</span>
+
+        <span class="c1"># Description</span>
+        <span class="n">desc_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="n">description</span><span class="p">)</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;cardDescription&quot;</span><span class="p">)</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setWordWrap</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">desc_label</span><span class="p">)</span>
+
+        <span class="c1"># Action button</span>
+        <span class="n">action_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Aç&quot;</span><span class="p">)</span>
+        <span class="n">action_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;cardButton&quot;</span><span class="p">)</span>
+        <span class="n">action_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">action_button</span><span class="p">)</span>
+
+        <span class="n">card</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">card</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.apply_styles">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.apply_styles">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply modern styles with gradient background&quot;&quot;&quot;</span>
+        <span class="c1"># Set window style</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QMainWindow {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                      stop: 0 #2c3e50, stop: 1 #4a6491);</span>
+<span class="sd">            }</span>
+<span class="sd">            #header {</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                font-size: 24px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                padding: 15px;</span>
+<span class="sd">                background: rgba(0, 0, 0, 0.3);</span>
+<span class="sd">                border-radius: 12px;</span>
+<span class="sd">                margin-bottom: 10px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #dashboardScroll {</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                background: transparent;</span>
+<span class="sd">            }</span>
+<span class="sd">            #dashboardCard {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #ffffff, stop: 1 #f8f9fa);</span>
+<span class="sd">                border-radius: 15px;</span>
+<span class="sd">                border: 1px solid #dee2e6;</span>
+<span class="sd">                padding: 15px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #dashboardCard:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #f8f9fa, stop: 1 #e9ecef);</span>
+<span class="sd">                border: 1px solid #3498db;</span>
+<span class="sd">            }</span>
+<span class="sd">            #cardIcon {</span>
+<span class="sd">                color: #3498db;</span>
+<span class="sd">                font-size: 32px;</span>
+<span class="sd">                margin: 10px 0;</span>
+<span class="sd">            }</span>
+<span class="sd">            #cardTitle {</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">                font-size: 18px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                margin: 5px 0;</span>
+<span class="sd">            }</span>
+<span class="sd">            #cardDescription {</span>
+<span class="sd">                color: #6c757d;</span>
+<span class="sd">                font-size: 13px;</span>
+<span class="sd">                margin: 5px 0;</span>
+<span class="sd">            }</span>
+<span class="sd">            #cardButton {</span>
+<span class="sd">                padding: 12px 20px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                min-height: 40px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #cardButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2980b9, stop: 1 #2573a7);</span>
+<span class="sd">            }</span>
+<span class="sd">            QWidget {</span>
+<span class="sd">                background: transparent;</span>
+<span class="sd">                font-family: &quot;Segoe UI&quot;, sans-serif;</span>
+<span class="sd">            }</span>
+<span class="sd">            QLabel {</span>
+<span class="sd">                color: #212529;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton {</span>
+<span class="sd">                padding: 10px 15px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 6px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">                font-size: 13px;</span>
+<span class="sd">                min-width: 100px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2980b9, stop: 1 #2573a7);</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:pressed {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2573a7, stop: 1 #1f618d);</span>
+<span class="sd">            }</span>
+<span class="sd">            QStatusBar {</span>
+<span class="sd">                background: rgba(0, 0, 0, 0.3);</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                border-radius: 0 0 12px 12px;</span>
+<span class="sd">                font-size: 12px;</span>
+<span class="sd">                padding: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_schedule_tab">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_schedule_tab">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_schedule_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open schedule tab&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.schedule_widget</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleWidget</span>
+
+        <span class="c1"># Create schedule widget dialog</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">QDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Ders Programı Yönetimi&quot;</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="mi">800</span><span class="p">)</span>
+
+        <span class="c1"># Create layout</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+
+        <span class="c1"># Add schedule widget</span>
+        <span class="n">schedule_widget</span> <span class="o">=</span> <span class="n">ScheduleWidget</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">schedule_widget</span><span class="p">)</span>
+
+        <span class="c1"># Add close button</span>
+        <span class="n">close_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">close_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="n">close_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Kapat&quot;</span><span class="p">)</span>
+        <span class="n">close_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">accept</span><span class="p">)</span>
+        <span class="n">close_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">close_button</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">close_layout</span><span class="p">)</span>
+
+        <span class="c1"># Apply styles</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QDialog {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #ffffff, stop: 1 #f8f9fa);</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton {</span>
+<span class="sd">                padding: 10px 20px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                min-width: 100px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2980b9, stop: 1 #2573a7);</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Show dialog</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_teachers_tab">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_teachers_tab">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_teachers_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open teachers tab&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">TeacherListDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_classes_tab">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_classes_tab">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_classes_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open classes tab&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">ClassListDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_lessons_tab">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_lessons_tab">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_lessons_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open lessons tab&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">LessonListDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_reports_tab">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_reports_tab">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_reports_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open reports tab&quot;&quot;&quot;</span>
+        <span class="c1"># For now, just show a message</span>
+        <span class="c1"># msg = QMessageBox(self)</span>
+        <span class="c1"># msg.setWindowTitle(&quot;Raporlar&quot;)</span>
+        <span class="c1"># msg.setText(&quot;Raporlama işlevi henüz tam olarak uygulanmadı.&quot;)</span>
+        <span class="c1"># msg.setIcon(QMessageBox.Information)</span>
+        <span class="c1"># msg.exec_()</span>
+
+        <span class="c1"># Use the reports dialog instead</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.reports_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReportsDialog</span>
+
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">ReportsDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_settings">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_settings">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open settings&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.settings_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">SettingsDialog</span>
+
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">SettingsDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_lesson_assignment">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_lesson_assignment">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_lesson_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open lesson assignment dialog&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.easy_assignment_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyAssignmentDialog</span>
+
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">EasyAssignmentDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.open_backup_restore">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.open_backup_restore">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open_backup_restore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open backup/restore dialog&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.backup_restore_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">BackupRestoreDialog</span>
+
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">BackupRestoreDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+        <span class="c1"># If restore was successful, restart the application</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">restart_application</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.restart_application">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.restart_application">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restart_application</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restart the application after database restore&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">QMessageBox</span>
+
+        <span class="n">reply</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">question</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;Yeniden Başlat&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Uygulama yeniden başlatılacak. Devam etmek istiyor musunuz?&quot;</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reply</span> <span class="o">==</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+            <span class="c1"># Get the current Python executable and script</span>
+            <span class="n">python</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
+            <span class="n">script</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1"># Restart the application</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">python</span><span class="p">,</span> <span class="n">script</span><span class="p">])</span>
+            <span class="c1"># Close the current instance</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MainWindow.show_school_type_selection">
+<a class="viewcode-back" href="../../modules/ui.html#ui.main_window.MainWindow.show_school_type_selection">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_school_type_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show the school type selection dialog&quot;&quot;&quot;</span>
+        <span class="c1"># Check if school type is already set</span>
+        <span class="k">if</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">():</span>
+            <span class="k">return</span>  <span class="c1"># Skip if already set</span>
+
+        <span class="c1"># Show school type selection dialog</span>
+        <span class="n">school_dialog</span> <span class="o">=</span> <span class="n">SchoolTypeDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">school_dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span> <span class="o">==</span> <span class="n">QDialog</span><span class="o">.</span><span class="n">Accepted</span><span class="p">:</span>
+            <span class="n">selected_type</span> <span class="o">=</span> <span class="n">school_dialog</span><span class="o">.</span><span class="n">get_selected_school_type</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">selected_type</span><span class="p">:</span>
+                <span class="n">db_manager</span><span class="o">.</span><span class="n">set_school_type</span><span class="p">(</span><span class="n">selected_type</span><span class="p">)</span>
+
+                <span class="c1"># Only initialize curriculum if no lessons exist yet</span>
+                <span class="n">existing_lessons</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">existing_lessons</span><span class="p">:</span>
+                    <span class="c1"># Initialize lessons using school_type_dialog</span>
+                    <span class="n">school_dialog</span><span class="o">.</span><span class="n">initialize_lessons_for_school_type</span><span class="p">(</span><span class="n">db_manager</span><span class="p">,</span> <span class="n">selected_type</span><span class="p">)</span>
+
+                    <span class="c1"># Create sample classes based on school type</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_create_sample_classes</span><span class="p">(</span><span class="n">selected_type</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">notification_manager</span><span class="o">.</span><span class="n">show_message</span><span class="p">(</span>
+                    <span class="s2">&quot;Okul Türü Seçildi&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">selected_type</span><span class="si">}</span><span class="s2"> olarak ayarlandı.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If user cancels, we can either close the application or set a default</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">():</span>
+                <span class="n">db_manager</span><span class="o">.</span><span class="n">set_school_type</span><span class="p">(</span><span class="s2">&quot;Lise&quot;</span><span class="p">)</span>  <span class="c1"># Set default</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_sample_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">school_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create sample classes based on school type&quot;&quot;&quot;</span>
+        <span class="c1"># Define grade ranges for each school type</span>
+        <span class="n">grade_ranges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="s2">&quot;Lise&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s2">&quot;Anadolu Lisesi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s2">&quot;Fen Lisesi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s2">&quot;Sosyal Bilimler Lisesi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="n">start_grade</span><span class="p">,</span> <span class="n">end_grade</span> <span class="o">=</span> <span class="n">grade_ranges</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">school_type</span><span class="p">,</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+        <span class="c1"># Create classes for each grade (A, B, C sections)</span>
+        <span class="k">for</span> <span class="n">grade</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_grade</span><span class="p">,</span> <span class="n">end_grade</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">]:</span>
+                <span class="n">class_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grade</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">section</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="c1"># Check if class already exists</span>
+                <span class="n">existing_classes</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">class_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">existing_classes</span><span class="p">):</span>
+                    <span class="n">db_manager</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="n">grade</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

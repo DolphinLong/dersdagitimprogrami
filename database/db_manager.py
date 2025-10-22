@@ -9,6 +9,10 @@ import threading
 from typing import List, Optional, Union
 
 from database.models import Class, Classroom, Curriculum, Lesson, ScheduleEntry, Teacher, User
+from database.repositories.teacher_repository import TeacherRepository
+from database.repositories.lesson_repository import LessonRepository
+from database.repositories.class_repository import ClassRepository
+from database.repositories.schedule_repository import ScheduleRepository
 
 # Import password hasher utility
 try:
@@ -26,6 +30,13 @@ class DatabaseManager:
     def __init__(self, db_path="schedule.db"):
         self.db_path = db_path
         self.local = threading.local()  # Thread-local storage for connections
+
+        # Instantiate repositories with the manager itself for thread-safe connection handling
+        self.teachers = TeacherRepository(self)
+        self.lessons = LessonRepository(self)
+        self.classes = ClassRepository(self)
+        self.schedule = ScheduleRepository(self)
+
         self.create_tables()
         self.school_type = self.get_school_type()
 
@@ -345,354 +356,82 @@ class DatabaseManager:
             return None
 
     def add_lesson(self, name: str, weekly_hours: int = 0) -> Optional[int]:
-        """Add a new unique lesson name for the current school type."""
-        if not self._ensure_connection():
-            return None
-        
-        conn = self.get_connection()
-        cursor = conn.cursor()
+        """Add a new unique lesson name for the current school type via repository."""
         school_type = self._get_current_school_type()
-        
-        try:
-            # Check if lesson already exists for this school type
-            cursor.execute(
-                "SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?",
-                (name, school_type),
-            )
-            existing = cursor.fetchone()
-            if existing:
-                logging.info(f"Lesson '{name}' already exists for school type '{school_type}'")
-                return existing["lesson_id"]  # Return existing lesson_id instead of None
-
-            # Insert new lesson
-            cursor.execute(
-                "INSERT INTO lessons (name, weekly_hours, school_type) VALUES (?, ?, ?)",
-                (name, weekly_hours, school_type),
-            )
-            lesson_id = None
-            if self._safe_commit():
-                cursor.execute(
-                    "SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?",
-                    (name, school_type),
-                )
-                row = cursor.fetchone()
-                lesson_id = row["lesson_id"] if row else None
-            return lesson_id
-        except sqlite3.IntegrityError as e:
-            # This happens when UNIQUE constraint is violated
-            logging.warning(f"Lesson '{name}' already exists for school type '{school_type}': {e}")
-            # Rollback the failed transaction
-            try:
-                conn.rollback()
-            except:
-                pass
-            # Try to get the existing lesson_id
-            try:
-                cursor.execute(
-                    "SELECT lesson_id FROM lessons WHERE name = ? AND school_type = ?",
-                    (name, school_type),
-                )
-                row = cursor.fetchone()
-                return row["lesson_id"] if row else None
-            except Exception as ex:
-                logging.error(f"Error fetching existing lesson: {ex}")
-                return None
-        except sqlite3.Error as e:
-            logging.error(f"Error adding lesson: {e}")
-            return None
+        return self.lessons.add_lesson(name, school_type, weekly_hours)
 
     def get_all_lessons(self) -> List[Lesson]:
-        """Get all unique lessons for the current school type."""
-        if not self._ensure_connection():
-            return []
+        """Get all unique lessons for the current school type via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM lessons WHERE school_type = ? ORDER BY name", (school_type,))
-            rows = cursor.fetchall()
-            return [Lesson(row["lesson_id"], row["name"], row["weekly_hours"]) for row in rows]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting all lessons: {e}")
-            return []
+        return self.lessons.get_all_lessons(school_type)
 
     def update_lesson(self, lesson_id: int, name: str) -> bool:
-        """Update a lesson's name."""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("UPDATE lessons SET name = ? WHERE lesson_id = ?", (name, lesson_id))
-            result = cursor.rowcount > 0
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error updating lesson: {e}")
-            return False
+        """Update a lesson's name via repository."""
+        return self.lessons.update_lesson(lesson_id, name)
 
     def delete_lesson(self, lesson_id: int) -> bool:
-        """Delete a lesson and its associated curriculum entries."""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            # Delete in proper order to avoid foreign key constraint errors
-            # 1. Delete from schedule (generated schedules)
-            # Note: previous name 'schedule_program' was inconsistent with the created table name 'schedule'
-            cursor.execute("DELETE FROM schedule WHERE lesson_id = ?", (lesson_id,))
-
-            # 2. Delete from schedule (lesson assignments)
-            cursor.execute("DELETE FROM schedule WHERE lesson_id = ?", (lesson_id,))
-
-            # 3. Delete from curriculum (lesson curriculum data)
-            cursor.execute("DELETE FROM curriculum WHERE lesson_id = ?", (lesson_id,))
-
-            # 4. Finally delete the lesson itself
-            cursor.execute("DELETE FROM lessons WHERE lesson_id = ?", (lesson_id,))
-
-            result = cursor.rowcount > 0
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error deleting lesson: {e}")
-            return False
+        """Delete a lesson and its associated curriculum entries via repository."""
+        return self.lessons.delete_lesson(lesson_id)
 
     def get_curriculum_for_lesson(self, lesson_id: int) -> List[Curriculum]:
-        """Get all curriculum entries for a specific lesson."""
-        if not self._ensure_connection():
-            return []
+        """Get all curriculum entries for a specific lesson via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT * FROM curriculum WHERE lesson_id = ? AND school_type = ?",
-                (lesson_id, school_type),
-            )
-            rows = cursor.fetchall()
-            return [
-                Curriculum(row["curriculum_id"], row["lesson_id"], row["grade"], row["weekly_hours"]) for row in rows
-            ]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting curriculum for lesson {lesson_id}: {e}")
-            return []
+        return self.lessons.get_curriculum_for_lesson(lesson_id, school_type)
 
     def add_lesson_weekly_hours(self, lesson_id: int, grade: int, school_type: str, weekly_hours: int) -> bool:
-        """Add or update weekly hours for a lesson at a specific grade (alias for add_or_update_curriculum)."""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT curriculum_id FROM curriculum WHERE lesson_id = ? AND grade = ? AND school_type = ?",
-                (lesson_id, grade, school_type),
-            )
-            row = cursor.fetchone()
-            if row:
-                cursor.execute(
-                    "UPDATE curriculum SET weekly_hours = ? WHERE curriculum_id = ?",
-                    (weekly_hours, row["curriculum_id"]),
-                )
-            else:
-                cursor.execute(
-                    "INSERT INTO curriculum (lesson_id, grade, weekly_hours, school_type) VALUES (?, ?, ?, ?)",
-                    (lesson_id, grade, weekly_hours, school_type),
-                )
-            return self._safe_commit()
-        except sqlite3.Error as e:
-            logging.error(f"Error adding/updating lesson weekly hours: {e}")
-            return False
+        """Add or update weekly hours for a lesson at a specific grade via repository."""
+        return self.lessons.add_or_update_curriculum(lesson_id, grade, weekly_hours, school_type)
 
     def add_or_update_curriculum(self, lesson_id: int, grade: int, weekly_hours: int) -> bool:
-        """Add or update a curriculum entry for a lesson at a specific grade."""
-        if not self._ensure_connection():
-            return False
+        """Add or update a curriculum entry for a lesson at a specific grade via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT curriculum_id FROM curriculum WHERE lesson_id = ? AND grade = ? AND school_type = ?",
-                (lesson_id, grade, school_type),
-            )
-            row = cursor.fetchone()
-            if row:
-                cursor.execute(
-                    "UPDATE curriculum SET weekly_hours = ? WHERE curriculum_id = ?",
-                    (weekly_hours, row["curriculum_id"]),
-                )
-            else:
-                cursor.execute(
-                    "INSERT INTO curriculum (lesson_id, grade, weekly_hours, school_type) VALUES (?, ?, ?, ?)",
-                    (lesson_id, grade, weekly_hours, school_type),
-                )
-            return self._safe_commit()
-        except sqlite3.Error as e:
-            logging.error(f"Error adding/updating curriculum: {e}")
-            return False
+        return self.lessons.add_or_update_curriculum(lesson_id, grade, weekly_hours, school_type)
 
     def get_weekly_hours_for_lesson(self, lesson_id: int, grade: int) -> Optional[int]:
-        """Get the weekly hours for a specific lesson and grade."""
-        if not self._ensure_connection():
-            return None
+        """Get the weekly hours for a specific lesson and grade via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT weekly_hours FROM curriculum WHERE lesson_id = ? AND grade = ? AND school_type = ?",
-                (lesson_id, grade, school_type),
-            )
-            row = cursor.fetchone()
-            return row["weekly_hours"] if row else None
-        except sqlite3.Error as e:
-            logging.error(f"Error getting weekly hours: {e}")
-            return None
+        return self.lessons.get_weekly_hours_for_lesson(lesson_id, grade, school_type)
 
     def get_all_teachers(self) -> List[Teacher]:
-        """Get all teachers for the current school type"""
-        if not self._ensure_connection():
-            return []
+        """Get all teachers for the current school type via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM teachers WHERE school_type = ?", (school_type,))
-            rows = cursor.fetchall()
-            return [Teacher(row["teacher_id"], row["name"], row["subject"]) for row in rows]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting all teachers: {e}")
-            return []
+        return self.teachers.get_all_teachers(school_type)
 
     def get_all_classes(self) -> List[Class]:
-        """Get all classes for the current school type"""
-        if not self._ensure_connection():
-            return []
+        """Get all classes for the current school type via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM classes WHERE school_type = ?", (school_type,))
-            rows = cursor.fetchall()
-            return [Class(row["class_id"], row["name"], row["grade"]) for row in rows]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting all classes: {e}")
-            return []
+        return self.classes.get_all_classes(school_type)
 
     def get_schedule_by_school_type(self) -> List[ScheduleEntry]:
-        """Get all schedule entries for the current school type (assignments)"""
-        if not self._ensure_connection():
-            return []
+        """Get all schedule entries for the current school type (assignments) via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT entry_id, class_id, teacher_id, lesson_id, classroom_id, day, time_slot FROM schedule_entries WHERE school_type = ?",
-                (school_type,),
-            )
-            rows = cursor.fetchall()
-            entries = [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
-            logging.debug(f"Retrieved {len(entries)} schedule entries for school type: {school_type}")
-            return entries
-        except sqlite3.Error as e:
-            logging.error(f"Error getting schedule entries: {e}")
-            return []
+        return self.schedule.get_schedule_entries_by_school_type(school_type)
 
     def get_schedule_program_by_school_type(self) -> List[ScheduleEntry]:
-        """Get all schedule program for the current school type (timetable)"""
-        if not self._ensure_connection():
-            return []
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-            cursor.execute(
-                """
-                SELECT schedule_id, class_id, teacher_id, lesson_id, classroom_id, day, time_slot
-                FROM schedule
-                WHERE school_type = ?
-            """,
-                (school_type,),
-            )
-            rows = cursor.fetchall()
-            return [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting schedule program: {e}")
-            return []
+        """Get all schedule program for the current school type (timetable) via repository."""
+        school_type = self._get_current_school_type()
+        return self.schedule.get_schedule_program_by_school_type(school_type)
 
     def get_lesson_by_id(self, lesson_id: int) -> Optional[Lesson]:
-        """Get a lesson by its ID"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM lessons WHERE lesson_id = ?", (lesson_id,))
-            row = cursor.fetchone()
-            return Lesson(row["lesson_id"], row["name"], row["weekly_hours"]) if row else None
-        except sqlite3.Error as e:
-            logging.error(f"Error getting lesson by ID: {e}")
-            return None
+        """Get a lesson by its ID via repository."""
+        return self.lessons.get_lesson_by_id(lesson_id)
 
     def get_lesson_by_name(self, name: str) -> Optional[Lesson]:
-        """Get a lesson by its name for the current school type"""
-        if not self._ensure_connection():
-            return None
+        """Get a lesson by its name for the current school type via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM lessons WHERE name = ? AND school_type = ?", (name, school_type))
-            row = cursor.fetchone()
-            return Lesson(row["lesson_id"], row["name"], row["weekly_hours"]) if row else None
-        except sqlite3.Error as e:
-            logging.error(f"Error getting lesson by name: {e}")
-            return None
+        return self.lessons.get_lesson_by_name(name, school_type)
 
     def get_teacher_by_id(self, teacher_id: int) -> Optional[Teacher]:
-        """Get a teacher by its ID"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM teachers WHERE teacher_id = ?", (teacher_id,))
-            row = cursor.fetchone()
-            return Teacher(row["teacher_id"], row["name"], row["subject"]) if row else None
-        except sqlite3.Error as e:
-            logging.error(f"Error getting teacher by ID: {e}")
-            return None
+        """Get a teacher by its ID via repository."""
+        return self.teachers.get_teacher_by_id(teacher_id)
 
     def get_class_by_id(self, class_id: int) -> Optional[Class]:
-        """Get a class by its ID"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM classes WHERE class_id = ?", (class_id,))
-            row = cursor.fetchone()
-            return Class(row["class_id"], row["name"], row["grade"]) if row else None
-        except sqlite3.Error as e:
-            logging.error(f"Error getting class by ID: {e}")
-            return None
+        """Get a class by its ID via repository."""
+        return self.classes.get_class_by_id(class_id)
 
     def get_classroom_by_id(self, classroom_id: int) -> Optional[Classroom]:
-        """Get a classroom by its ID"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM classrooms WHERE classroom_id = ?", (classroom_id,))
-            row = cursor.fetchone()
-            return Classroom(row["classroom_id"], row["name"], row["capacity"]) if row else None
-        except sqlite3.Error as e:
-            logging.error(f"Error getting classroom by ID: {e}")
-            return None
+        """Get a classroom by its ID via repository."""
+        return self.classes.get_classroom_by_id(classroom_id)
 
     def add_schedule_entry(
         self,
@@ -703,28 +442,9 @@ class DatabaseManager:
         day: int,
         time_slot: int,
     ) -> Optional[int]:
-        """Add a new schedule entry to schedule_entries table (assignments)"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-            cursor.execute(
-                """
-                INSERT INTO schedule_entries
-                (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-                (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type),
-            )
-            if self._safe_commit():
-                logging.debug(f"Added schedule entry: Class {class_id}, Teacher {teacher_id}, Lesson {lesson_id}")
-                return cursor.lastrowid
-            return None
-        except sqlite3.Error as e:
-            logging.error(f"Error adding schedule entry: {e}")
-            return None
+        """Add a new schedule entry to schedule_entries table (assignments) via repository."""
+        school_type = self._get_current_school_type()
+        return self.schedule.add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type)
 
     def add_schedule_by_school_type(
         self,
@@ -735,7 +455,7 @@ class DatabaseManager:
         day: int = -1,
         time_slot: int = -1,
     ) -> Optional[int]:
-        """Add a lesson assignment (without schedule details). Alias for add_schedule_entry with defaults."""
+        """Add a lesson assignment (without schedule details) via repository."""
         return self.add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
 
     def add_schedule_program(
@@ -747,74 +467,19 @@ class DatabaseManager:
         day: int,
         time_slot: int,
     ) -> Optional[int]:
-        """Add a new schedule program to schedule table (timetable)"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-            cursor.execute(
-                """
-                INSERT INTO schedule
-                (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-                (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type),
-            )
-            if self._safe_commit():
-                logging.debug(
-                    f"Added schedule program: Class {class_id}, Teacher {teacher_id}, Lesson {lesson_id}, Day {day}, Slot {time_slot}, Classroom {classroom_id}"
-                )
-                return cursor.lastrowid
-            return None
-        except sqlite3.Error as e:
-            logging.error(f"Error adding schedule program: {e}")
-            return None
+        """Add a new schedule program to schedule table (timetable) via repository."""
+        school_type = self._get_current_school_type()
+        return self.schedule.add_schedule_program_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot, school_type)
 
     def get_schedule_for_specific_class(self, class_id: int) -> List[ScheduleEntry]:
-        """Get schedule program for a specific class (from schedule table)"""
-        if not self._ensure_connection():
-            return []
+        """Get schedule program for a specific class (from schedule table) via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT schedule_id, class_id, teacher_id, lesson_id, classroom_id, day, time_slot
-                FROM schedule
-                WHERE class_id = ? AND school_type = ?
-            """,
-                (class_id, school_type),
-            )
-            rows = cursor.fetchall()
-            return [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting schedule program for class: {e}")
-            return []
+        return self.schedule.get_schedule_for_class(class_id, school_type)
 
     def get_schedule_for_specific_teacher(self, teacher_id: int) -> List[ScheduleEntry]:
-        """Get schedule program for a specific teacher (from schedule table)"""
-        if not self._ensure_connection():
-            return []
+        """Get schedule program for a specific teacher via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT schedule_id, class_id, teacher_id, lesson_id, classroom_id, day, time_slot
-                FROM schedule
-                WHERE teacher_id = ? AND school_type = ?
-            """,
-                (teacher_id, school_type),
-            )
-            rows = cursor.fetchall()
-            return [ScheduleEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6]) for row in rows]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting schedule program for teacher: {e}")
-            return []
+        return self.teachers.get_schedule_for_teacher(teacher_id, school_type)
 
     def update_schedule_entry(
         self,
@@ -826,298 +491,68 @@ class DatabaseManager:
         day: int,
         time_slot: int,
     ) -> bool:
-        """Update an existing schedule entry"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                UPDATE schedule_entries 
-                SET class_id = ?, teacher_id = ?, lesson_id = ?, classroom_id = ?, day = ?, time_slot = ?
-                WHERE entry_id = ?
-            """,
-                (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, entry_id),
-            )
-            result = cursor.rowcount > 0
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error updating schedule entry: {e}")
-            return False
+        """Update an existing schedule entry via repository."""
+        return self.schedule.update_schedule_entry(entry_id, class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
 
     def delete_teacher(self, teacher_id: int) -> bool:
-        """Delete a teacher and all related records"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            # Delete related schedule entries first
-            cursor.execute("DELETE FROM schedule_entries WHERE teacher_id = ?", (teacher_id,))
-
-            # Delete related teacher availability records
-            cursor.execute("DELETE FROM teacher_availability WHERE teacher_id = ?", (teacher_id,))
-
-            # Finally, delete the teacher
-            cursor.execute("DELETE FROM teachers WHERE teacher_id = ?", (teacher_id,))
-            result = cursor.rowcount > 0
-
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error deleting teacher: {e}")
-            return False
+        """Delete a teacher and all related records via repository."""
+        return self.teachers.delete_teacher(teacher_id)
 
     def delete_schedule_entry(self, entry_id: int) -> bool:
-        """Delete a single schedule entry by entry_id"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-
-            # Delete the specific schedule entry for the current school type
-            cursor.execute(
-                "DELETE FROM schedule_entries WHERE entry_id = ? AND school_type = ?",
-                (entry_id, school_type),
-            )
-            deleted_count = cursor.rowcount
-
-            if self._safe_commit() and deleted_count > 0:
-                logging.info(f"Deleted schedule entry {entry_id} for school type: {school_type}")
-                return True
-            return False
-        except sqlite3.Error as e:
-            logging.error(f"Error deleting schedule entry {entry_id}: {e}")
-            return False
+        """Delete a single schedule entry by entry_id via repository."""
+        school_type = self._get_current_school_type()
+        return self.schedule.delete_schedule_entry(entry_id, school_type)
 
     def delete_all_schedule_entries(self) -> bool:
-        """Delete all schedule entries for the current school type"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-
-            # Delete all schedule entries for the current school type
-            cursor.execute("DELETE FROM schedule_entries WHERE school_type = ?", (school_type,))
-            deleted_count = cursor.rowcount
-            result = cursor.rowcount >= 0  # Allow 0 rows to be deleted
-
-            if self._safe_commit() and result:
-                logging.info(f"Deleted {deleted_count} schedule entries for school type: {school_type}")
-                return True
-            return result
-        except sqlite3.Error as e:
-            logging.error(f"Error deleting all schedule entries: {e}")
-            return False
+        """Delete all schedule entries for the current school type via repository."""
+        school_type = self._get_current_school_type()
+        deleted_count = self.schedule.delete_all_schedule_entries(school_type)
+        return deleted_count >= 0
 
     def clear_schedule(self) -> bool:
-        """Clear only the schedule table (not assignments)"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-
-            # Delete only from schedule table (keep assignments in schedule_entries)
-            cursor.execute("DELETE FROM schedule WHERE school_type = ?", (school_type,))
-            deleted_count = cursor.rowcount
-            result = cursor.rowcount >= 0  # Allow 0 rows to be deleted
-
-            if self._safe_commit() and result:
-                logging.info(f"Cleared {deleted_count} schedule entries for school type: {school_type}")
-                return True
-            return result
-        except sqlite3.Error as e:
-            logging.error(f"Error clearing schedule: {e}")
-            return False
+        """Clear only the schedule table (not assignments) via repository."""
+        school_type = self._get_current_school_type()
+        deleted_count = self.schedule.clear_schedule_program(school_type)
+        return deleted_count >= 0
 
     def delete_class(self, class_id: int) -> bool:
-        """Delete a class"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM classes WHERE class_id = ?", (class_id,))
-            result = cursor.rowcount > 0
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error deleting class: {e}")
-            return False
+        """Delete a class via repository."""
+        return self.classes.delete_class(class_id)
 
     def add_teacher(self, name: str, subject: str) -> Optional[int]:
-        """Add a new teacher"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-            cursor.execute(
-                "INSERT INTO teachers (name, subject, school_type) VALUES (?, ?, ?)",
-                (name, subject, school_type),
-            )
-            if self._safe_commit():
-                return cursor.lastrowid
-            return None
-        except sqlite3.Error as e:
-            logging.error(f"Error adding teacher: {e}")
-            return None
+        """Add a new teacher via repository."""
+        school_type = self._get_current_school_type()
+        return self.teachers.add_teacher(name, subject, school_type)
 
     def update_teacher(self, teacher_id: int, name: str, subject: str) -> bool:
-        """Update an existing teacher"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE teachers SET name = ?, subject = ? WHERE teacher_id = ?",
-                (name, subject, teacher_id),
-            )
-            result = cursor.rowcount > 0
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error updating teacher: {e}")
-            return False
+        """Update an existing teacher via repository."""
+        return self.teachers.update_teacher(teacher_id, name, subject)
 
     def add_class(self, name: str, grade: int) -> Optional[int]:
-        """Add a new class"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-            cursor.execute(
-                "INSERT INTO classes (name, grade, school_type) VALUES (?, ?, ?)",
-                (name, grade, school_type),
-            )
-            if self._safe_commit():
-                return cursor.lastrowid
-            return None
-        except sqlite3.Error as e:
-            logging.error(f"Error adding class: {e}")
-            return None
+        """Add a new class via repository."""
+        school_type = self._get_current_school_type()
+        return self.classes.add_class(name, grade, school_type)
 
     def update_class(self, class_id: int, name: str, grade: int) -> bool:
-        """Update an existing class"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("UPDATE classes SET name = ?, grade = ? WHERE class_id = ?", (name, grade, class_id))
-            result = cursor.rowcount > 0
-            return self._safe_commit() and result
-        except sqlite3.Error as e:
-            logging.error(f"Error updating class: {e}")
-            return False
+        """Update an existing class via repository."""
+        return self.classes.update_class(class_id, name, grade)
 
     def get_teacher_availability(self, teacher_id: int) -> List[dict]:
-        """Get teacher availability data"""
-        if not self._ensure_connection():
-            return []
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT day, time_slot, is_available 
-                FROM teacher_availability 
-                WHERE teacher_id = ?
-            """,
-                (teacher_id,),
-            )
-            rows = cursor.fetchall()
-            return [
-                {
-                    "day": row["day"],
-                    "time_slot": row["time_slot"],
-                    "is_available": row["is_available"],
-                }
-                for row in rows
-            ]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting teacher availability: {e}")
-            return []
+        """Get teacher availability data via repository."""
+        return self.teachers.get_teacher_availability(teacher_id)
 
     def set_teacher_availability(self, teacher_id: int, day: int, time_slot: int, is_available: bool) -> bool:
-        """Set teacher availability for a specific day and time slot"""
-        if not self._ensure_connection():
-            return False
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            # First try to update existing record
-            cursor.execute(
-                """
-                UPDATE teacher_availability 
-                SET is_available = ? 
-                WHERE teacher_id = ? AND day = ? AND time_slot = ?
-            """,
-                (1 if is_available else 0, teacher_id, day, time_slot),
-            )
-
-            # If no rows were updated, insert a new record
-            if cursor.rowcount == 0:
-                cursor.execute(
-                    """
-                    INSERT INTO teacher_availability (teacher_id, day, time_slot, is_available)
-                    VALUES (?, ?, ?, ?)
-                """,
-                    (teacher_id, day, time_slot, 1 if is_available else 0),
-                )
-
-            return self._safe_commit()
-        except sqlite3.Error as e:
-            logging.error(f"Error setting teacher availability: {e}")
-            return False
+        """Set teacher availability for a specific day and time slot via repository."""
+        return self.teachers.set_teacher_availability(teacher_id, day, time_slot, is_available)
 
     def is_teacher_available(self, teacher_id: int, day: int, time_slot: int) -> bool:
-        """Check if a teacher is available at a specific day and time slot"""
-        if not self._ensure_connection():
-            return True  # Default to available if there's a connection issue
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT is_available 
-                FROM teacher_availability 
-                WHERE teacher_id = ? AND day = ? AND time_slot = ?
-            """,
-                (teacher_id, day, time_slot),
-            )
-            row = cursor.fetchone()
-            # If no record exists, teacher is available by default
-            return row["is_available"] == 1 if row else True
-        except sqlite3.Error as e:
-            logging.error(f"Error checking teacher availability: {e}")
-            return True  # Default to available if there's an error
+        """Check if a teacher is available at a specific day and time slot via repository."""
+        return self.teachers.is_teacher_available(teacher_id, day, time_slot)
 
     def get_all_classrooms(self) -> List[Classroom]:
-        """Get all classrooms for the current school type"""
-        if not self._ensure_connection():
-            return []
+        """Get all classrooms for the current school type via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM classrooms WHERE school_type = ?", (school_type,))
-            rows = cursor.fetchall()
-            classrooms = [Classroom(row["classroom_id"], row["name"], row["capacity"]) for row in rows]
-            logging.debug(f"Retrieved {len(classrooms)} classrooms for school type: {school_type}")
-            return classrooms
-        except sqlite3.Error as e:
-            logging.error(f"Error getting all classrooms: {e}")
-            return []
+        return self.classes.get_all_classrooms(school_type)
 
     def get_user(self, username: str, password: str) -> Optional[User]:
         """Get a user by username and password"""
@@ -1194,40 +629,14 @@ class DatabaseManager:
                 return False
 
     def add_classroom(self, name: str, capacity: int) -> Optional[int]:
-        """Add a new classroom"""
-        if not self._ensure_connection():
-            return None
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            school_type = self._get_current_school_type()
-            cursor.execute(
-                "INSERT INTO classrooms (name, capacity, school_type) VALUES (?, ?, ?)",
-                (name, capacity, school_type),
-            )
-            if self._safe_commit():
-                return cursor.lastrowid
-            return None
-        except sqlite3.Error as e:
-            logging.error(f"Error adding classroom: {e}")
-            return None
+        """Add a new classroom via repository."""
+        school_type = self._get_current_school_type()
+        return self.classes.add_classroom(name, capacity, school_type)
 
     def get_all_curriculum(self) -> List[Curriculum]:
-        """Get all curriculum entries for the current school type."""
-        if not self._ensure_connection():
-            return []
+        """Get all curriculum entries for the current school type via repository."""
         school_type = self._get_current_school_type()
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM curriculum WHERE school_type = ?", (school_type,))
-            rows = cursor.fetchall()
-            return [
-                Curriculum(row["curriculum_id"], row["lesson_id"], row["grade"], row["weekly_hours"]) for row in rows
-            ]
-        except sqlite3.Error as e:
-            logging.error(f"Error getting all curriculum: {e}")
-            return []
+        return self.lessons.get_all_curriculum(school_type)
 
     def find_missing_assignments(self) -> dict:
         """

@@ -87,6 +87,11 @@ class DatabaseIndexManager:
             ("idx_schedule_day_slot", "CREATE INDEX idx_schedule_day_slot ON schedule(day, time_slot)"),
             ("idx_schedule_class_day", "CREATE INDEX idx_schedule_class_day ON schedule(class_id, day)"),
             ("idx_schedule_teacher_day", "CREATE INDEX idx_schedule_teacher_day ON schedule(teacher_id, day)"),
+            # Advanced compound indexes for complex queries
+            ("idx_schedule_complete", "CREATE INDEX idx_schedule_complete ON schedule(class_id, teacher_id, lesson_id, day, time_slot)"),
+            ("idx_schedule_teacher_day_slot", "CREATE INDEX idx_schedule_teacher_day_slot ON schedule(teacher_id, day, time_slot)"),
+            ("idx_schedule_class_lesson_day", "CREATE INDEX idx_schedule_class_lesson_day ON schedule(class_id, lesson_id, day)"),
+            ("idx_schedule_performance", "CREATE INDEX idx_schedule_performance ON schedule(day, time_slot, class_id, teacher_id)"),
             # Lesson assignments indexes
             (
                 "idx_lesson_assignments_class",

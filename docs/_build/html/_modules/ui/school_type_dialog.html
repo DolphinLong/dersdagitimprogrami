@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ui.school_type_dialog &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">ui.school_type_dialog</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ui.school_type_dialog öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">School type selection dialog for the Class Scheduling Program</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QFont</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QFrame</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QListWidget</span><span class="p">,</span>
+    <span class="n">QListWidgetItem</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchoolTypeDialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog for selecting school type with modern design&quot;&quot;&quot;</span>
+
+    <span class="c1"># Define school types and their subjects</span>
+    <span class="n">SCHOOL_TYPES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Türkçe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Hayat Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Oyun&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yabancı Dil&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü ve Ahlak Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Rehberlik ve Yönlendirme&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Serbest Etkinlikler&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Trafik Güvenliği&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;İnsan Hakları, Vatandaşlık ve Demokrasi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik ve Bilim Uygulamaları&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Robotik Kodlama&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yapay Zeka Uygulamaları&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Drama&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Geleneksel Sanatlar&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Türkçe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Fen Bilimleri&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Sosyal Bilgiler&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Spor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yabancı Dil&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü ve Ahlak Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Teknoloji ve Tasarım&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;T.C. İnkılap Tarihi ve Atatürkçülük&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Bilişim Teknolojileri ve Yazılım&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Rehberlik ve Yönlendirme&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik ve Bilim Uygulamaları&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Robotik Kodlama&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yapay Zeka Uygulamaları&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Drama&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Geleneksel Sanatlar&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;Lise&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Türk Dili ve Edebiyatı&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Fizik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Kimya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Biyoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Tarih&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Coğrafya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Felsefe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yabancı Dil&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü ve Ahlak Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Spor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Bilişim Teknolojileri&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Rehberlik ve Psikolojik Danışmanlık&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;Anadolu Lisesi&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Türk Dili ve Edebiyatı&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Fizik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Kimya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Biyoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Tarih&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Coğrafya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Felsefe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yabancı Dil&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü ve Ahlak Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Spor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Bilişim Teknolojileri&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Rehberlik ve Psikolojik Danışmanlık&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;Fen Lisesi&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Türk Dili ve Edebiyatı&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Fizik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Kimya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Biyoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Tarih&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Coğrafya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Felsefe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Birinci Yabancı Dil&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü ve Ahlak Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Spor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Sağlık Bilgisi ve Trafik Kültürü&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Bilişim Teknolojileri ve Yazılım&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Rehberlik ve Yönlendirme&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Seçmeli Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Seçmeli Fizik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Seçmeli Kimya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Seçmeli Biyoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Genetik Bilimine Giriş&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Tıp Bilimine Giriş&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Astronomi ve Uzay Bilimleri&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Sosyal Bilim Çalışmaları&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Düşünme Eğitimi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Kur&#39;an-ı Kerim&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Peygamberimizin Hayatı (Fen Lise)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Temel Dini Bilgiler&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Spor Eğitimi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Sanat Eğitimi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;İslam Kültür ve Medeniyeti&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Osmanlı Türkçesi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;İkinci Yabancı Dil&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;Sosyal Bilimler Lisesi&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Türk Dili ve Edebiyatı&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Matematik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Tarih&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Coğrafya&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Felsefe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Psikoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Sosyoloji&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;İktisat&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Hukuk&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Yabancı Dil&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Din Kültürü ve Ahlak Bilgisi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Müzik&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Beden Eğitimi ve Spor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Bilişim Teknolojileri&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Rehberlik ve Psikolojik Danışmanlık&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="SchoolTypeDialog.__init__">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selected_school_type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Okul Türü Seçimi&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFixedSize</span><span class="p">(</span><span class="mi">550</span><span class="p">,</span> <span class="mi">450</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_ui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_styles</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog.setup_ui">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.setup_ui">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the user interface with modern design&quot;&quot;&quot;</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+
+        <span class="c1"># Header section</span>
+        <span class="n">header_frame</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">header_frame</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;headerFrame&quot;</span><span class="p">)</span>
+        <span class="n">header_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+        <span class="c1"># Icon</span>
+        <span class="n">icon_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;🏫&quot;</span><span class="p">)</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;iconLabel&quot;</span><span class="p">)</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">36</span><span class="p">))</span>
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">icon_label</span><span class="p">)</span>
+
+        <span class="c1"># Title</span>
+        <span class="n">title_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;OKUL TÜRÜNÜ SEÇİN&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;titleLabel&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title_label</span><span class="p">)</span>
+
+        <span class="c1"># Description</span>
+        <span class="n">desc_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span>
+            <span class="s2">&quot;Lütfen okul türünü seçin. Bu seçim, öğretmen branş listesini otomatik olarak dolduracaktır.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setWordWrap</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;descLabel&quot;</span><span class="p">)</span>
+        <span class="n">desc_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+        <span class="n">header_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">desc_label</span><span class="p">)</span>
+
+        <span class="n">header_frame</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">header_layout</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">header_frame</span><span class="p">)</span>
+
+        <span class="c1"># School type list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span> <span class="o">=</span> <span class="n">QListWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;schoolList&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">school_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHOOL_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">QListWidgetItem</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">currentItemChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_selection_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">itemDoubleClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="p">)</span>
+
+        <span class="c1"># Buttons</span>
+        <span class="n">button_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Devam Et&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;continueButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Disabled until selection is made</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;İptal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;cancelButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="p">)</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">button_layout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+
+        <span class="c1"># Select first item by default</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">school_list</span><span class="o">.</span><span class="n">setCurrentRow</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog.apply_styles">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.apply_styles">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply modern styles with improved design&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QDialog {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2c3e50, stop: 1 #4a6491);</span>
+<span class="sd">                border-radius: 15px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #headerFrame {</span>
+<span class="sd">                background: rgba(255, 255, 255, 0.1);</span>
+<span class="sd">                border-radius: 12px;</span>
+<span class="sd">                border: 1px solid rgba(255, 255, 255, 0.2);</span>
+<span class="sd">            }</span>
+<span class="sd">            #iconLabel {</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                margin: 10px 0;</span>
+<span class="sd">            }</span>
+<span class="sd">            #titleLabel {</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                font-size: 24px;</span>
+<span class="sd">                margin: 10px 0 5px 0;</span>
+<span class="sd">            }</span>
+<span class="sd">            #descLabel {</span>
+<span class="sd">                color: #aed6f1;</span>
+<span class="sd">                font-weight: normal;</span>
+<span class="sd">                margin-bottom: 10px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QListWidget {</span>
+<span class="sd">                border: 2px solid #cccccc;</span>
+<span class="sd">                border-radius: 10px;</span>
+<span class="sd">                background: white;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                padding: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QListWidget::item {</span>
+<span class="sd">                padding: 15px;</span>
+<span class="sd">                border-bottom: 1px solid #eeeeee;</span>
+<span class="sd">            }</span>
+<span class="sd">            QListWidget::item:selected {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton {</span>
+<span class="sd">                padding: 14px 25px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 10px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                min-height: 25px;</span>
+<span class="sd">                min-width: 130px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:disabled {</span>
+<span class="sd">                background: #7f8c8d;</span>
+<span class="sd">                color: #bdc3c7;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:hover:!disabled {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2980b9, stop: 1 #2573a7);</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:pressed:!disabled {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #2573a7, stop: 1 #1f618d);</span>
+<span class="sd">            }</span>
+<span class="sd">            #continueButton {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #27ae60, stop: 1 #219653);</span>
+<span class="sd">            }</span>
+<span class="sd">            #continueButton:hover:!disabled {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #219653, stop: 1 #1e8449);</span>
+<span class="sd">            }</span>
+<span class="sd">            #cancelButton {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #e74c3c, stop: 1 #c0392b);</span>
+<span class="sd">            }</span>
+<span class="sd">            #cancelButton:hover {</span>
+<span class="sd">                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                          stop: 0 #c0392b, stop: 1 #a93226);</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog.on_selection_changed">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.on_selection_changed">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_selection_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">previous</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle selection change&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">current</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selected_school_type</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selected_school_type</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continue_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog.get_selected_school_type">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.get_selected_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_selected_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the selected school type&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_school_type</span></div>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog.get_subjects_for_school_type">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.get_subjects_for_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_subjects_for_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">school_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get subjects for the selected school type&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHOOL_TYPES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">school_type</span><span class="p">,</span> <span class="p">[])</span></div>
+
+
+<div class="viewcode-block" id="SchoolTypeDialog.initialize_lessons_for_school_type">
+<a class="viewcode-back" href="../../modules/ui.html#ui.school_type_dialog.SchoolTypeDialog.initialize_lessons_for_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_lessons_for_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">,</span> <span class="n">school_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize lessons based on the curriculum rules for the selected school type.</span>
+<span class="sd">        This function creates mandatory lessons according to the official curriculum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For all school types, use the predefined subject list</span>
+        <span class="n">subjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_subjects_for_school_type</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">subject</span> <span class="ow">in</span> <span class="n">subjects</span><span class="p">:</span>
+            <span class="c1"># Check if lesson already exists</span>
+            <span class="n">existing_lesson</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_name</span><span class="p">(</span><span class="n">subject</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">existing_lesson</span><span class="p">:</span>
+                <span class="c1"># Create a basic lesson with 2 weekly hours (can be adjusted later)</span>
+                <span class="n">db_manager</span><span class="o">.</span><span class="n">add_lesson</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

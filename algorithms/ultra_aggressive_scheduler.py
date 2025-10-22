@@ -20,6 +20,9 @@ if sys.platform.startswith("win"):
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 
+from algorithms.teacher_availability_cache import TeacherAvailabilityCache
+
+
 class UltraAggressiveScheduler:
     """
     %100 Doluluk Hedefli Ultra Agresif Scheduler
@@ -46,8 +49,10 @@ class UltraAggressiveScheduler:
         self.progress_callback = progress_callback  # UI için callback
         self.schedule_entries = []
         self.iteration = 0
-        self.max_iterations = 5000  # Maksimum deneme sayısı
+        self.max_iterations = 3000  # Maksimum deneme sayısı (DÜŞÜRÜLDÜ: 10000 -> 3000)
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)  # Force DEBUG level for this logger
+        self.availability_cache = TeacherAvailabilityCache(self.db_manager)
 
     def generate_schedule(self) -> List[Dict]:
         """Ana program oluşturma - %100 doluluk hedefli"""
@@ -149,6 +154,11 @@ class UltraAggressiveScheduler:
             key = (assignment.class_id, assignment.lesson_id)
             assignment_map[key] = assignment.teacher_id
 
+        # Hızlı arama için sözlükler
+        lessons_by_id = {lesson.lesson_id: lesson.name for lesson in lessons}
+        classes_by_id = {class_obj.class_id: class_obj.name for class_obj in classes}
+        teachers_by_id = {teacher.teacher_id: teacher.name for teacher in teachers}
+
         return {
             "classes": classes,
             "teachers": teachers,
@@ -158,6 +168,9 @@ class UltraAggressiveScheduler:
             "assignment_map": assignment_map,
             "school_type": school_type,
             "time_slots_count": time_slots_count,
+            "lessons_by_id": lessons_by_id,
+            "classes_by_id": classes_by_id,
+            "teachers_by_id": teachers_by_id,
         }
 
     def _generate_initial_solution(self, config: Dict) -> List[Dict]:
@@ -257,7 +270,7 @@ class UltraAggressiveScheduler:
 
         self.iteration = 0
         no_improvement_count = 0
-        max_no_improvement = 50  # 50 denemede iyileşme yoksa dur
+        max_no_improvement = 200  # 200 denemede iyileşme yoksa dur (ARTİRILDI: 50 -> 200)
 
         while self.iteration < self.max_iterations and best_coverage < 100:
             self.iteration += 1
@@ -354,14 +367,11 @@ class UltraAggressiveScheduler:
         return schedule
 
     def _try_place_lesson_in_slot(self, schedule: List[Dict], class_id: int, day: int, slot: int, config: Dict) -> bool:
-        """Belirli bir slota ders yerleştirmeye çalış"""
-
-        # Bu sınıfın henüz yerleşmemiş dersleri var mı?
+        """Tries to place a suitable lesson in a specific slot and logs detailed reasons on failure."""
         class_obj = next((c for c in config["classes"] if c.class_id == class_id), None)
         if not class_obj:
             return False
 
-        # Tüm dersleri dene (rastgele sırada)
         lessons_to_try = list(config["lessons"])
         random.shuffle(lessons_to_try)
 
@@ -371,44 +381,34 @@ class UltraAggressiveScheduler:
                 continue
 
             teacher_id = config["assignment_map"][key]
-
-            # Bu dersten ne kadar yerleşti?
             weekly_hours = self.db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, class_obj.grade)
             if not weekly_hours:
                 continue
 
-            scheduled_hours = sum(
-                1 for e in schedule if e["class_id"] == class_id and e["lesson_id"] == lesson.lesson_id
-            )
-
+            scheduled_hours = sum(1 for e in schedule if e["class_id"] == class_id and e["lesson_id"] == lesson.lesson_id)
             if scheduled_hours >= weekly_hours:
-                continue  # Bu ders zaten tam
+                continue
 
-            # Bu slota yerleştir
-            if self._can_place_at_slot(schedule, class_id, teacher_id, day, slot, lesson_name=lesson.name):
-                classroom = config["classrooms"][0] if config["classrooms"] else None
-                classroom_id = classroom.classroom_id if classroom else 1
+            can_place, reason = self._can_place_at_slot_detailed(schedule, class_id, teacher_id, day, slot, config)
 
-                schedule.append(
-                    {
-                        "class_id": class_id,
-                        "teacher_id": teacher_id,
-                        "lesson_id": lesson.lesson_id,
-                        "classroom_id": classroom_id,
-                        "day": day,
-                        "time_slot": slot,
-                    }
-                )
-                self.logger.info(
-                    f"[BAŞARILI YERLEŞTİRME] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
-                    f"Ders: {lesson.name} yerleştirildi."
-                )
+            if can_place:
+                classroom_id = config["classrooms"][0].classroom_id if config["classrooms"] else 1
+                schedule.append({
+                    "class_id": class_id, "teacher_id": teacher_id, "lesson_id": lesson.lesson_id,
+                    "classroom_id": classroom_id, "day": day, "time_slot": slot,
+                })
                 return True
-
-        self.logger.warning(
-            f"[BOŞLUK DOLDURULAMADI] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
-            f"Neden: Bu boşluğa yerleştirilebilecek uygun bir ders bulunamadı."
-        )
+            else:
+                # Log the specific reason for this lesson failing
+                class_name = config["classes_by_id"].get(class_id, f"ID {class_id}")
+                lesson_name = config["lessons_by_id"].get(lesson.lesson_id, f"ID {lesson.lesson_id}")
+                teacher_name = config["teachers_by_id"].get(teacher_id, f"ID {teacher_id}")
+                day_name = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"][day]
+                self.logger.debug(
+                    f"[AÇIKLAMA] Deneme Başarısız: Sınıf '{class_name}', Ders '{lesson_name}', Öğretmen '{teacher_name}' "
+                    f"için '{day_name} - {slot + 1}. Saat' slotu denendi. Sebep: {reason}"
+                )
+        
         return False
 
     def _can_place_at_slot_detailed(
@@ -418,58 +418,29 @@ class UltraAggressiveScheduler:
         teacher_id: int,
         day: int,
         slot: int,
-        lesson_name: str = "",
+        config: Dict,
     ) -> Tuple[bool, str]:
         """
-        Bu slota yerleştirme yapılabilir mi?
-
-        GÜÇLENDIRILMIŞ ÇAKIŞMA KONTROLÜ VE DETAYLI LOGLAMA:
-        1. Sınıf çakışması (ZORUNLU)
-        2. Öğretmen çakışması (ZORUNLU)
-        3. Öğretmen uygunluğu (İlk 100 iterasyon ZORUNLU)
+        Checks if a lesson can be placed, returning a detailed reason on failure.
         """
-
-        # 1. SINIF ÇAKIŞMASI KONTROLÜ (ZORUNLU - ASLA ESNETILMEZ!)
+        # 1. Class Conflict Check
         for entry in schedule:
             if entry["class_id"] == class_id and entry["day"] == day and entry["time_slot"] == slot:
-                self.logger.debug(
-                    f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
-                    f"Neden: SINIF ÇAKIŞMASI. Bu slot zaten dolu."
-                )
-                return False, "SINIF_CAKISMASI"
+                lesson = config["lessons_by_id"].get(entry["lesson_id"], "Bilinmeyen Ders")
+                return False, f"Sınıf çakışması: Bu slot zaten '{lesson}' dersi ile dolu."
 
-        # 2. ÖĞRETMEN ÇAKIŞMASI KONTROLÜ (ZORUNLU - ASLA ESNETILMEZ!)
+        # 2. Teacher Conflict Check
         for entry in schedule:
             if entry["teacher_id"] == teacher_id and entry["day"] == day and entry["time_slot"] == slot:
-                self.logger.debug(
-                    f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
-                    f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
-                    f"Neden: ÖĞRETMEN ÇAKIŞMASI. Öğretmen bu saatte başka bir derste."
-                )
-                return False, "OGRETMEN_CAKISMASI"
+                conflicting_class = config["classes_by_id"].get(entry["class_id"], "Bilinmeyen Sınıf")
+                return False, f"Öğretmen çakışması: Öğretmen bu saatte '{conflicting_class}' sınıfında derste."
 
-        # 3. ÖĞRETMEN UYGUNLUĞU KONTROLÜ (İlk turda zorunlu)
-        try:
-            if not self.db_manager.is_teacher_available(teacher_id, day, slot):
-                # İlk 100 iterasyonda uygunluk ZORUNLU
-                if self.iteration < 100:
-                    self.logger.debug(
-                        f"[DENEME BAŞARISIZ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
-                        f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
-                        f"Neden: ÖĞRETMEN UYGUN DEĞİL (İterasyon {self.iteration} < 100, Kural Esnetilmedi)."
-                    )
-                    return False, "OGRETMEN_UYGUN_DEGIL"
-                else:
-                    self.logger.warning(
-                        f"[KURAL ESNETİLDİ] Slot: (Sınıf: {class_id}, Gün: {day}, Saat: {slot}) | "
-                        f"Ders: {lesson_name}, Öğretmen ID: {teacher_id} | "
-                        f"Neden: Öğretmen normalde uygun değil ancak kural esnetildi (İterasyon {self.iteration} >= 100)."
-                    )
-        except Exception as e:
-            self.logger.error(f"Öğretmen uygunluk kontrolü sırasında hata: {e}")
-            pass
+        # 3. Teacher Availability Check (using the cache)
+        # This check is for explanation purposes. The algorithm can decide to ignore it.
+        if not self.availability_cache.is_available(teacher_id, day, slot):
+            return False, "Öğretmen uygunluğu: Öğretmen bu saatte müsait değil."
 
-        return True, "BASARILI"
+        return True, "Başarılı"
 
     def _can_place_at_slot(
         self,
@@ -478,10 +449,11 @@ class UltraAggressiveScheduler:
         teacher_id: int,
         day: int,
         slot: int,
+        config: Dict, # Added config
         lesson_name: str = "",
     ) -> bool:
-        """Basit çakışma kontrolü, sadece evet/hayır döndürür."""
-        can_place, _ = self._can_place_at_slot_detailed(schedule, class_id, teacher_id, day, slot, lesson_name)
+        """Simple conflict check, returns boolean."""
+        can_place, _ = self._can_place_at_slot_detailed(schedule, class_id, teacher_id, day, slot, config)
         return can_place
 
     def _random_perturbation(self, schedule: List[Dict], config: Dict) -> List[Dict]:
@@ -525,7 +497,7 @@ class UltraAggressiveScheduler:
             temp_schedule = new_schedule[:entry_to_move_idx] + new_schedule[entry_to_move_idx + 1 :]
 
             can_place, reason = self._can_place_at_slot_detailed(
-                temp_schedule, original_entry["class_id"], original_entry["teacher_id"], day, slot
+                temp_schedule, original_entry["class_id"], original_entry["teacher_id"], day, slot, config
             )
 
             if can_place:

@@ -63,12 +63,12 @@ class TeacherDialog(QDialog):
 
         # Subject input with modern styling
         subject_layout = QHBoxLayout()
-        subject_label = QLabel("Ders:")
+        subject_label = QLabel("Branş:")
         subject_label.setObjectName("fieldLabel")
         self.subject_input = QComboBox()
         self.subject_input.setObjectName("inputField")
         self.subject_input.setEditable(True)
-        self.subject_input.setPlaceholderText("Ders seçin veya girin")
+        self.subject_input.setPlaceholderText("Branş seçin veya girin")
 
         # Apply styling directly to the combo box view
         self.subject_input.view().setStyleSheet(
@@ -252,7 +252,7 @@ class TeacherDialog(QDialog):
 
             if not name or not subject:
                 msg = create_styled_message_box(
-                    self, "Hata", "Lütfen önce öğretmen adı ve dersini girin.", QMessageBox.Warning
+                    self, "Hata", "Lütfen önce öğretmen adı ve branşını girin.", QMessageBox.Warning
                 )
                 msg.exec_()
                 return

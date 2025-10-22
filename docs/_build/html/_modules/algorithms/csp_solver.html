@@ -1,0 +1,518 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.csp_solver &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.csp_solver</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.csp_solver öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CSP Solver - Constraint Satisfaction Problem Çözücü</span>
+<span class="sd">Arc Consistency (AC-3) ve Constraint Propagation ile</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">deque</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="c1"># Set encoding for Windows</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CSPVariable">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPVariable">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CSPVariable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CSP değişkeni (bir sınıf-ders kombinasyonu)&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CSPVariable.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPVariable.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hours_needed</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_id</span> <span class="o">=</span> <span class="n">class_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lesson_id</span> <span class="o">=</span> <span class="n">lesson_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hours_needed</span> <span class="o">=</span> <span class="n">hours_needed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assigned_slots</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># [(day, slot), ...]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Var(C</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">class_id</span><span class="si">}</span><span class="s2">_L</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lesson_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hours_needed</span><span class="si">}</span><span class="s2">h)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">class_id</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">lesson_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">lesson_id</span></div>
+
+
+
+<div class="viewcode-block" id="CSPConstraint">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPConstraint">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CSPConstraint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CSP kısıtlaması&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CSPConstraint.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPConstraint.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span> <span class="n">check_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_func</span> <span class="o">=</span> <span class="n">check_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="CSPConstraint.is_satisfied">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPConstraint.is_satisfied">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_satisfied</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Kısıtlama sağlanıyor mu?&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_func</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ArcConsistency">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.ArcConsistency">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArcConsistency</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    AC-3 (Arc Consistency 3) Algoritması</span>
+<span class="sd">    Domain&#39;leri tutarlı hale getirir</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ArcConsistency.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.ArcConsistency.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="ArcConsistency.ac3">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.ArcConsistency.ac3">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ac3</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span>
+        <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
+        <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AC-3 algoritması ile arc consistency sağla</span>
+<span class="sd">        Returns: True if consistent, False if unsolvable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   🔍 AC-3: Domain tutarlılığı kontrolü başlıyor...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Kısıtlama haritası oluştur (her değişken için hangi kısıtlamalar var)</span>
+        <span class="n">constraint_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_constraint_map</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+        <span class="c1"># Kuyruk: tüm kısıtlamaları (arc&#39;ları) içerir</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">var1</span><span class="p">,</span> <span class="n">var2</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">))</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">var2</span><span class="p">,</span> <span class="n">var1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">))</span>
+
+        <span class="c1"># AC-3 ana döngüsü</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">var_i</span><span class="p">,</span> <span class="n">var_j</span><span class="p">,</span> <span class="n">constraint</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_revise</span><span class="p">(</span><span class="n">var_i</span><span class="p">,</span> <span class="n">var_j</span><span class="p">,</span> <span class="n">domains</span><span class="p">,</span> <span class="n">constraint</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="c1"># Domain boş kaldıysa çözüm yok</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">domains</span><span class="p">[</span><span class="n">var_i</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ❌ AC-3: </span><span class="si">{</span><span class="n">var_i</span><span class="si">}</span><span class="s2"> için domain boş kaldı - çözüm yok!&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+                <span class="c1"># İlişkili tüm kısıtlamaları kuyruğa ekle</span>
+                <span class="k">for</span> <span class="n">other_constraint</span> <span class="ow">in</span> <span class="n">constraint_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var_i</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="k">if</span> <span class="n">other_constraint</span> <span class="o">==</span> <span class="n">constraint</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">for</span> <span class="n">other_var</span> <span class="ow">in</span> <span class="n">other_constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">other_var</span> <span class="o">!=</span> <span class="n">var_i</span><span class="p">:</span>
+                            <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">other_var</span><span class="p">,</span> <span class="n">var_i</span><span class="p">,</span> <span class="n">other_constraint</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ✅ AC-3 tamamlandı: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="si">}</span><span class="s2"> revizyon yapıldı&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_revise</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">var_i</span><span class="p">:</span> <span class="n">CSPVariable</span><span class="p">,</span>
+        <span class="n">var_j</span><span class="p">:</span> <span class="n">CSPVariable</span><span class="p">,</span>
+        <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
+        <span class="n">constraint</span><span class="p">:</span> <span class="n">CSPConstraint</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        var_i&#39;nin domain&#39;ini revize et (var_j&#39;ye göre)</span>
+<span class="sd">        Returns: True if domain was revised</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">revised</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">domain_i</span> <span class="o">=</span> <span class="n">domains</span><span class="p">[</span><span class="n">var_i</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">value_i</span> <span class="ow">in</span> <span class="n">domain_i</span><span class="p">:</span>
+            <span class="c1"># Bu değer için var_j&#39;de uyumlu bir değer var mı?</span>
+            <span class="n">satisfiable</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">value_j</span> <span class="ow">in</span> <span class="n">domains</span><span class="p">[</span><span class="n">var_j</span><span class="p">]:</span>
+                <span class="c1"># Test ataması yap</span>
+                <span class="n">test_assignment</span> <span class="o">=</span> <span class="p">{</span><span class="n">var_i</span><span class="p">:</span> <span class="p">[</span><span class="n">value_i</span><span class="p">],</span> <span class="n">var_j</span><span class="p">:</span> <span class="p">[</span><span class="n">value_j</span><span class="p">]}</span>
+
+                <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">is_satisfied</span><span class="p">(</span><span class="n">test_assignment</span><span class="p">):</span>
+                    <span class="n">satisfiable</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># Uyumlu değer yoksa bu değeri sil</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">satisfiable</span><span class="p">:</span>
+                <span class="n">domains</span><span class="p">[</span><span class="n">var_i</span><span class="p">]</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">value_i</span><span class="p">)</span>
+                <span class="n">revised</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">revised</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_constraint_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Her değişken için hangi kısıtlamalar var?&quot;&quot;&quot;</span>
+        <span class="n">constraint_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                <span class="n">constraint_map</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">constraint_map</span></div>
+
+
+
+<div class="viewcode-block" id="MaintainedArcConsistency">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.MaintainedArcConsistency">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaintainedArcConsistency</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MAC (Maintained Arc Consistency)</span>
+<span class="sd">    Her atamadan sonra arc consistency&#39;yi koru</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MaintainedArcConsistency.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.MaintainedArcConsistency.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ac3</span> <span class="o">=</span> <span class="n">ArcConsistency</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MaintainedArcConsistency.maintain_consistency">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.MaintainedArcConsistency.maintain_consistency">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">maintain_consistency</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">variable</span><span class="p">:</span> <span class="n">CSPVariable</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span>
+        <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
+        <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Bir atama yaptıktan sonra consistency&#39;yi koru</span>
+<span class="sd">        Returns: Yeni domain&#39;ler veya None (inconsistent ise)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Domain&#39;lerin kopyasını al</span>
+        <span class="n">new_domains</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="p">:</span> <span class="n">domain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">domains</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="c1"># Atanan değişkenin domain&#39;ini tek değere indir</span>
+        <span class="n">new_domains</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">value</span><span class="p">}</span>
+
+        <span class="c1"># İlişkili değişkenler için AC-3 çalıştır</span>
+        <span class="n">related_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_related_variables</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">related_vars</span><span class="p">:</span>
+            <span class="c1"># Sadece ilişkili kısıtlamaları kontrol et (daha hızlı)</span>
+            <span class="n">related_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span> <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">variables</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ac3</span><span class="o">.</span><span class="n">ac3</span><span class="p">(</span><span class="n">related_vars</span><span class="p">,</span> <span class="n">new_domains</span><span class="p">,</span> <span class="n">related_constraints</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># Inconsistent</span>
+
+        <span class="k">return</span> <span class="n">new_domains</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_related_variables</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">CSPVariable</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bir değişkenle ilişkili diğer değişkenler&quot;&quot;&quot;</span>
+        <span class="n">related</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">var</span> <span class="o">!=</span> <span class="n">variable</span><span class="p">:</span>
+                        <span class="n">related</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">related</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CSPSolver">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPSolver">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CSPSolver</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gelişmiş CSP Çözücü</span>
+<span class="sd">    - AC-3 ile domain filtreleme</span>
+<span class="sd">    - MAC ile consistency koruma</span>
+<span class="sd">    - Backtracking</span>
+<span class="sd">    - Forward checking</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CSPSolver.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPSolver.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ac3</span> <span class="o">=</span> <span class="n">ArcConsistency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mac</span> <span class="o">=</span> <span class="n">MaintainedArcConsistency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backtrack_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_count</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="CSPSolver.solve">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.CSPSolver.solve">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span>
+        <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
+        <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">],</span>
+        <span class="n">max_backtracks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CSP problemini çöz</span>
+<span class="sd">        Returns: Assignment veya None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🔧 CSP Solver başlıyor...&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Değişkenler: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Kısıtlamalar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">backtrack_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># İlk AC-3 ile domain&#39;leri filtrele</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ac3</span><span class="o">.</span><span class="n">ac3</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">domains</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ❌ İlk AC-3 başarısız - çözüm yok!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Backtracking ile çöz</span>
+        <span class="n">assignment</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backtrack</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">domains</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">max_backtracks</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   📊 CSP Sonuç:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Backtrack: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">backtrack_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Node: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      ✅ Çözüm bulundu!&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      ❌ Çözüm bulunamadı&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_backtrack</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+        <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span>
+        <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
+        <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">],</span>
+        <span class="n">max_backtracks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Backtracking ile çöz&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Backtrack limiti kontrolü</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backtrack_count</span> <span class="o">&gt;=</span> <span class="n">max_backtracks</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Tüm değişkenler atandı mı?</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">assignment</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+            <span class="c1"># Tüm kısıtlamalar sağlanıyor mu?</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">is_satisfied</span><span class="p">(</span><span class="n">assignment</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">assignment</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Sonraki değişkeni seç (MRV heuristic)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_unassigned_variable</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">domains</span><span class="p">)</span>
+
+        <span class="c1"># Domain&#39;den değerleri dene (LCV heuristic)</span>
+        <span class="n">ordered_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order_domain_values</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">domains</span><span class="p">[</span><span class="n">var</span><span class="p">],</span> <span class="n">assignment</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">ordered_values</span><span class="p">:</span>
+            <span class="c1"># Atamayı dene</span>
+            <span class="n">assignment</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+
+            <span class="c1"># MAC ile consistency kontrolü</span>
+            <span class="n">new_domains</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="o">.</span><span class="n">maintain_consistency</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">domains</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">new_domains</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Consistency korunuyor - devam et</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backtrack</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">new_domains</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">max_backtracks</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">result</span>
+
+            <span class="c1"># Başarısız - geri al</span>
+            <span class="k">del</span> <span class="n">assignment</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backtrack_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_select_unassigned_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPVariable</span><span class="p">],</span> <span class="n">domains</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CSPVariable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;MRV heuristic - en az domain&#39;i olan değişkeni seç&quot;&quot;&quot;</span>
+        <span class="n">unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">]</span>
+
+        <span class="c1"># Domain boyutuna göre sırala (küçükten büyüğe)</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">unassigned</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">domains</span><span class="p">[</span><span class="n">v</span><span class="p">]))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_order_domain_values</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">variable</span><span class="p">:</span> <span class="n">CSPVariable</span><span class="p">,</span>
+        <span class="n">domain</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+        <span class="n">assignment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+        <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LCV heuristic - en az kısıtlayan değeri önce seç&quot;&quot;&quot;</span>
+        <span class="c1"># Basit versiyon: domain&#39;i olduğu gibi döndür</span>
+        <span class="c1"># Geliştirilmiş versiyon: her değerin ne kadar kısıtlama yarattığını hesapla</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_schedule_constraints">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.csp_solver.create_schedule_constraints">[belgeler]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_schedule_constraints</span><span class="p">(</span><span class="n">db_manager</span><span class="p">,</span> <span class="n">time_slots_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">CSPConstraint</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ders programı için CSP kısıtlamalarını oluştur</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># 1. Öğretmen çakışma kısıtlaması</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">teacher_conflict_check</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Aynı öğretmen aynı anda iki yerde olamaz&quot;&quot;&quot;</span>
+        <span class="n">teacher_slots</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">assignment</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">teacher_id</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;teacher_id&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">teacher_id</span><span class="p">:</span>
+                    <span class="n">teacher_slots</span><span class="p">[(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+        <span class="c1"># Çakışma var mı?</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vars_list</span> <span class="ow">in</span> <span class="n">teacher_slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vars_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># 2. Sınıf çakışma kısıtlaması</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">class_conflict_check</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Aynı sınıf aynı anda iki derste olamaz&quot;&quot;&quot;</span>
+        <span class="n">class_slots</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">assignment</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">class_slots</span><span class="p">[(</span><span class="n">var</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+        <span class="c1"># Çakışma var mı?</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vars_list</span> <span class="ow">in</span> <span class="n">class_slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vars_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># Kısıtlamaları ekle</span>
+    <span class="c1"># Not: variables parametresi çalışma zamanında verilecek</span>
+    <span class="c1"># Bu yüzden boş liste ile oluşturuyoruz</span>
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CSPConstraint</span><span class="p">([],</span> <span class="n">teacher_conflict_check</span><span class="p">,</span> <span class="s2">&quot;teacher_no_conflict&quot;</span><span class="p">))</span>
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CSPConstraint</span><span class="p">([],</span> <span class="n">class_conflict_check</span><span class="p">,</span> <span class="s2">&quot;class_no_conflict&quot;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">constraints</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

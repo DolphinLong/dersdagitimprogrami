@@ -1,0 +1,1148 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Modülü &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../genindex.html" />
+    <link rel="search" title="Ara" href="../search.html" />
+    <link rel="next" title="Utils Modülü" href="utils.html" />
+    <link rel="prev" title="Database Modülü" href="database.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">Database Modülü</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">UI Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-ui.main_window">Main Window</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ui.main_window.MainWindow"><code class="docutils literal notranslate"><span class="pre">MainWindow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.__init__"><code class="docutils literal notranslate"><span class="pre">MainWindow.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.setup_ui"><code class="docutils literal notranslate"><span class="pre">MainWindow.setup_ui()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.create_dashboard_cards"><code class="docutils literal notranslate"><span class="pre">MainWindow.create_dashboard_cards()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.create_dashboard_card"><code class="docutils literal notranslate"><span class="pre">MainWindow.create_dashboard_card()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.apply_styles"><code class="docutils literal notranslate"><span class="pre">MainWindow.apply_styles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_schedule_tab"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_schedule_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_teachers_tab"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_teachers_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_classes_tab"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_classes_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_lessons_tab"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_lessons_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_reports_tab"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_reports_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_settings"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_lesson_assignment"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_lesson_assignment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.open_backup_restore"><code class="docutils literal notranslate"><span class="pre">MainWindow.open_backup_restore()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.restart_application"><code class="docutils literal notranslate"><span class="pre">MainWindow.restart_application()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.main_window.MainWindow.show_school_type_selection"><code class="docutils literal notranslate"><span class="pre">MainWindow.show_school_type_selection()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ui.schedule_widget">Schedule Widget</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread.progress"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.progress</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread.finished"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.finished</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread.error"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.error</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread.__init__"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread.progress_callback"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.progress_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleGenerationThread.run"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.schedule_widget.StatCard"><code class="docutils literal notranslate"><span class="pre">StatCard</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.StatCard.__init__"><code class="docutils literal notranslate"><span class="pre">StatCard.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.StatCard.update_value"><code class="docutils literal notranslate"><span class="pre">StatCard.update_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.schedule_widget.ModernButton"><code class="docutils literal notranslate"><span class="pre">ModernButton</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ModernButton.__init__"><code class="docutils literal notranslate"><span class="pre">ModernButton.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.SCHOOL_TIME_SLOTS"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.SCHOOL_TIME_SLOTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.__init__"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.setup_ui"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.setup_ui()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.create_hero_section"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.create_hero_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.create_statistics_section"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.create_statistics_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.create_action_center"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.create_action_center()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.create_progress_section"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.create_progress_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.create_log_section"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.create_log_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.apply_global_styles"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.apply_global_styles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.generate_schedule"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.generate_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.on_progress"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.on_progress()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.on_finished"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.on_finished()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.on_error"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.on_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.add_log"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.add_log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.toggle_log"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.toggle_log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.animate_height"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.animate_height()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.load_statistics"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.load_statistics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.view_class_schedule"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.view_class_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.view_teacher_schedule"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.view_teacher_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.fill_empty_slots"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.fill_empty_slots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.schedule_widget.ScheduleWidget.clear_schedule"><code class="docutils literal notranslate"><span class="pre">ScheduleWidget.clear_schedule()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.schedule_widget.ModernSchedulePlanner"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ui.modern_schedule_planner">Modern Schedule Planner</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ui.modern_schedule_planner.ScheduleGenerationThread"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ScheduleGenerationThread.progress"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.progress</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ScheduleGenerationThread.finished"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.finished</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ScheduleGenerationThread.error"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.error</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ScheduleGenerationThread.__init__"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ScheduleGenerationThread.run"><code class="docutils literal notranslate"><span class="pre">ScheduleGenerationThread.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.modern_schedule_planner.StatCard"><code class="docutils literal notranslate"><span class="pre">StatCard</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.StatCard.__init__"><code class="docutils literal notranslate"><span class="pre">StatCard.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.StatCard.update_value"><code class="docutils literal notranslate"><span class="pre">StatCard.update_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.modern_schedule_planner.ModernButton"><code class="docutils literal notranslate"><span class="pre">ModernButton</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernButton.__init__"><code class="docutils literal notranslate"><span class="pre">ModernButton.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.SCHOOL_TIME_SLOTS"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.SCHOOL_TIME_SLOTS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.__init__"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.setup_ui"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.setup_ui()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_hero_section"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.create_hero_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_statistics_section"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.create_statistics_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_action_center"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.create_action_center()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_progress_section"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.create_progress_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_log_section"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.create_log_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.apply_global_styles"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.apply_global_styles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.generate_schedule"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.generate_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.on_progress"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.on_progress()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.on_finished"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.on_finished()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.on_error"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.on_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.add_log"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.add_log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.toggle_log"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.toggle_log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.animate_height"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.animate_height()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.load_statistics"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.load_statistics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.view_class_schedule"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.view_class_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.view_teacher_schedule"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.view_teacher_schedule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.check_conflicts"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.check_conflicts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.fill_empty_slots"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.fill_empty_slots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.modern_schedule_planner.ModernSchedulePlanner.clear_schedule"><code class="docutils literal notranslate"><span class="pre">ModernSchedulePlanner.clear_schedule()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ui.school_type_dialog">School Type Dialog</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.SCHOOL_TYPES"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.SCHOOL_TYPES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.__init__"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.setup_ui"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.setup_ui()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.apply_styles"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.apply_styles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.on_selection_changed"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.on_selection_changed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.get_selected_school_type"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.get_selected_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.get_subjects_for_school_type"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.get_subjects_for_school_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ui.school_type_dialog.SchoolTypeDialog.initialize_lessons_for_school_type"><code class="docutils literal notranslate"><span class="pre">SchoolTypeDialog.initialize_lessons_for_school_type()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dialogs">Dialogs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-ui.dialogs.class_dialog">Class Dialog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.dialogs.class_dialog.ClassDialog"><code class="docutils literal notranslate"><span class="pre">ClassDialog</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ui.dialogs.teacher_dialog">Teacher Dialog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.dialogs.teacher_dialog.TeacherDialog"><code class="docutils literal notranslate"><span class="pre">TeacherDialog</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ui.dialogs.lesson_dialog">Lesson Dialog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.dialogs.lesson_dialog.LessonDialog"><code class="docutils literal notranslate"><span class="pre">LessonDialog</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ui.dialogs.reports_dialog">Reports Dialog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ui.dialogs.reports_dialog.ReportsDialog"><code class="docutils literal notranslate"><span class="pre">ReportsDialog</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">UI Modülü</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/ui.rst.txt" rel="nofollow"> Sayfa kaynağını görüntüle</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ui-modulu">
+<h1>UI Modülü<a class="headerlink" href="#ui-modulu" title="Link to this heading"></a></h1>
+<p>Bu modül, kullanıcı arayüzü bileşenlerini içerir.</p>
+<section id="module-ui.main_window">
+<span id="main-window"></span><h2>Main Window<a class="headerlink" href="#module-ui.main_window" title="Link to this heading"></a></h2>
+<p>Main window for the Class Scheduling Program</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.main_window.</span></span><span class="sig-name descname"><span class="pre">MainWindow</span></span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QMainWindow</span></code></p>
+<p>Main application window with modern dashboard design</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Set up the user interface with modern dashboard design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.create_dashboard_cards">
+<span class="sig-name descname"><span class="pre">create_dashboard_cards</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.create_dashboard_cards"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.create_dashboard_cards" title="Link to this definition"></a></dt>
+<dd><p>Create dashboard cards for main functions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.create_dashboard_card">
+<span class="sig-name descname"><span class="pre">create_dashboard_card</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.create_dashboard_card"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.create_dashboard_card" title="Link to this definition"></a></dt>
+<dd><p>Create a dashboard card widget</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.apply_styles">
+<span class="sig-name descname"><span class="pre">apply_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.apply_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.apply_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply modern styles with gradient background</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_schedule_tab">
+<span class="sig-name descname"><span class="pre">open_schedule_tab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_schedule_tab"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_schedule_tab" title="Link to this definition"></a></dt>
+<dd><p>Open schedule tab</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_teachers_tab">
+<span class="sig-name descname"><span class="pre">open_teachers_tab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_teachers_tab"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_teachers_tab" title="Link to this definition"></a></dt>
+<dd><p>Open teachers tab</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_classes_tab">
+<span class="sig-name descname"><span class="pre">open_classes_tab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_classes_tab"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_classes_tab" title="Link to this definition"></a></dt>
+<dd><p>Open classes tab</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_lessons_tab">
+<span class="sig-name descname"><span class="pre">open_lessons_tab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_lessons_tab"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_lessons_tab" title="Link to this definition"></a></dt>
+<dd><p>Open lessons tab</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_reports_tab">
+<span class="sig-name descname"><span class="pre">open_reports_tab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_reports_tab"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_reports_tab" title="Link to this definition"></a></dt>
+<dd><p>Open reports tab</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_settings">
+<span class="sig-name descname"><span class="pre">open_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_settings"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_settings" title="Link to this definition"></a></dt>
+<dd><p>Open settings</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_lesson_assignment">
+<span class="sig-name descname"><span class="pre">open_lesson_assignment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_lesson_assignment"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_lesson_assignment" title="Link to this definition"></a></dt>
+<dd><p>Open lesson assignment dialog</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.open_backup_restore">
+<span class="sig-name descname"><span class="pre">open_backup_restore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.open_backup_restore"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.open_backup_restore" title="Link to this definition"></a></dt>
+<dd><p>Open backup/restore dialog</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.restart_application">
+<span class="sig-name descname"><span class="pre">restart_application</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.restart_application"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.restart_application" title="Link to this definition"></a></dt>
+<dd><p>Restart the application after database restore</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.main_window.MainWindow.show_school_type_selection">
+<span class="sig-name descname"><span class="pre">show_school_type_selection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/main_window.html#MainWindow.show_school_type_selection"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.main_window.MainWindow.show_school_type_selection" title="Link to this definition"></a></dt>
+<dd><p>Show the school type selection dialog</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ui.schedule_widget">
+<span id="schedule-widget"></span><h2>Schedule Widget<a class="headerlink" href="#module-ui.schedule_widget" title="Link to this heading"></a></h2>
+<p>🚀 MODERN SCHEDULE PLANNER - Çarpıcı Yeni Tasarım
+Ultra-modern, animasyonlu, etkileyici arayüz</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.schedule_widget.</span></span><span class="sig-name descname"><span class="pre">ScheduleGenerationThread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleGenerationThread"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QThread</span></code></p>
+<p>Background thread for schedule generation</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread.progress">
+<span class="sig-name descname"><span class="pre">progress</span></span><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread.progress" title="Link to this definition"></a></dt>
+<dd><p>int = …, arguments: Sequence = …) -&gt; PYQT_SIGNAL</p>
+<p>types is normally a sequence of individual types.  Each type is either a
+type object or a string that is the name of a C++ type.  Alternatively
+each type could itself be a sequence of types each describing a different
+overloaded signal.
+name is the optional C++ name of the signal.  If it is not specified then
+the name of the class attribute that is bound to the signal is used.
+revision is the optional revision of the signal that is exported to QML.
+If it is not specified then 0 is used.
+arguments is the optional sequence of the names of the signal’s arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyqtSignal(<a href="#id1"><span class="problematic" id="id2">*</span></a>types, name</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str = …, revision</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread.finished">
+<span class="sig-name descname"><span class="pre">finished</span></span><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread.finished" title="Link to this definition"></a></dt>
+<dd><p>int = …, arguments: Sequence = …) -&gt; PYQT_SIGNAL</p>
+<p>types is normally a sequence of individual types.  Each type is either a
+type object or a string that is the name of a C++ type.  Alternatively
+each type could itself be a sequence of types each describing a different
+overloaded signal.
+name is the optional C++ name of the signal.  If it is not specified then
+the name of the class attribute that is bound to the signal is used.
+revision is the optional revision of the signal that is exported to QML.
+If it is not specified then 0 is used.
+arguments is the optional sequence of the names of the signal’s arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyqtSignal(<a href="#id3"><span class="problematic" id="id4">*</span></a>types, name</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str = …, revision</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread.error">
+<span class="sig-name descname"><span class="pre">error</span></span><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread.error" title="Link to this definition"></a></dt>
+<dd><p>int = …, arguments: Sequence = …) -&gt; PYQT_SIGNAL</p>
+<p>types is normally a sequence of individual types.  Each type is either a
+type object or a string that is the name of a C++ type.  Alternatively
+each type could itself be a sequence of types each describing a different
+overloaded signal.
+name is the optional C++ name of the signal.  If it is not specified then
+the name of the class attribute that is bound to the signal is used.
+revision is the optional revision of the signal that is exported to QML.
+If it is not specified then 0 is used.
+arguments is the optional sequence of the names of the signal’s arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyqtSignal(<a href="#id5"><span class="problematic" id="id6">*</span></a>types, name</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str = …, revision</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleGenerationThread.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread.progress_callback">
+<span class="sig-name descname"><span class="pre">progress_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(Python v3.14 içinde)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(Python v3.14 içinde)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleGenerationThread.progress_callback"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread.progress_callback" title="Link to this definition"></a></dt>
+<dd><p>Scheduler’dan gelen progress güncellemelerini UI’ye aktar</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleGenerationThread.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleGenerationThread.run"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleGenerationThread.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.schedule_widget.StatCard">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.schedule_widget.</span></span><span class="sig-name descname"><span class="pre">StatCard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#StatCard"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.StatCard" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QFrame</span></code></p>
+<p>Modern istatistik kartı</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.StatCard.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#StatCard.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.StatCard.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.StatCard.update_value">
+<span class="sig-name descname"><span class="pre">update_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#StatCard.update_value"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.StatCard.update_value" title="Link to this definition"></a></dt>
+<dd><p>Animate value change</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.schedule_widget.ModernButton">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.schedule_widget.</span></span><span class="sig-name descname"><span class="pre">ModernButton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ModernButton"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ModernButton" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QPushButton</span></code></p>
+<p>Ultra-modern buton</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ModernButton.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ModernButton.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ModernButton.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.schedule_widget.</span></span><span class="sig-name descname"><span class="pre">ScheduleWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QWidget</span></code></p>
+<p>🚀 Ultra-modern Schedule Planner (ScheduleWidget for backward compatibility)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.SCHOOL_TIME_SLOTS">
+<span class="sig-name descname"><span class="pre">SCHOOL_TIME_SLOTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Anadolu</span> <span class="pre">Lisesi':</span> <span class="pre">8,</span> <span class="pre">'Fen</span> <span class="pre">Lisesi':</span> <span class="pre">8,</span> <span class="pre">'Lise':</span> <span class="pre">8,</span> <span class="pre">'Ortaokul':</span> <span class="pre">7,</span> <span class="pre">'Sosyal</span> <span class="pre">Bilimler</span> <span class="pre">Lisesi':</span> <span class="pre">8,</span> <span class="pre">'İlkokul':</span> <span class="pre">6}</span></em><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.SCHOOL_TIME_SLOTS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Setup the stunning UI</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.create_hero_section">
+<span class="sig-name descname"><span class="pre">create_hero_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.create_hero_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.create_hero_section" title="Link to this definition"></a></dt>
+<dd><p>Create hero section with gradient background</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.create_statistics_section">
+<span class="sig-name descname"><span class="pre">create_statistics_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.create_statistics_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.create_statistics_section" title="Link to this definition"></a></dt>
+<dd><p>Create statistics cards</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.create_action_center">
+<span class="sig-name descname"><span class="pre">create_action_center</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.create_action_center"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.create_action_center" title="Link to this definition"></a></dt>
+<dd><p>Create action center with modern buttons</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.create_progress_section">
+<span class="sig-name descname"><span class="pre">create_progress_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.create_progress_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.create_progress_section" title="Link to this definition"></a></dt>
+<dd><p>Create animated progress section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.create_log_section">
+<span class="sig-name descname"><span class="pre">create_log_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.create_log_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.create_log_section" title="Link to this definition"></a></dt>
+<dd><p>Create collapsible log section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.apply_global_styles">
+<span class="sig-name descname"><span class="pre">apply_global_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.apply_global_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.apply_global_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply global styling</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.generate_schedule">
+<span class="sig-name descname"><span class="pre">generate_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.generate_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.generate_schedule" title="Link to this definition"></a></dt>
+<dd><p>Generate schedule with animation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.on_progress">
+<span class="sig-name descname"><span class="pre">on_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">percentage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.on_progress"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.on_progress" title="Link to this definition"></a></dt>
+<dd><p>Handle progress updates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.on_finished">
+<span class="sig-name descname"><span class="pre">on_finished</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule_entries</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.on_finished"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.on_finished" title="Link to this definition"></a></dt>
+<dd><p>Handle completion</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.on_error">
+<span class="sig-name descname"><span class="pre">on_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.on_error"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.on_error" title="Link to this definition"></a></dt>
+<dd><p>Handle errors</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.add_log">
+<span class="sig-name descname"><span class="pre">add_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.add_log"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.add_log" title="Link to this definition"></a></dt>
+<dd><p>Add message to log</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.toggle_log">
+<span class="sig-name descname"><span class="pre">toggle_log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.toggle_log"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.toggle_log" title="Link to this definition"></a></dt>
+<dd><p>Toggle log visibility</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.animate_height">
+<span class="sig-name descname"><span class="pre">animate_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.animate_height"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.animate_height" title="Link to this definition"></a></dt>
+<dd><p>Animate widget height</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.load_statistics">
+<span class="sig-name descname"><span class="pre">load_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.load_statistics"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.load_statistics" title="Link to this definition"></a></dt>
+<dd><p>Reload statistics</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.view_class_schedule">
+<span class="sig-name descname"><span class="pre">view_class_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.view_class_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.view_class_schedule" title="Link to this definition"></a></dt>
+<dd><p>View class schedule</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.view_teacher_schedule">
+<span class="sig-name descname"><span class="pre">view_teacher_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.view_teacher_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.view_teacher_schedule" title="Link to this definition"></a></dt>
+<dd><p>View teacher schedule</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.fill_empty_slots">
+<span class="sig-name descname"><span class="pre">fill_empty_slots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.fill_empty_slots"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.fill_empty_slots" title="Link to this definition"></a></dt>
+<dd><p>Fill empty slots with remaining lessons</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.schedule_widget.ScheduleWidget.clear_schedule">
+<span class="sig-name descname"><span class="pre">clear_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/schedule_widget.html#ScheduleWidget.clear_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.schedule_widget.ScheduleWidget.clear_schedule" title="Link to this definition"></a></dt>
+<dd><p>Clear schedule</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.schedule_widget.ModernSchedulePlanner">
+<span class="sig-prename descclassname"><span class="pre">ui.schedule_widget.</span></span><span class="sig-name descname"><span class="pre">ModernSchedulePlanner</span></span><a class="headerlink" href="#ui.schedule_widget.ModernSchedulePlanner" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#ui.schedule_widget.ScheduleWidget" title="ui.schedule_widget.ScheduleWidget"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleWidget</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="module-ui.modern_schedule_planner">
+<span id="modern-schedule-planner"></span><h2>Modern Schedule Planner<a class="headerlink" href="#module-ui.modern_schedule_planner" title="Link to this heading"></a></h2>
+<p>🚀 MODERN SCHEDULE PLANNER - Çarpıcı Yeni Tasarım
+Ultra-modern, animasyonlu, etkileyici arayüz</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ScheduleGenerationThread">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.modern_schedule_planner.</span></span><span class="sig-name descname"><span class="pre">ScheduleGenerationThread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ScheduleGenerationThread"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ScheduleGenerationThread" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QThread</span></code></p>
+<p>Background thread for schedule generation</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ScheduleGenerationThread.progress">
+<span class="sig-name descname"><span class="pre">progress</span></span><a class="headerlink" href="#ui.modern_schedule_planner.ScheduleGenerationThread.progress" title="Link to this definition"></a></dt>
+<dd><p>int = …, arguments: Sequence = …) -&gt; PYQT_SIGNAL</p>
+<p>types is normally a sequence of individual types.  Each type is either a
+type object or a string that is the name of a C++ type.  Alternatively
+each type could itself be a sequence of types each describing a different
+overloaded signal.
+name is the optional C++ name of the signal.  If it is not specified then
+the name of the class attribute that is bound to the signal is used.
+revision is the optional revision of the signal that is exported to QML.
+If it is not specified then 0 is used.
+arguments is the optional sequence of the names of the signal’s arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyqtSignal(<a href="#id7"><span class="problematic" id="id8">*</span></a>types, name</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str = …, revision</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ScheduleGenerationThread.finished">
+<span class="sig-name descname"><span class="pre">finished</span></span><a class="headerlink" href="#ui.modern_schedule_planner.ScheduleGenerationThread.finished" title="Link to this definition"></a></dt>
+<dd><p>int = …, arguments: Sequence = …) -&gt; PYQT_SIGNAL</p>
+<p>types is normally a sequence of individual types.  Each type is either a
+type object or a string that is the name of a C++ type.  Alternatively
+each type could itself be a sequence of types each describing a different
+overloaded signal.
+name is the optional C++ name of the signal.  If it is not specified then
+the name of the class attribute that is bound to the signal is used.
+revision is the optional revision of the signal that is exported to QML.
+If it is not specified then 0 is used.
+arguments is the optional sequence of the names of the signal’s arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyqtSignal(<a href="#id9"><span class="problematic" id="id10">*</span></a>types, name</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str = …, revision</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ScheduleGenerationThread.error">
+<span class="sig-name descname"><span class="pre">error</span></span><a class="headerlink" href="#ui.modern_schedule_planner.ScheduleGenerationThread.error" title="Link to this definition"></a></dt>
+<dd><p>int = …, arguments: Sequence = …) -&gt; PYQT_SIGNAL</p>
+<p>types is normally a sequence of individual types.  Each type is either a
+type object or a string that is the name of a C++ type.  Alternatively
+each type could itself be a sequence of types each describing a different
+overloaded signal.
+name is the optional C++ name of the signal.  If it is not specified then
+the name of the class attribute that is bound to the signal is used.
+revision is the optional revision of the signal that is exported to QML.
+If it is not specified then 0 is used.
+arguments is the optional sequence of the names of the signal’s arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyqtSignal(<a href="#id11"><span class="problematic" id="id12">*</span></a>types, name</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str = …, revision</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ScheduleGenerationThread.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ScheduleGenerationThread.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ScheduleGenerationThread.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ScheduleGenerationThread.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ScheduleGenerationThread.run"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ScheduleGenerationThread.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.StatCard">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.modern_schedule_planner.</span></span><span class="sig-name descname"><span class="pre">StatCard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#StatCard"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.StatCard" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QFrame</span></code></p>
+<p>Modern istatistik kartı</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.StatCard.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#StatCard.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.StatCard.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.StatCard.update_value">
+<span class="sig-name descname"><span class="pre">update_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#StatCard.update_value"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.StatCard.update_value" title="Link to this definition"></a></dt>
+<dd><p>Animate value change</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernButton">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.modern_schedule_planner.</span></span><span class="sig-name descname"><span class="pre">ModernButton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernButton"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernButton" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QPushButton</span></code></p>
+<p>Ultra-modern buton</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernButton.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernButton.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernButton.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.modern_schedule_planner.</span></span><span class="sig-name descname"><span class="pre">ModernSchedulePlanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QWidget</span></code></p>
+<p>🚀 Ultra-modern Schedule Planner</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.SCHOOL_TIME_SLOTS">
+<span class="sig-name descname"><span class="pre">SCHOOL_TIME_SLOTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Anadolu</span> <span class="pre">Lisesi':</span> <span class="pre">8,</span> <span class="pre">'Fen</span> <span class="pre">Lisesi':</span> <span class="pre">8,</span> <span class="pre">'Lise':</span> <span class="pre">8,</span> <span class="pre">'Ortaokul':</span> <span class="pre">7,</span> <span class="pre">'Sosyal</span> <span class="pre">Bilimler</span> <span class="pre">Lisesi':</span> <span class="pre">8,</span> <span class="pre">'İlkokul':</span> <span class="pre">6}</span></em><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.SCHOOL_TIME_SLOTS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Setup the stunning UI</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.create_hero_section">
+<span class="sig-name descname"><span class="pre">create_hero_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.create_hero_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_hero_section" title="Link to this definition"></a></dt>
+<dd><p>Create hero section with gradient background</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.create_statistics_section">
+<span class="sig-name descname"><span class="pre">create_statistics_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.create_statistics_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_statistics_section" title="Link to this definition"></a></dt>
+<dd><p>Create statistics cards</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.create_action_center">
+<span class="sig-name descname"><span class="pre">create_action_center</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.create_action_center"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_action_center" title="Link to this definition"></a></dt>
+<dd><p>Create action center with modern buttons</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.create_progress_section">
+<span class="sig-name descname"><span class="pre">create_progress_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.create_progress_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_progress_section" title="Link to this definition"></a></dt>
+<dd><p>Create animated progress section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.create_log_section">
+<span class="sig-name descname"><span class="pre">create_log_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.create_log_section"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.create_log_section" title="Link to this definition"></a></dt>
+<dd><p>Create collapsible log section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.apply_global_styles">
+<span class="sig-name descname"><span class="pre">apply_global_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.apply_global_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.apply_global_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply global styling</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.generate_schedule">
+<span class="sig-name descname"><span class="pre">generate_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.generate_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.generate_schedule" title="Link to this definition"></a></dt>
+<dd><p>Generate schedule with animation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.on_progress">
+<span class="sig-name descname"><span class="pre">on_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">percentage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.on_progress"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.on_progress" title="Link to this definition"></a></dt>
+<dd><p>Handle progress updates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.on_finished">
+<span class="sig-name descname"><span class="pre">on_finished</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule_entries</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.on_finished"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.on_finished" title="Link to this definition"></a></dt>
+<dd><p>Handle completion</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.on_error">
+<span class="sig-name descname"><span class="pre">on_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.on_error"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.on_error" title="Link to this definition"></a></dt>
+<dd><p>Handle errors</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.add_log">
+<span class="sig-name descname"><span class="pre">add_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.add_log"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.add_log" title="Link to this definition"></a></dt>
+<dd><p>Add message to log</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.toggle_log">
+<span class="sig-name descname"><span class="pre">toggle_log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.toggle_log"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.toggle_log" title="Link to this definition"></a></dt>
+<dd><p>Toggle log visibility</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.animate_height">
+<span class="sig-name descname"><span class="pre">animate_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.animate_height"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.animate_height" title="Link to this definition"></a></dt>
+<dd><p>Animate widget height</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.load_statistics">
+<span class="sig-name descname"><span class="pre">load_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.load_statistics"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.load_statistics" title="Link to this definition"></a></dt>
+<dd><p>Reload statistics</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.view_class_schedule">
+<span class="sig-name descname"><span class="pre">view_class_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.view_class_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.view_class_schedule" title="Link to this definition"></a></dt>
+<dd><p>View class schedule</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.view_teacher_schedule">
+<span class="sig-name descname"><span class="pre">view_teacher_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.view_teacher_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.view_teacher_schedule" title="Link to this definition"></a></dt>
+<dd><p>View teacher schedule</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.check_conflicts">
+<span class="sig-name descname"><span class="pre">check_conflicts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.check_conflicts"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.check_conflicts" title="Link to this definition"></a></dt>
+<dd><p>Check for conflicts</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.fill_empty_slots">
+<span class="sig-name descname"><span class="pre">fill_empty_slots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.fill_empty_slots"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.fill_empty_slots" title="Link to this definition"></a></dt>
+<dd><p>Fill empty slots with remaining lessons</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.modern_schedule_planner.ModernSchedulePlanner.clear_schedule">
+<span class="sig-name descname"><span class="pre">clear_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/modern_schedule_planner.html#ModernSchedulePlanner.clear_schedule"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.modern_schedule_planner.ModernSchedulePlanner.clear_schedule" title="Link to this definition"></a></dt>
+<dd><p>Clear schedule</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ui.school_type_dialog">
+<span id="school-type-dialog"></span><h2>School Type Dialog<a class="headerlink" href="#module-ui.school_type_dialog" title="Link to this heading"></a></h2>
+<p>School type selection dialog for the Class Scheduling Program</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.school_type_dialog.</span></span><span class="sig-name descname"><span class="pre">SchoolTypeDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QDialog</span></code></p>
+<p>Dialog for selecting school type with modern design</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.SCHOOL_TYPES">
+<span class="sig-name descname"><span class="pre">SCHOOL_TYPES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Anadolu</span> <span class="pre">Lisesi':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fizik',</span> <span class="pre">'Kimya',</span> <span class="pre">'Biyoloji',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Psikolojik</span> <span class="pre">Danışmanlık'],</span> <span class="pre">'Fen</span> <span class="pre">Lisesi':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fizik',</span> <span class="pre">'Kimya',</span> <span class="pre">'Biyoloji',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Birinci</span> <span class="pre">Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Sağlık</span> <span class="pre">Bilgisi</span> <span class="pre">ve</span> <span class="pre">Trafik</span> <span class="pre">Kültürü',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri</span> <span class="pre">ve</span> <span class="pre">Yazılım',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Yönlendirme',</span> <span class="pre">'Seçmeli</span> <span class="pre">Matematik',</span> <span class="pre">'Seçmeli</span> <span class="pre">Fizik',</span> <span class="pre">'Seçmeli</span> <span class="pre">Kimya',</span> <span class="pre">'Seçmeli</span> <span class="pre">Biyoloji',</span> <span class="pre">'Genetik</span> <span class="pre">Bilimine</span> <span class="pre">Giriş',</span> <span class="pre">'Tıp</span> <span class="pre">Bilimine</span> <span class="pre">Giriş',</span> <span class="pre">'Astronomi</span> <span class="pre">ve</span> <span class="pre">Uzay</span> <span class="pre">Bilimleri',</span> <span class="pre">'Sosyal</span> <span class="pre">Bilim</span> <span class="pre">Çalışmaları',</span> <span class="pre">'Düşünme</span> <span class="pre">Eğitimi',</span> <span class="pre">&quot;Kur'an-ı</span> <span class="pre">Kerim&quot;,</span> <span class="pre">'Peygamberimizin</span> <span class="pre">Hayatı</span> <span class="pre">(Fen</span> <span class="pre">Lise)',</span> <span class="pre">'Temel</span> <span class="pre">Dini</span> <span class="pre">Bilgiler',</span> <span class="pre">'Spor</span> <span class="pre">Eğitimi',</span> <span class="pre">'Sanat</span> <span class="pre">Eğitimi',</span> <span class="pre">'İslam</span> <span class="pre">Kültür</span> <span class="pre">ve</span> <span class="pre">Medeniyeti',</span> <span class="pre">'Osmanlı</span> <span class="pre">Türkçesi',</span> <span class="pre">'İkinci</span> <span class="pre">Yabancı</span> <span class="pre">Dil'],</span> <span class="pre">'Lise':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fizik',</span> <span class="pre">'Kimya',</span> <span class="pre">'Biyoloji',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Psikolojik</span> <span class="pre">Danışmanlık'],</span> <span class="pre">'Ortaokul':</span> <span class="pre">['Türkçe',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fen</span> <span class="pre">Bilimleri',</span> <span class="pre">'Sosyal</span> <span class="pre">Bilgiler',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Teknoloji</span> <span class="pre">ve</span> <span class="pre">Tasarım',</span> <span class="pre">'T.C.</span> <span class="pre">İnkılap</span> <span class="pre">Tarihi</span> <span class="pre">ve</span> <span class="pre">Atatürkçülük',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri</span> <span class="pre">ve</span> <span class="pre">Yazılım',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Yönlendirme',</span> <span class="pre">'Matematik</span> <span class="pre">ve</span> <span class="pre">Bilim</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Robotik</span> <span class="pre">Kodlama',</span> <span class="pre">'Yapay</span> <span class="pre">Zeka</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Drama',</span> <span class="pre">'Geleneksel</span> <span class="pre">Sanatlar'],</span> <span class="pre">'Sosyal</span> <span class="pre">Bilimler</span> <span class="pre">Lisesi':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Psikoloji',</span> <span class="pre">'Sosyoloji',</span> <span class="pre">'İktisat',</span> <span class="pre">'Hukuk',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Psikolojik</span> <span class="pre">Danışmanlık'],</span> <span class="pre">'İlkokul':</span> <span class="pre">['Türkçe',</span> <span class="pre">'Matematik',</span> <span class="pre">'Hayat</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Oyun',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Yönlendirme',</span> <span class="pre">'Serbest</span> <span class="pre">Etkinlikler',</span> <span class="pre">'Trafik</span> <span class="pre">Güvenliği',</span> <span class="pre">'İnsan</span> <span class="pre">Hakları,</span> <span class="pre">Vatandaşlık</span> <span class="pre">ve</span> <span class="pre">Demokrasi',</span> <span class="pre">'Matematik</span> <span class="pre">ve</span> <span class="pre">Bilim</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Robotik</span> <span class="pre">Kodlama',</span> <span class="pre">'Yapay</span> <span class="pre">Zeka</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Drama',</span> <span class="pre">'Geleneksel</span> <span class="pre">Sanatlar']}</span></em><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.SCHOOL_TYPES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Set up the user interface with modern design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.apply_styles">
+<span class="sig-name descname"><span class="pre">apply_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.apply_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.apply_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply modern styles with improved design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.on_selection_changed">
+<span class="sig-name descname"><span class="pre">on_selection_changed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.on_selection_changed"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.on_selection_changed" title="Link to this definition"></a></dt>
+<dd><p>Handle selection change</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.get_selected_school_type">
+<span class="sig-name descname"><span class="pre">get_selected_school_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.get_selected_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.get_selected_school_type" title="Link to this definition"></a></dt>
+<dd><p>Get the selected school type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.get_subjects_for_school_type">
+<span class="sig-name descname"><span class="pre">get_subjects_for_school_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">school_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.get_subjects_for_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.get_subjects_for_school_type" title="Link to this definition"></a></dt>
+<dd><p>Get subjects for the selected school type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.school_type_dialog.SchoolTypeDialog.initialize_lessons_for_school_type">
+<span class="sig-name descname"><span class="pre">initialize_lessons_for_school_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">school_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/school_type_dialog.html#SchoolTypeDialog.initialize_lessons_for_school_type"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.school_type_dialog.SchoolTypeDialog.initialize_lessons_for_school_type" title="Link to this definition"></a></dt>
+<dd><p>Initialize lessons based on the curriculum rules for the selected school type.
+This function creates mandatory lessons according to the official curriculum.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="dialogs">
+<h2>Dialogs<a class="headerlink" href="#dialogs" title="Link to this heading"></a></h2>
+<section id="module-ui.dialogs.class_dialog">
+<span id="class-dialog"></span><h3>Class Dialog<a class="headerlink" href="#module-ui.dialogs.class_dialog" title="Link to this heading"></a></h3>
+<p>Class dialog for the Class Scheduling Program</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.dialogs.class_dialog.ClassDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.dialogs.class_dialog.</span></span><span class="sig-name descname"><span class="pre">ClassDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/class_dialog.html#ClassDialog"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.class_dialog.ClassDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QDialog</span></code></p>
+<p>Dialog for adding or editing classes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.class_dialog.ClassDialog.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/class_dialog.html#ClassDialog.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.class_dialog.ClassDialog.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.class_dialog.ClassDialog.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/class_dialog.html#ClassDialog.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.class_dialog.ClassDialog.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Set up the user interface with modern design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.class_dialog.ClassDialog.apply_styles">
+<span class="sig-name descname"><span class="pre">apply_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/class_dialog.html#ClassDialog.apply_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.class_dialog.ClassDialog.apply_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply modern styles with improved design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.class_dialog.ClassDialog.populate_data">
+<span class="sig-name descname"><span class="pre">populate_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/class_dialog.html#ClassDialog.populate_data"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.class_dialog.ClassDialog.populate_data" title="Link to this definition"></a></dt>
+<dd><p>Populate dialog with existing class data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.class_dialog.ClassDialog.save_class">
+<span class="sig-name descname"><span class="pre">save_class</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/class_dialog.html#ClassDialog.save_class"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.class_dialog.ClassDialog.save_class" title="Link to this definition"></a></dt>
+<dd><p>Save class data</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ui.dialogs.teacher_dialog">
+<span id="teacher-dialog"></span><h3>Teacher Dialog<a class="headerlink" href="#module-ui.dialogs.teacher_dialog" title="Link to this heading"></a></h3>
+<p>Teacher dialog for the Class Scheduling Program</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.dialogs.teacher_dialog.</span></span><span class="sig-name descname"><span class="pre">TeacherDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QDialog</span></code></p>
+<p>Dialog for adding or editing teachers</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.SCHOOL_SUBJECTS">
+<span class="sig-name descname"><span class="pre">SCHOOL_SUBJECTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Anadolu</span> <span class="pre">Lisesi':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fizik',</span> <span class="pre">'Kimya',</span> <span class="pre">'Biyoloji',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Psikolojik</span> <span class="pre">Danışmanlık'],</span> <span class="pre">'Fen</span> <span class="pre">Lisesi':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fizik',</span> <span class="pre">'Kimya',</span> <span class="pre">'Biyoloji',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Birinci</span> <span class="pre">Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Sağlık</span> <span class="pre">Bilgisi</span> <span class="pre">ve</span> <span class="pre">Trafik</span> <span class="pre">Kültürü',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri</span> <span class="pre">ve</span> <span class="pre">Yazılım',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Yönlendirme',</span> <span class="pre">'Seçmeli</span> <span class="pre">Matematik',</span> <span class="pre">'Seçmeli</span> <span class="pre">Fizik',</span> <span class="pre">'Seçmeli</span> <span class="pre">Kimya',</span> <span class="pre">'Seçmeli</span> <span class="pre">Biyoloji',</span> <span class="pre">'Genetik</span> <span class="pre">Bilimine</span> <span class="pre">Giriş',</span> <span class="pre">'Tıp</span> <span class="pre">Bilimine</span> <span class="pre">Giriş',</span> <span class="pre">'Astronomi</span> <span class="pre">ve</span> <span class="pre">Uzay</span> <span class="pre">Bilimleri',</span> <span class="pre">'Sosyal</span> <span class="pre">Bilim</span> <span class="pre">Çalışmaları',</span> <span class="pre">'Düşünme</span> <span class="pre">Eğitimi',</span> <span class="pre">&quot;Kur'an-ı</span> <span class="pre">Kerim&quot;,</span> <span class="pre">'Peygamberimizin</span> <span class="pre">Hayatı</span> <span class="pre">(Fen</span> <span class="pre">Lise)',</span> <span class="pre">'Temel</span> <span class="pre">Dini</span> <span class="pre">Bilgiler',</span> <span class="pre">'Spor</span> <span class="pre">Eğitimi',</span> <span class="pre">'Sanat</span> <span class="pre">Eğitimi',</span> <span class="pre">'İslam</span> <span class="pre">Kültür</span> <span class="pre">ve</span> <span class="pre">Medeniyeti',</span> <span class="pre">'Osmanlı</span> <span class="pre">Türkçesi',</span> <span class="pre">'İkinci</span> <span class="pre">Yabancı</span> <span class="pre">Dil'],</span> <span class="pre">'Lise':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fizik',</span> <span class="pre">'Kimya',</span> <span class="pre">'Biyoloji',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Psikolojik</span> <span class="pre">Danışmanlık'],</span> <span class="pre">'Ortaokul':</span> <span class="pre">['Türkçe',</span> <span class="pre">'Matematik',</span> <span class="pre">'Fen</span> <span class="pre">Bilimleri',</span> <span class="pre">'Sosyal</span> <span class="pre">Bilgiler',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Teknoloji</span> <span class="pre">ve</span> <span class="pre">Tasarım',</span> <span class="pre">'T.C.</span> <span class="pre">İnkılap</span> <span class="pre">Tarihi</span> <span class="pre">ve</span> <span class="pre">Atatürkçülük',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri</span> <span class="pre">ve</span> <span class="pre">Yazılım',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Yönlendirme',</span> <span class="pre">'Matematik</span> <span class="pre">ve</span> <span class="pre">Bilim</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Robotik</span> <span class="pre">Kodlama',</span> <span class="pre">'Yapay</span> <span class="pre">Zeka</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Drama',</span> <span class="pre">'Geleneksel</span> <span class="pre">Sanatlar'],</span> <span class="pre">'Sosyal</span> <span class="pre">Bilimler</span> <span class="pre">Lisesi':</span> <span class="pre">['Türk</span> <span class="pre">Dili</span> <span class="pre">ve</span> <span class="pre">Edebiyatı',</span> <span class="pre">'Matematik',</span> <span class="pre">'Tarih',</span> <span class="pre">'Coğrafya',</span> <span class="pre">'Felsefe',</span> <span class="pre">'Psikoloji',</span> <span class="pre">'Sosyoloji',</span> <span class="pre">'İktisat',</span> <span class="pre">'Hukuk',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Spor',</span> <span class="pre">'Bilişim</span> <span class="pre">Teknolojileri',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Psikolojik</span> <span class="pre">Danışmanlık'],</span> <span class="pre">'İlkokul':</span> <span class="pre">['Türkçe',</span> <span class="pre">'Matematik',</span> <span class="pre">'Hayat</span> <span class="pre">Bilgisi',</span> <span class="pre">'Görsel</span> <span class="pre">Sanatlar',</span> <span class="pre">'Müzik',</span> <span class="pre">'Beden</span> <span class="pre">Eğitimi</span> <span class="pre">ve</span> <span class="pre">Oyun',</span> <span class="pre">'Yabancı</span> <span class="pre">Dil',</span> <span class="pre">'Din</span> <span class="pre">Kültürü</span> <span class="pre">ve</span> <span class="pre">Ahlak</span> <span class="pre">Bilgisi',</span> <span class="pre">'Rehberlik</span> <span class="pre">ve</span> <span class="pre">Yönlendirme',</span> <span class="pre">'Serbest</span> <span class="pre">Etkinlikler',</span> <span class="pre">'Trafik</span> <span class="pre">Güvenliği',</span> <span class="pre">'İnsan</span> <span class="pre">Hakları,</span> <span class="pre">Vatandaşlık</span> <span class="pre">ve</span> <span class="pre">Demokrasi',</span> <span class="pre">'Matematik</span> <span class="pre">ve</span> <span class="pre">Bilim</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Robotik</span> <span class="pre">Kodlama',</span> <span class="pre">'Yapay</span> <span class="pre">Zeka</span> <span class="pre">Uygulamaları',</span> <span class="pre">'Drama',</span> <span class="pre">'Geleneksel</span> <span class="pre">Sanatlar']}</span></em><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.SCHOOL_SUBJECTS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">teacher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Set up the user interface with modern design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.apply_styles">
+<span class="sig-name descname"><span class="pre">apply_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.apply_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.apply_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply modern styles with improved design</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.populate_subjects">
+<span class="sig-name descname"><span class="pre">populate_subjects</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.populate_subjects"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.populate_subjects" title="Link to this definition"></a></dt>
+<dd><p>Populate subject dropdown based on school type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.populate_data">
+<span class="sig-name descname"><span class="pre">populate_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.populate_data"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.populate_data" title="Link to this definition"></a></dt>
+<dd><p>Populate dialog with existing teacher data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.open_availability_dialog">
+<span class="sig-name descname"><span class="pre">open_availability_dialog</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.open_availability_dialog"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.open_availability_dialog" title="Link to this definition"></a></dt>
+<dd><p>Open teacher availability dialog</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.teacher_dialog.TeacherDialog.save_teacher">
+<span class="sig-name descname"><span class="pre">save_teacher</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/teacher_dialog.html#TeacherDialog.save_teacher"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.teacher_dialog.TeacherDialog.save_teacher" title="Link to this definition"></a></dt>
+<dd><p>Save teacher data</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ui.dialogs.lesson_dialog">
+<span id="lesson-dialog"></span><h3>Lesson Dialog<a class="headerlink" href="#module-ui.dialogs.lesson_dialog" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.dialogs.lesson_dialog.LessonDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.dialogs.lesson_dialog.</span></span><span class="sig-name descname"><span class="pre">LessonDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/lesson_dialog.html#LessonDialog"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.lesson_dialog.LessonDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QDialog</span></code></p>
+<p>Dialog for adding or editing lessons and their curriculum.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.lesson_dialog.LessonDialog.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lesson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/lesson_dialog.html#LessonDialog.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.lesson_dialog.LessonDialog.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.lesson_dialog.LessonDialog.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/lesson_dialog.html#LessonDialog.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.lesson_dialog.LessonDialog.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Set up the user interface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.lesson_dialog.LessonDialog.populate_data">
+<span class="sig-name descname"><span class="pre">populate_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/lesson_dialog.html#LessonDialog.populate_data"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.lesson_dialog.LessonDialog.populate_data" title="Link to this definition"></a></dt>
+<dd><p>Populate dialog with existing lesson and curriculum data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.lesson_dialog.LessonDialog.save_lesson_and_curriculum">
+<span class="sig-name descname"><span class="pre">save_lesson_and_curriculum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/lesson_dialog.html#LessonDialog.save_lesson_and_curriculum"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.lesson_dialog.LessonDialog.save_lesson_and_curriculum" title="Link to this definition"></a></dt>
+<dd><p>Save lesson name and its curriculum data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.lesson_dialog.LessonDialog.apply_styles">
+<span class="sig-name descname"><span class="pre">apply_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/lesson_dialog.html#LessonDialog.apply_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.lesson_dialog.LessonDialog.apply_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply modern styles.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ui.dialogs.reports_dialog">
+<span id="reports-dialog"></span><h3>Reports Dialog<a class="headerlink" href="#module-ui.dialogs.reports_dialog" title="Link to this heading"></a></h3>
+<p>Reports dialog for the Class Scheduling Program - Redesigned for a professional look and feel.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ui.dialogs.reports_dialog.</span></span><span class="sig-name descname"><span class="pre">ReportsDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QDialog</span></code></p>
+<p>Dialog for generating and exporting reports with a professional table view.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.__init__"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.setup_ui">
+<span class="sig-name descname"><span class="pre">setup_ui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.setup_ui"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.setup_ui" title="Link to this definition"></a></dt>
+<dd><p>Set up the user interface with a two-panel design.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.apply_styles">
+<span class="sig-name descname"><span class="pre">apply_styles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.apply_styles"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.apply_styles" title="Link to this definition"></a></dt>
+<dd><p>Apply a professional and surprising stylesheet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.populate_data">
+<span class="sig-name descname"><span class="pre">populate_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.populate_data"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.populate_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.populate_classes">
+<span class="sig-name descname"><span class="pre">populate_classes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.populate_classes"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.populate_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.populate_teachers">
+<span class="sig-name descname"><span class="pre">populate_teachers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.populate_teachers"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.populate_teachers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.on_report_type_changed">
+<span class="sig-name descname"><span class="pre">on_report_type_changed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.on_report_type_changed"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.on_report_type_changed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.generate_report">
+<span class="sig-name descname"><span class="pre">generate_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.generate_report"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.generate_report" title="Link to this definition"></a></dt>
+<dd><p>Generate the selected report and display it in the table.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.export_to_pdf">
+<span class="sig-name descname"><span class="pre">export_to_pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.export_to_pdf"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.export_to_pdf" title="Link to this definition"></a></dt>
+<dd><p>Export the current table view to a PDF file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ui.dialogs.reports_dialog.ReportsDialog.export_to_excel">
+<span class="sig-name descname"><span class="pre">export_to_excel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ui/dialogs/reports_dialog.html#ReportsDialog.export_to_excel"><span class="viewcode-link"><span class="pre">[kaynak]</span></span></a><a class="headerlink" href="#ui.dialogs.reports_dialog.ReportsDialog.export_to_excel" title="Link to this definition"></a></dt>
+<dd><p>Export the current table view to an Excel file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="database.html" class="btn btn-neutral float-left" title="Database Modülü" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Önceki</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="Utils Modülü" accesskey="n" rel="next">Sonraki <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

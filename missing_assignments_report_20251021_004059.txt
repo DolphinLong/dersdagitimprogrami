@@ -1,0 +1,32 @@
+MISSING ASSIGNMENTS DETAILED REPORT
+==================================================
+Generated: 2025-10-21 00:40:59.822243
+
+SUMMARY STATISTICS
+--------------------
+Total missing assignments: 11
+Total missing hours: 20
+
+MISSING ASSIGNMENTS DETAILS
+------------------------------
+Class           Lesson                         Teacher              Required   Placed     Missing   
+-----------------------------------------------------------------------------------------------
+8A              Din Kültürü ve Ahlak Bilgisi   Mehmet               2          0          2         
+8B              Teknoloji ve Tasarım           Jale                 2          0          2         
+8B              Din Kültürü ve Ahlak Bilgisi   Mehmet               2          0          2         
+7A              Teknoloji ve Tasarım           Jale                 2          0          2         
+7B              Din Kültürü ve Ahlak Bilgisi   Mehmet               2          0          2         
+6B              Bilişim Teknolojileri          Büşra                2          0          2         
+7B              S. Resim                       Zeynep               1          0          1         
+5B              S. Resim                       Zeynep               1          0          1         
+8B              Dijital Vatandaşlık            Jale                 2          0          2         
+8A              Finansal Okuryazarlık          Büşra                2          0          2         
+6A              Finansal Okuryazarlık          Büşra                2          0          2         
+
+MANUAL RESOLUTION INSTRUCTIONS
+------------------------------
+1. Open the application UI
+2. Go to Schedule tab
+3. Use manual placement for these assignments
+4. Ensure no teacher/class conflicts
+5. Save the final schedule

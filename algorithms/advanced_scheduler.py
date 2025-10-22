@@ -71,7 +71,7 @@ class AdvancedScheduler(BaseScheduler):
             }
             self.db_manager.set_setting("scheduler_weights", self.weights)
 
-        def generate_schedule(self) -> List[Dict]:
+    def generate_schedule(self) -> List[Dict]:
             """
 
             Generate optimized schedule using lesson assignments

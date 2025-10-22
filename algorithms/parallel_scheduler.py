@@ -5,11 +5,14 @@ Selects the best result based on coverage and quality metrics
 """
 
 import io
-import logging
 import sys
+import multiprocessing
+import queue
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, Dict, List, Optional, Tuple
+import logging
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+import psutil
+from typing import Dict, List, Optional, Callable, Any
 
 # Set encoding for Windows
 if sys.platform.startswith("win"):
@@ -64,21 +67,48 @@ class ParallelScheduler:
         progress_callback: Optional[Callable] = None,
         max_workers: int = 3,
         timeout: int = 120,
+        use_multiprocessing: bool = False,
     ):
         """
         Initialize parallel scheduler
 
         Args:
             db_manager: Database manager instance
-            progress_callback: Optional callback for progress updates
-            max_workers: Maximum number of parallel workers (default: 3)
-            timeout: Timeout in seconds for each scheduler (default: 120)
+            max_workers: Maximum number of parallel workers (default: CPU count)
+            use_multiprocessing: Use processes instead of threads (better for CPU-bound tasks)
         """
         self.db_manager = db_manager
-        self.progress_callback = progress_callback
-        self.max_workers = max_workers
-        self.timeout = timeout
         self.logger = logging.getLogger(__name__)
+
+        # System resource detection
+        self.cpu_count = multiprocessing.cpu_count()
+        self.memory_gb = psutil.virtual_memory().total / (1024**3)
+
+        # Worker configuration
+        if max_workers is None:
+            # Adaptive worker count based on system resources
+            if self.memory_gb > 8:
+                max_workers = min(self.cpu_count, 8)  # More workers for high memory systems
+            else:
+                max_workers = min(self.cpu_count, 4)  # Conservative for low memory systems
+
+        self.max_workers = max_workers
+        self.use_multiprocessing = use_multiprocessing and self.memory_gb > 4  # Only use multiprocessing if enough memory
+        self.timeout = timeout
+        self.progress_callback = progress_callback
+
+        self.logger.info(f"ParallelScheduler initialized: {max_workers} workers, "
+                        f"multiprocessing={use_multiprocessing}, CPU={self.cpu_count}, Memory={self.memory_gb:.1f}GB")
+
+        # Performance tracking
+        self.performance_stats = {
+            'total_runs': 0,
+            'successful_runs': 0,
+            'failed_runs': 0,
+            'best_coverage': 0.0,
+            'avg_execution_time': 0.0,
+            'total_execution_time': 0.0
+        }
 
         # Available schedulers
         self.available_schedulers = []

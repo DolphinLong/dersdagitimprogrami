@@ -1,9 +1,13 @@
 # Core Dependencies
 PyQt5>=5.15.0
 PyYAML>=6.0
+psutil>=5.9.0
 
 # Security
 bcrypt>=4.0.0
+
+# Validation
+cerberus>=1.3.4
 
 # Database
 # SQLite is built-in with Python

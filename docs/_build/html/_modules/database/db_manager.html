@@ -1,0 +1,1072 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.db_manager &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">database.db_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>database.db_manager öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">binascii</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">secrets</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Class</span><span class="p">,</span> <span class="n">Classroom</span><span class="p">,</span> <span class="n">Curriculum</span><span class="p">,</span> <span class="n">Lesson</span><span class="p">,</span> <span class="n">ScheduleEntry</span><span class="p">,</span> <span class="n">Teacher</span><span class="p">,</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories.teacher_repository</span><span class="w"> </span><span class="kn">import</span> <span class="n">TeacherRepository</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories.lesson_repository</span><span class="w"> </span><span class="kn">import</span> <span class="n">LessonRepository</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories.class_repository</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassRepository</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories.schedule_repository</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScheduleRepository</span>
+
+<span class="c1"># Import password hasher utility</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">utils.password_hasher</span><span class="w"> </span><span class="kn">import</span> <span class="n">hash_password</span><span class="p">,</span> <span class="n">verify_password</span>
+
+    <span class="n">USE_PASSWORD_HASHER</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">USE_PASSWORD_HASHER</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Password hasher utility not available, using legacy hashing&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DatabaseManager">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DatabaseManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages database operations for the application&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DatabaseManager.__init__">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;schedule.db&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_path</span> <span class="o">=</span> <span class="n">db_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>  <span class="c1"># Thread-local storage for connections</span>
+
+        <span class="c1"># Instantiate repositories with the manager itself for thread-safe connection handling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span> <span class="o">=</span> <span class="n">TeacherRepository</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span> <span class="o">=</span> <span class="n">LessonRepository</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes</span> <span class="o">=</span> <span class="n">ClassRepository</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span> <span class="o">=</span> <span class="n">ScheduleRepository</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_tables</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.__enter__">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.__enter__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Support use as a context manager: with DatabaseManager(...) as db: ...&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.__exit__">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.__exit__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure connections are closed when exiting context manager.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_connection</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.__del__">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.__del__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Destructor to ensure DB connection is closed to avoid ResourceWarning.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># close any open connection for this thread</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_connection</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Avoid raising in destructor</span>
+            <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_connection">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_connection">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a thread-local database connection&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="s2">&quot;connection&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA foreign_keys = ON&quot;</span><span class="p">)</span>  <span class="c1"># Enable foreign key constraints</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.close_connection">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.close_connection">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the thread-local database connection&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="s2">&quot;connection&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure database connection is active for the current thread&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">conn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error ensuring database connection: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_safe_commit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Safely commit database changes&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error committing transaction: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="DatabaseManager.get_school_type">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the school type from settings.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT setting_value FROM settings WHERE setting_key = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;school_type&quot;</span><span class="p">,))</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting school type: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.set_school_type">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.set_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">school_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the school type in settings.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;school_type&quot;</span><span class="p">,</span> <span class="n">school_type</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safe_commit</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error setting school type: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_setting">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_setting">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a setting value from the database.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT setting_value FROM settings WHERE setting_key = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">row</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Try to decode as JSON</span>
+                    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="c1"># Return as plain string if not JSON</span>
+                    <span class="k">return</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting setting &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.set_setting">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.set_setting">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set a setting value in the database.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+            <span class="c1"># Serialize to JSON if it&#39;s a dict or list</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+                <span class="n">value_to_store</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value_to_store</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_to_store</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safe_commit</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error setting setting &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_current_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Lise&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the current school type from settings, returning a default if not set.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">school_type</span> <span class="k">if</span> <span class="n">school_type</span> <span class="k">else</span> <span class="n">default</span>
+
+<div class="viewcode-block" id="DatabaseManager.create_tables">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.create_tables">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create database tables if they don&#39;t exist&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="c1"># Users table</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS users (</span>
+<span class="sd">                    user_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    username TEXT UNIQUE NOT NULL,</span>
+<span class="sd">                    password TEXT NOT NULL,</span>
+<span class="sd">                    role TEXT NOT NULL</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Teachers table</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS teachers (</span>
+<span class="sd">                    teacher_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    name TEXT NOT NULL,</span>
+<span class="sd">                    subject TEXT NOT NULL,</span>
+<span class="sd">                    school_type TEXT NOT NULL</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Classes table</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS classes (</span>
+<span class="sd">                    class_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    name TEXT NOT NULL,</span>
+<span class="sd">                    grade INTEGER NOT NULL,</span>
+<span class="sd">                    school_type TEXT NOT NULL</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Classrooms table</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS classrooms (</span>
+<span class="sd">                    classroom_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    name TEXT NOT NULL,</span>
+<span class="sd">                    capacity INTEGER NOT NULL,</span>
+<span class="sd">                    school_type TEXT NOT NULL</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Lessons table (stores unique lesson names)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS lessons (</span>
+<span class="sd">                    lesson_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    name TEXT NOT NULL,</span>
+<span class="sd">                    weekly_hours INTEGER DEFAULT 0,</span>
+<span class="sd">                    school_type TEXT NOT NULL,</span>
+<span class="sd">                    UNIQUE(name, school_type)</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Curriculum table (links lessons to grades and hours)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS curriculum (</span>
+<span class="sd">                    curriculum_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    lesson_id INTEGER NOT NULL,</span>
+<span class="sd">                    grade INTEGER NOT NULL,</span>
+<span class="sd">                    weekly_hours INTEGER NOT NULL,</span>
+<span class="sd">                    school_type TEXT NOT NULL,</span>
+<span class="sd">                    FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id) ON DELETE CASCADE</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Schedule entries table (assignments)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS schedule_entries (</span>
+<span class="sd">                    entry_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    class_id INTEGER NOT NULL,</span>
+<span class="sd">                    teacher_id INTEGER NOT NULL,</span>
+<span class="sd">                    lesson_id INTEGER NOT NULL,</span>
+<span class="sd">                    classroom_id INTEGER NOT NULL,</span>
+<span class="sd">                    day INTEGER NOT NULL,</span>
+<span class="sd">                    time_slot INTEGER NOT NULL,</span>
+<span class="sd">                    school_type TEXT NOT NULL,</span>
+<span class="sd">                    FOREIGN KEY (class_id) REFERENCES classes(class_id),</span>
+<span class="sd">                    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id),</span>
+<span class="sd">                    FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id),</span>
+<span class="sd">                    FOREIGN KEY (classroom_id) REFERENCES classrooms(classroom_id)</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Schedule table (timetable/program)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS schedule (</span>
+<span class="sd">                    schedule_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    class_id INTEGER NOT NULL,</span>
+<span class="sd">                    teacher_id INTEGER NOT NULL,</span>
+<span class="sd">                    lesson_id INTEGER NOT NULL,</span>
+<span class="sd">                    classroom_id INTEGER NOT NULL,</span>
+<span class="sd">                    day INTEGER NOT NULL,</span>
+<span class="sd">                    time_slot INTEGER NOT NULL,</span>
+<span class="sd">                    school_type TEXT NOT NULL,</span>
+<span class="sd">                    FOREIGN KEY (class_id) REFERENCES classes(class_id),</span>
+<span class="sd">                    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id),</span>
+<span class="sd">                    FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id),</span>
+<span class="sd">                    FOREIGN KEY (classroom_id) REFERENCES classrooms(classroom_id)</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Teacher availability table</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS teacher_availability (</span>
+<span class="sd">                    availability_id INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="sd">                    teacher_id INTEGER NOT NULL,</span>
+<span class="sd">                    day INTEGER NOT NULL,</span>
+<span class="sd">                    time_slot INTEGER NOT NULL,</span>
+<span class="sd">                    is_available INTEGER NOT NULL DEFAULT 1,</span>
+<span class="sd">                    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id) ON DELETE CASCADE</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Settings table</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS settings (</span>
+<span class="sd">                    setting_key TEXT PRIMARY KEY,</span>
+<span class="sd">                    setting_value TEXT</span>
+<span class="sd">                )</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating tables: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.migrate_existing_data">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.migrate_existing_data">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">migrate_existing_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle schema migrations. Currently a placeholder.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Implement a proper data migration strategy.</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.close">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.close">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the database connection&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_connection</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_user">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_user">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">role</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="c1"># Hash the password before storing</span>
+            <span class="n">hashed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash_password</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;INSERT INTO users (username, password, role) VALUES (?, ?, ?)&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">hashed</span><span class="p">,</span> <span class="n">role</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safe_commit</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error adding user: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_lesson">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_lesson">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_lesson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new unique lesson name for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">add_lesson</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">school_type</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_all_lessons">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_all_lessons">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_lessons</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Lesson</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all unique lessons for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_lesson">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.update_lesson">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_lesson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update a lesson&#39;s name via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">update_lesson</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_lesson">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.delete_lesson">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_lesson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a lesson and its associated curriculum entries via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">delete_lesson</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_curriculum_for_lesson">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_curriculum_for_lesson">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_curriculum_for_lesson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Curriculum</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all curriculum entries for a specific lesson via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">get_curriculum_for_lesson</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_lesson_weekly_hours">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_lesson_weekly_hours">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_lesson_weekly_hours</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">grade</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">school_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add or update weekly hours for a lesson at a specific grade via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">add_or_update_curriculum</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_or_update_curriculum">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_or_update_curriculum">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_or_update_curriculum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">grade</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add or update a curriculum entry for a lesson at a specific grade via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">add_or_update_curriculum</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_weekly_hours_for_lesson">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_weekly_hours_for_lesson">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_weekly_hours_for_lesson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">grade</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the weekly hours for a specific lesson and grade via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">get_weekly_hours_for_lesson</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_all_teachers">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_all_teachers">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_teachers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Teacher</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all teachers for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_all_classes">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_all_classes">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Class</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all classes for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_schedule_by_school_type">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_schedule_by_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_schedule_by_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ScheduleEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all schedule entries for the current school type (assignments) via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">get_schedule_entries_by_school_type</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_schedule_program_by_school_type">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_schedule_program_by_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_schedule_program_by_school_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ScheduleEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all schedule program for the current school type (timetable) via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">get_schedule_program_by_school_type</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_lesson_by_id">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_lesson_by_id">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_lesson_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Lesson</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a lesson by its ID via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_lesson_by_name">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_lesson_by_name">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_lesson_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Lesson</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a lesson by its name for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">get_lesson_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_teacher_by_id">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_teacher_by_id">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_teacher_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Teacher</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a teacher by its ID via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">get_teacher_by_id</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_class_by_id">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_class_by_id">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_class_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Class</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a class by its ID via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">get_class_by_id</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_classroom_by_id">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_classroom_by_id">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_classroom_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Classroom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a classroom by its ID via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">get_classroom_by_id</span><span class="p">(</span><span class="n">classroom_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_schedule_entry">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_schedule_entry">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_schedule_entry</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classroom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new schedule entry to schedule_entries table (assignments) via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_schedule_by_school_type">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_schedule_by_school_type">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_schedule_by_school_type</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classroom_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a lesson assignment (without schedule details) via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_schedule_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_schedule_program">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_schedule_program">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_schedule_program</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classroom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new schedule program to schedule table (timetable) via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">add_schedule_program_entry</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_schedule_for_specific_class">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_schedule_for_specific_class">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_schedule_for_specific_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ScheduleEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get schedule program for a specific class (from schedule table) via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">get_schedule_for_class</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_schedule_for_specific_teacher">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_schedule_for_specific_teacher">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_schedule_for_specific_teacher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ScheduleEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get schedule program for a specific teacher via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">get_schedule_for_teacher</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_schedule_entry">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.update_schedule_entry">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_schedule_entry</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">entry_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lesson_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">classroom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update an existing schedule entry via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">update_schedule_entry</span><span class="p">(</span><span class="n">entry_id</span><span class="p">,</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">classroom_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_teacher">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.delete_teacher">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_teacher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a teacher and all related records via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">delete_teacher</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_schedule_entry">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.delete_schedule_entry">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_schedule_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a single schedule entry by entry_id via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">delete_schedule_entry</span><span class="p">(</span><span class="n">entry_id</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_all_schedule_entries">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.delete_all_schedule_entries">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_all_schedule_entries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete all schedule entries for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="n">deleted_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">delete_all_schedule_entries</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">deleted_count</span> <span class="o">&gt;=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.clear_schedule">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.clear_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear only the schedule table (not assignments) via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="n">deleted_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="o">.</span><span class="n">clear_schedule_program</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">deleted_count</span> <span class="o">&gt;=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_class">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.delete_class">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a class via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">delete_class</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_teacher">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_teacher">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_teacher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new teacher via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">add_teacher</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_teacher">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.update_teacher">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_teacher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update an existing teacher via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">update_teacher</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.add_class">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_class">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">grade</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new class via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_class">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.update_class">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">grade</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update an existing class via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">update_class</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">grade</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_teacher_availability">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_teacher_availability">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_teacher_availability</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get teacher availability data via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">get_teacher_availability</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.set_teacher_availability">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.set_teacher_availability">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_teacher_availability</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">is_available</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set teacher availability for a specific day and time slot via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">set_teacher_availability</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">,</span> <span class="n">is_available</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.is_teacher_available">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.is_teacher_available">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_teacher_available</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">day</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a teacher is available at a specific day and time slot via repository.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">teachers</span><span class="o">.</span><span class="n">is_teacher_available</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_all_classrooms">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_all_classrooms">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_classrooms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Classroom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all classrooms for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">get_all_classrooms</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_user">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_user">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">User</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a user by username and password&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="c1"># Fetch stored hash for username and verify</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users WHERE username = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,))</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">stored</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verify_password</span><span class="p">(</span><span class="n">stored</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">User</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;role&quot;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting user: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># ----------------- Password hashing helpers -----------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hash_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100_000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Hash password using best available method (bcrypt or PBKDF2-HMAC-SHA256)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            password: Plain text password</span>
+<span class="sd">            iterations: Number of iterations for PBKDF2 (ignored if bcrypt is used)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Hashed password string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">USE_PASSWORD_HASHER</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hash_password</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Legacy fallback</span>
+            <span class="n">salt</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">pbkdf2_hmac</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">salt</span><span class="p">,</span> <span class="n">iterations</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;pbkdf2_sha256$</span><span class="si">{</span><span class="n">iterations</span><span class="si">}</span><span class="s2">$</span><span class="si">{</span><span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="n">salt</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">$</span><span class="si">{</span><span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="n">dk</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_verify_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stored</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">provided_password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify a provided password against stored hash</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            stored: Stored password hash</span>
+<span class="sd">            provided_password: Password to verify</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if password matches, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">USE_PASSWORD_HASHER</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">verify_password</span><span class="p">(</span><span class="n">stored</span><span class="p">,</span> <span class="n">provided_password</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Legacy fallback</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="n">stored</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">algo</span><span class="p">,</span> <span class="n">iter_str</span><span class="p">,</span> <span class="n">salt_hex</span><span class="p">,</span> <span class="n">hash_hex</span> <span class="o">=</span> <span class="n">parts</span>
+                <span class="k">if</span> <span class="n">algo</span> <span class="o">!=</span> <span class="s2">&quot;pbkdf2_sha256&quot;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">iterations</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iter_str</span><span class="p">)</span>
+                <span class="n">salt</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">unhexlify</span><span class="p">(</span><span class="n">salt_hex</span><span class="p">)</span>
+                <span class="n">expected</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">unhexlify</span><span class="p">(</span><span class="n">hash_hex</span><span class="p">)</span>
+                <span class="n">dk</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">pbkdf2_hmac</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">provided_password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">salt</span><span class="p">,</span> <span class="n">iterations</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">secrets</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">dk</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="DatabaseManager.add_classroom">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.add_classroom">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_classroom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new classroom via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">add_classroom</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.get_all_curriculum">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.get_all_curriculum">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_curriculum</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Curriculum</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all curriculum entries for the current school type via repository.&quot;&quot;&quot;</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_school_type</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lessons</span><span class="o">.</span><span class="n">get_all_curriculum</span><span class="p">(</span><span class="n">school_type</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_missing_assignments">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.find_missing_assignments">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_missing_assignments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find missing lesson assignments for all classes.</span>
+<span class="sd">        Returns a dictionary with structure:</span>
+<span class="sd">        {</span>
+<span class="sd">            class_id: {</span>
+<span class="sd">                &#39;class&#39;: Class object,</span>
+<span class="sd">                &#39;missing_lessons&#39;: [(lesson_id, lesson_name, weekly_hours), ...]</span>
+<span class="sd">            }</span>
+<span class="sd">        }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Get all classes</span>
+        <span class="n">all_classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+
+        <span class="c1"># Get all curriculum entries</span>
+        <span class="n">all_curriculum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_curriculum</span><span class="p">()</span>
+
+        <span class="c1"># Get all current assignments</span>
+        <span class="n">all_assignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+        <span class="c1"># Create a set of (class_id, lesson_id) for quick lookup</span>
+        <span class="n">assigned_combinations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">assignment</span> <span class="ow">in</span> <span class="n">all_assignments</span><span class="p">:</span>
+            <span class="n">assigned_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">assignment</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">))</span>
+
+        <span class="c1"># For each class, find missing lessons</span>
+        <span class="k">for</span> <span class="n">class_obj</span> <span class="ow">in</span> <span class="n">all_classes</span><span class="p">:</span>
+            <span class="n">missing_lessons</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># Get curriculum for this grade</span>
+            <span class="n">grade_curriculum</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">all_curriculum</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">grade</span> <span class="o">==</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">curriculum_entry</span> <span class="ow">in</span> <span class="n">grade_curriculum</span><span class="p">:</span>
+                <span class="c1"># Check if this lesson is assigned to this class</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">curriculum_entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assigned_combinations</span><span class="p">:</span>
+                    <span class="c1"># This lesson is missing</span>
+                    <span class="n">lesson</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">curriculum_entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">lesson</span><span class="p">:</span>
+                        <span class="n">missing_lessons</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">curriculum_entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">curriculum_entry</span><span class="o">.</span><span class="n">weekly_hours</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">missing_lessons</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">class_obj</span><span class="p">,</span>
+                    <span class="s2">&quot;missing_lessons&quot;</span><span class="p">:</span> <span class="n">missing_lessons</span><span class="p">,</span>
+                <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.auto_fill_assignments">
+<a class="viewcode-back" href="../../modules/database.html#database.db_manager.DatabaseManager.auto_fill_assignments">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">auto_fill_assignments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Automatically fill missing lesson assignments.</span>
+<span class="sd">        Tries to match teachers by subject.</span>
+<span class="sd">        Returns a dictionary with assignment results:</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;success&#39;: [(class_name, lesson_name, teacher_name), ...],</span>
+<span class="sd">            &#39;failed&#39;: [(class_name, lesson_name, reason), ...]</span>
+<span class="sd">        }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_connection</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;failed&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;failed&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="c1"># Find missing assignments</span>
+        <span class="n">missing_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_missing_assignments</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="c1"># Get all teachers</span>
+        <span class="n">all_teachers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+
+        <span class="c1"># Get all current assignments to calculate teacher workload</span>
+        <span class="n">all_assignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+        <span class="c1"># Calculate workload for each teacher (total weekly hours)</span>
+        <span class="n">teacher_workload</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">teacher</span> <span class="ow">in</span> <span class="n">all_teachers</span><span class="p">:</span>
+            <span class="n">total_hours</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">assignment</span> <span class="ow">in</span> <span class="n">all_assignments</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">assignment</span><span class="o">.</span><span class="n">teacher_id</span> <span class="o">==</span> <span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">:</span>
+                    <span class="c1"># Get the class to determine grade</span>
+                    <span class="n">class_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_class_by_id</span><span class="p">(</span><span class="n">assignment</span><span class="o">.</span><span class="n">class_id</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">class_obj</span><span class="p">:</span>
+                        <span class="c1"># Get weekly hours for this lesson</span>
+                        <span class="n">weekly_hours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_weekly_hours_for_lesson</span><span class="p">(</span><span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                            <span class="n">total_hours</span> <span class="o">+=</span> <span class="n">weekly_hours</span>
+            <span class="n">teacher_workload</span><span class="p">[</span><span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_hours</span>
+
+        <span class="c1"># Default classroom (assuming ID 1 exists)</span>
+        <span class="n">default_classroom_id</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># For each class with missing lessons</span>
+        <span class="k">for</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">missing_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">class_obj</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;class&quot;</span><span class="p">]</span>
+            <span class="n">missing_lessons</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;missing_lessons&quot;</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">lesson_name</span><span class="p">,</span> <span class="n">weekly_hours</span> <span class="ow">in</span> <span class="n">missing_lessons</span><span class="p">:</span>
+                <span class="c1"># Try to find a suitable teacher</span>
+                <span class="c1"># Match by subject name (e.g., &quot;Matematik&quot; lesson needs &quot;Matematik&quot; teacher)</span>
+                <span class="n">suitable_teachers</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">t</span>
+                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">all_teachers</span>
+                    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">lesson_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="n">lesson_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">suitable_teachers</span><span class="p">:</span>
+                    <span class="c1"># No exact match, try more flexible matching</span>
+                    <span class="c1"># For example, &quot;Fen Bilimleri&quot; could match &quot;Fen&quot; or &quot;Fizik&quot; teachers</span>
+                    <span class="k">for</span> <span class="n">teacher</span> <span class="ow">in</span> <span class="n">all_teachers</span><span class="p">:</span>
+                        <span class="c1"># Check if any word from lesson name is in teacher&#39;s subject</span>
+                        <span class="n">lesson_words</span> <span class="o">=</span> <span class="n">lesson_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                        <span class="n">subject_words</span> <span class="o">=</span> <span class="n">teacher</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">word</span> <span class="ow">in</span> <span class="n">subject_words</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">lesson_words</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">):</span>
+                            <span class="n">suitable_teachers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">teacher</span><span class="p">)</span>
+                            <span class="k">break</span>
+
+                <span class="k">if</span> <span class="n">suitable_teachers</span><span class="p">:</span>
+                    <span class="c1"># DENGELI DAĞITIM: En az yüklü öğretmeni seç</span>
+                    <span class="c1"># Öğretmenleri yüke göre sırala (en az yüklü önce)</span>
+                    <span class="n">suitable_teachers</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">teacher_workload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="n">teacher</span> <span class="o">=</span> <span class="n">suitable_teachers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                    <span class="c1"># Create assignment (day=-1, time_slot=-1 means not yet scheduled)</span>
+                    <span class="n">entry_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_schedule_entry</span><span class="p">(</span>
+                        <span class="n">class_id</span><span class="p">,</span>
+                        <span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span>
+                        <span class="n">lesson_id</span><span class="p">,</span>
+                        <span class="n">default_classroom_id</span><span class="p">,</span>
+                        <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Not yet scheduled to a specific day</span>
+                        <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Not yet scheduled to a specific time slot</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">entry_id</span><span class="p">:</span>
+                        <span class="c1"># Öğretmen yükünü güncelle (dengeli dağıtım için)</span>
+                        <span class="n">teacher_workload</span><span class="p">[</span><span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">teacher_workload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">weekly_hours</span>
+                        <span class="p">)</span>
+                        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">lesson_name</span><span class="p">,</span> <span class="n">teacher</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Auto-assigned </span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with teacher </span><span class="si">{</span><span class="n">teacher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (yük: </span><span class="si">{</span><span class="n">teacher_workload</span><span class="p">[</span><span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">]</span><span class="si">}</span><span class="s2"> saat)&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;failed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">lesson_name</span><span class="p">,</span> <span class="s2">&quot;Veritabanı hatası&quot;</span><span class="p">))</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to auto-assign </span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># No suitable teacher found</span>
+                    <span class="n">result</span><span class="p">[</span><span class="s2">&quot;failed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">lesson_name</span><span class="p">,</span> <span class="s2">&quot;Uygun öğretmen bulunamadı&quot;</span><span class="p">))</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No suitable teacher found for </span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

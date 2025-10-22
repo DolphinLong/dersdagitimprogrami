@@ -4,7 +4,7 @@ Constants for Scheduling Algorithms
 Eliminates magic numbers and provides centralized configuration
 """
 
-from typing import Dict
+from typing import Dict, List, Tuple
 
 # ============================================================================
 # SCHOOL CONFIGURATION
@@ -20,9 +20,9 @@ SCHOOL_TIME_SLOTS: Dict[str, int] = {
 }
 
 DAYS_PER_WEEK: int = 5
-DAY_NAMES: list = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
-DAY_NAMES_SHORT: list = ["Pzt", "Sal", "Çar", "Per", "Cum"]
-DAY_NAMES_EN: list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+DAY_NAMES: List[str] = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
+DAY_NAMES_SHORT: List[str] = ["Pzt", "Sal", "Çar", "Per", "Cum"]
+DAY_NAMES_EN: List[str] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 # ============================================================================
 # TIME SLOT CONFIGURATION
@@ -31,10 +31,10 @@ DAY_NAMES_EN: list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 # Time slot thresholds
 EARLY_SLOT_THRESHOLD: int = 1  # Before 2nd period
 LATE_SLOT_THRESHOLD: int = 6  # After 6th period
-LUNCH_SLOTS: list = [3, 4]  # Typically 4th and 5th periods
+LUNCH_SLOTS: List[int] = [3, 4]  # Typically 4th and 5th periods
 
 # Morning slots (preferred for difficult lessons)
-MORNING_SLOTS: list = [0, 1, 2, 3]
+MORNING_SLOTS: List[int] = [0, 1, 2, 3]
 
 # ============================================================================
 # BLOCK DISTRIBUTION
@@ -123,7 +123,7 @@ LESSON_DIFFICULTY_SCORES: Dict[str, int] = {
 }
 
 # Difficult lessons (should be scheduled in morning)
-DIFFICULT_LESSONS: list = [
+DIFFICULT_LESSONS: List[str] = [
     "Matematik",
     "Fizik",
     "Kimya",
@@ -134,7 +134,7 @@ DIFFICULT_LESSONS: list = [
 ]
 
 # Light lessons (can be scheduled anytime, preferred for lunch)
-LIGHT_LESSONS: list = [
+LIGHT_LESSONS: List[str] = [
     "Beden Eğitimi",
     "Beden Eğitimi ve Oyun",
     "Beden Eğitimi ve Spor",

@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>algorithms.performance_monitor &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">algorithms.performance_monitor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>algorithms.performance_monitor öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Performance Monitor - Track and Report Scheduling Performance</span>
+<span class="sd">Provides timing decorators and performance metrics</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+
+<div class="viewcode-block" id="PerformanceMonitor">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PerformanceMonitor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performance monitoring system for schedulers</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">    - Method timing with decorators</span>
+<span class="sd">    - Performance metrics collection</span>
+<span class="sd">    - Report generation</span>
+<span class="sd">    - Historical tracking</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PerformanceMonitor.__init__">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize performance monitor&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="c1"># Metrics storage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_times</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># Current session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_metrics</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.timing_decorator">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.timing_decorator">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timing_decorator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decorator to measure function execution time</span>
+
+<span class="sd">        Usage:</span>
+<span class="sd">            @monitor.timing_decorator</span>
+<span class="sd">            def my_function():</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func: Function to decorate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Decorated function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+                <span class="c1"># Record metrics</span>
+                <span class="n">func_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">total_times</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">elapsed</span>
+
+                <span class="c1"># Log if slow</span>
+                <span class="k">if</span> <span class="n">elapsed</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slow function: </span><span class="si">{</span><span class="n">func_name</span><span class="si">}</span><span class="s2"> took </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">result</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function </span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> failed after </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.record_scheduler_run">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.record_scheduler_run">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">record_scheduler_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scheduler_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">coverage</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">entries</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">conflicts</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record a scheduler run</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scheduler_name: Name of scheduler</span>
+<span class="sd">            duration: Time taken in seconds</span>
+<span class="sd">            coverage: Coverage percentage</span>
+<span class="sd">            entries: Number of entries</span>
+<span class="sd">            conflicts: Number of conflicts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">&quot;scheduler&quot;</span><span class="p">:</span> <span class="n">scheduler_name</span><span class="p">,</span>
+            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+            <span class="s2">&quot;coverage&quot;</span><span class="p">:</span> <span class="n">coverage</span><span class="p">,</span>
+            <span class="s2">&quot;entries&quot;</span><span class="p">:</span> <span class="n">entries</span><span class="p">,</span>
+            <span class="s2">&quot;conflicts&quot;</span><span class="p">:</span> <span class="n">conflicts</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Scheduler run: </span><span class="si">{</span><span class="n">scheduler_name</span><span class="si">}</span><span class="s2"> - &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, </span><span class="si">{</span><span class="n">coverage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% coverage, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">entries</span><span class="si">}</span><span class="s2"> entries, </span><span class="si">{</span><span class="n">conflicts</span><span class="si">}</span><span class="s2"> conflicts&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.get_function_stats">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.get_function_stats">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_function_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get statistics for a specific function</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func_name: Function name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict with statistics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">func_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="n">func_name</span><span class="p">,</span>
+            <span class="s2">&quot;call_count&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="p">[</span><span class="n">func_name</span><span class="p">],</span>
+            <span class="s2">&quot;total_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_times</span><span class="p">[</span><span class="n">func_name</span><span class="p">],</span>
+            <span class="s2">&quot;avg_time&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="k">if</span> <span class="n">times</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;min_time&quot;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="k">if</span> <span class="n">times</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;max_time&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="k">if</span> <span class="n">times</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;last_time&quot;</span><span class="p">:</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">times</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.get_all_stats">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.get_all_stats">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get statistics for all tracked functions</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of stat dicts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_function_stats</span><span class="p">(</span><span class="n">func_name</span><span class="p">))</span>
+
+        <span class="c1"># Sort by total time (descending)</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;total_time&quot;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">stats</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.get_session_summary">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.get_session_summary">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_session_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get summary of current session</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict with session summary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session_duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_start</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;session_duration&quot;</span><span class="p">:</span> <span class="n">session_duration</span><span class="p">,</span>
+            <span class="s2">&quot;total_functions_tracked&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">),</span>
+            <span class="s2">&quot;total_function_calls&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="s2">&quot;total_time_in_functions&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_times</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="s2">&quot;scheduler_runs&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_metrics</span><span class="p">),</span>
+            <span class="s2">&quot;session_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_metrics</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.generate_report">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.generate_report">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate performance report</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            top_n: Number of top functions to include</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted report string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;PERFORMANCE REPORT&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+        <span class="c1"># Session summary</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_session_summary</span><span class="p">()</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Session Duration: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;session_duration&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Functions Tracked: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;total_functions_tracked&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total Function Calls: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;total_function_calls&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scheduler Runs: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;scheduler_runs&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Top functions by total time</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TOP </span><span class="si">{</span><span class="n">top_n</span><span class="si">}</span><span class="s2"> FUNCTIONS BY TOTAL TIME&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_stats</span><span class="p">()[:</span><span class="n">top_n</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">stat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;function&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Calls: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;call_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Total: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;total_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Avg: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Min: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;min_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Max: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;max_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Scheduler runs</span>
+        <span class="k">if</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;scheduler_runs&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SCHEDULER RUNS&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">&quot;session_metrics&quot;</span><span class="p">],</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">metric</span><span class="p">[</span><span class="s1">&#39;scheduler&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Time: </span><span class="si">{</span><span class="n">metric</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Duration: </span><span class="si">{</span><span class="n">metric</span><span class="p">[</span><span class="s1">&#39;duration&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Coverage: </span><span class="si">{</span><span class="n">metric</span><span class="p">[</span><span class="s1">&#39;coverage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Entries: </span><span class="si">{</span><span class="n">metric</span><span class="p">[</span><span class="s1">&#39;entries&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Conflicts: </span><span class="si">{</span><span class="n">metric</span><span class="p">[</span><span class="s1">&#39;conflicts&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">80</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.save_report">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.save_report">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;performance_report.txt&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save performance report to file</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: Output filename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_report</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performance report saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.export_metrics_json">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.export_metrics_json">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_metrics_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;performance_metrics.json&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export metrics to JSON file</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: Output filename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;session_summary&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_session_summary</span><span class="p">(),</span>
+            <span class="s2">&quot;function_stats&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_stats</span><span class="p">(),</span>
+            <span class="s2">&quot;raw_metrics&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">func</span><span class="p">:</span> <span class="n">times</span> <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">times</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+        <span class="p">}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metrics exported to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PerformanceMonitor.reset">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.PerformanceMonitor.reset">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset all metrics&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_times</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_metrics</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Performance monitor reset&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Global instance</span>
+<span class="n">_global_monitor</span> <span class="o">=</span> <span class="n">PerformanceMonitor</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="get_monitor">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.get_monitor">[belgeler]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_monitor</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">PerformanceMonitor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get global performance monitor instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_global_monitor</span></div>
+
+
+
+<div class="viewcode-block" id="timing">
+<a class="viewcode-back" href="../../modules/algorithms.html#algorithms.performance_monitor.timing">[belgeler]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">timing</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience decorator using global monitor</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">        from algorithms.performance_monitor import timing</span>
+
+<span class="sd">        @timing</span>
+<span class="sd">        def my_function():</span>
+<span class="sd">            ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_global_monitor</span><span class="o">.</span><span class="n">timing_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

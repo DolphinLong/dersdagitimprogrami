@@ -23,7 +23,12 @@ like _create_lesson_blocks() to customize behavior.
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from database.db_manager import DBManager
+    from algorithms.teacher_availability_cache import TeacherAvailabilityCache
+    from database.models import Class, Lesson, Teacher
 
 from exceptions import (
     AvailabilityError,
@@ -32,6 +37,8 @@ from exceptions import (
     ScheduleGenerationError,
     TeacherConflictError,
 )
+from algorithms.monitoring import PerformanceMonitor
+from algorithms.teacher_availability_cache import TeacherAvailabilityCache
 
 # Import constants
 try:
@@ -87,7 +94,7 @@ class BaseScheduler(ABC):
 
     DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
 
-    def __init__(self, db_manager: Any, progress_callback: Optional[Callable[[str, int], None]] = None):
+    def __init__(self, db_manager: 'DBManager', progress_callback: Optional[Callable[[str, int], None]] = None):
         """
         Initialize base scheduler
 
@@ -95,17 +102,23 @@ class BaseScheduler(ABC):
             db_manager: Database manager instance
             progress_callback: Optional callback for progress updates (message, percentage)
         """
-        self.db_manager: Any = db_manager
+        self.db_manager: 'DBManager' = db_manager
         self.progress_callback: Optional[Callable[[str, int], None]] = progress_callback
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 
+        # Initialize performance monitoring
+        self.performance_monitor: PerformanceMonitor = PerformanceMonitor()
+
+        # Initialize teacher availability cache for performance
+        self.availability_cache: 'TeacherAvailabilityCache' = TeacherAvailabilityCache(self.db_manager)
+
         # State
-        self.schedule_entries: List[Dict[str, int]] = []
+        self.schedule_entries: List[Dict[str, Any]] = []
         self.teacher_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(set)  # {teacher_id: {(day, slot)}}
         self.class_slots: Dict[int, Set[Tuple[int, int]]] = defaultdict(set)  # {class_id: {(day, slot)}}
 
     @abstractmethod
-    def generate_schedule(self) -> List[Dict]:
+    def generate_schedule(self) -> List[Dict[str, Any]]:
         """
         Generate schedule - must be implemented by subclasses
 
@@ -114,7 +127,7 @@ class BaseScheduler(ABC):
         """
         pass
 
-    def _update_progress(self, message: str, percentage: int = 0):
+    def _update_progress(self, message: str, percentage: int = 0) -> None:
         """
         Update progress callback
 
@@ -126,7 +139,7 @@ class BaseScheduler(ABC):
             self.progress_callback(message, percentage)
         self.logger.info(f"Progress: {percentage}% - {message}")
 
-    def _get_school_config(self) -> Dict:
+    def _get_school_config(self) -> Dict[str, Any]:
         """
         Get school configuration
 
@@ -168,7 +181,7 @@ class BaseScheduler(ABC):
 
     def _is_teacher_available(self, teacher_id: int, day: int, slot: int) -> bool:
         """
-        Check if teacher is available for a specific slot
+        Check if teacher is available for a specific slot using the cache.
 
         Args:
             teacher_id: Teacher ID
@@ -178,14 +191,7 @@ class BaseScheduler(ABC):
         Returns:
             True if available, False otherwise
         """
-        teacher = self.db_manager.get_teacher_by_id(teacher_id)
-        if not teacher or not teacher.availability:
-            return True  # If no availability set, assume available
-
-        day_name = self.DAYS[day]
-        available_slots = teacher.availability.get(day_name, [])
-
-        return slot in available_slots
+        return self.availability_cache.is_available(teacher_id, day, slot)
 
     def _can_place_lesson(
         self,
@@ -267,7 +273,7 @@ class BaseScheduler(ABC):
         day: int,
         slot: int,
         classroom_id: Optional[int] = None,
-    ):
+    ) -> None:
         """
         Place a lesson in the schedule
 
@@ -294,7 +300,7 @@ class BaseScheduler(ABC):
 
         self.logger.debug(f"Placed lesson {lesson_id} for class {class_id} on day {day} slot {slot}")
 
-    def _remove_lesson(self, entry: Dict):
+    def _remove_lesson(self, entry: Dict[str, Any]) -> None:
         """
         Remove a lesson from the schedule
 
@@ -421,7 +427,7 @@ class BaseScheduler(ABC):
 
         return blocks
 
-    def _detect_conflicts(self) -> List[Dict]:
+    def _detect_conflicts(self) -> List[Dict[str, Any]]:
         """
         Detect conflicts in the schedule
         Enhanced to return List[Dict] format matching AdvancedScheduler
@@ -477,6 +483,7 @@ class BaseScheduler(ABC):
         Raises:
             ConflictError: If conflicts are detected
         """
+        self.performance_monitor.start_timer("schedule_validation")
         conflicts = self._detect_conflicts()
 
         if len(conflicts) > 0:
@@ -492,9 +499,23 @@ class BaseScheduler(ABC):
             if teacher_conflicts:
                 self.logger.error(f"Teacher conflicts: {len(teacher_conflicts)}")
 
+            # Record conflict metrics
+            self.performance_monitor.record_conflicts(len(conflicts), "total")
+            self.performance_monitor.record_conflicts(len(class_conflicts), "class")
+            self.performance_monitor.record_conflicts(len(teacher_conflicts), "teacher")
+
             raise ConflictError(f"Schedule has {len(conflicts)} conflicts", conflicts=conflicts)
+        else:
+            # Record successful validation
+            self.performance_monitor.record_conflicts(0, "total")
+            self.performance_monitor.record_algorithm_metrics("schedule_validation", True)
 
         self.logger.info("Schedule validation passed - no conflicts found")
+        
+        # Stop timer and record performance
+        duration = self.performance_monitor.stop_timer("schedule_validation")
+        self.logger.debug(f"Schedule validation completed in {duration:.3f} seconds")
+        
         return True
 
     def _save_schedule(self) -> bool:
@@ -505,6 +526,7 @@ class BaseScheduler(ABC):
             True if successful, False otherwise
         """
         try:
+            self.performance_monitor.start_timer("schedule_save")
             self.logger.info(f"Saving schedule: {len(self.schedule_entries)} entries")
 
             # Clear existing schedule
@@ -521,14 +543,28 @@ class BaseScheduler(ABC):
                     classroom_id=entry.get("classroom_id"),
                 )
 
+            # Record coverage metrics
+            total_slots = len(self.db_manager.get_all_classes()) * 5 * 8  # Assuming max 8 slots per day
+            scheduled_slots = len(self.schedule_entries)
+            coverage = (scheduled_slots / total_slots * 100) if total_slots > 0 else 0
+            self.performance_monitor.record_coverage(coverage, total_slots, scheduled_slots)
+
             self.logger.info("Schedule saved successfully")
+            
+            # Stop timer and record success
+            duration = self.performance_monitor.stop_timer("schedule_save")
+            self.performance_monitor.record_algorithm_metrics("schedule_save", True)
+            self.logger.debug(f"Schedule save completed in {duration:.3f} seconds")
+            
             return True
 
         except Exception as e:
+            self.performance_monitor.stop_timer("schedule_save")
+            self.performance_monitor.record_algorithm_metrics("schedule_save", False)
             self.logger.error(f"Failed to save schedule: {e}", exc_info=True)
             return False
 
-    def _calculate_coverage(self) -> Dict:
+    def _calculate_coverage(self) -> Dict[str, float]:
         """
         Calculate schedule coverage statistics
 
@@ -550,7 +586,7 @@ class BaseScheduler(ABC):
             "coverage_percentage": coverage_percentage,
         }
 
-    def _get_class_lessons(self, class_obj, lessons: List, assignment_map: Dict, teachers: List) -> List[Dict]:
+    def _get_class_lessons(self, class_obj: 'Class', lessons: List['Lesson'], assignment_map: Dict[Tuple[int, int], int], teachers: List['Teacher']) -> List[Dict[str, Any]]:
         """
         Get all lessons assigned to a class with their details
 
@@ -589,7 +625,7 @@ class BaseScheduler(ABC):
 
         return class_lessons
 
-    def _find_available_classroom(self, classrooms: List, day: int, time_slot: int) -> Optional[object]:
+    def _find_available_classroom(self, classrooms: List[Any], day: int, time_slot: int) -> Optional[Any]:
         """
         Find an available classroom for a specific day and time slot
 

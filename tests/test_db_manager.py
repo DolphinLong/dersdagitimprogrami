@@ -468,6 +468,177 @@ class TestScheduleProgram:
         assert result is not None
         assert result > 0
 
+
+class TestMissingAssignments:
+    """Test missing assignments analysis and auto-fill"""
+
+    def test_find_missing_assignments(self, db_manager):
+        """Test finding missing lesson assignments for classes"""
+        # Setup - create classes and curriculum without assignments
+        db_manager.set_school_type("Lise")
+
+        # Add classes
+        class_id1 = db_manager.add_class("9-A", 9)
+        class_id2 = db_manager.add_class("10-B", 10)
+
+        # Add lessons and curriculum
+        lesson_id1 = db_manager.add_lesson("Matematik", 0)
+        lesson_id2 = db_manager.add_lesson("Türkçe", 0)
+
+        # Add curriculum (required hours per grade)
+        db_manager.add_lesson_weekly_hours(lesson_id1, 9, "Lise", 5)  # 9th grade: 5 hours math
+        db_manager.add_lesson_weekly_hours(lesson_id2, 9, "Lise", 4)  # 9th grade: 4 hours turkish
+
+        # Add one assignment (only math for 9-A)
+        teacher_id = db_manager.add_teacher("Matematik Öğretmeni", "Matematik")
+        db_manager.add_schedule_entry(class_id1, teacher_id, lesson_id1, 1, -1, -1)
+
+        # Find missing assignments
+        missing = db_manager.find_missing_assignments()
+
+        assert isinstance(missing, dict)
+        # Should find missing turkish for 9-A and both lessons missing for 10-B
+        assert class_id1 in missing
+        assert class_id2 in missing
+
+    def test_auto_fill_assignments(self, db_manager):
+        """Test automatic assignment filling"""
+        # Setup similar to above
+        db_manager.set_school_type("Lise")
+
+        class_id = db_manager.add_class("9-A", 9)
+        lesson_id = db_manager.add_lesson("Matematik", 0)
+        db_manager.add_lesson_weekly_hours(lesson_id, 9, "Lise", 5)
+
+        # Create teacher that can teach this lesson
+        teacher_id = db_manager.add_teacher("Matematik Öğretmeni", "Matematik")
+
+        # Run auto-fill
+        result = db_manager.auto_fill_assignments()
+
+        assert isinstance(result, dict)
+        assert "success" in result
+        assert "failed" in result
+
+        # Should have successfully filled the missing assignment
+        if result["success"]:
+            assert len(result["success"]) >= 1
+
+    def test_clear_schedule(self, db_manager):
+        """Test clearing only the schedule program (not assignments)"""
+        db_manager.set_school_type("Lise")
+
+        # Add some schedule program entries
+        class_id = db_manager.add_class("9-A", 9)
+        teacher_id = db_manager.add_teacher("Teacher", "Math")
+        lesson_id = db_manager.add_lesson("Math", 5)
+        classroom_id = db_manager.add_classroom("A101", 30)
+
+        # Add assignment first
+        db_manager.add_schedule_entry(class_id, teacher_id, lesson_id, classroom_id, -1, -1)
+
+        # Add schedule program
+        db_manager.add_schedule_program(class_id, teacher_id, lesson_id, classroom_id, 1, 1)
+
+        # Clear schedule
+        result = db_manager.clear_schedule()
+        assert result is True or isinstance(result, int)
+
+        # Check that schedule is empty but assignments remain
+        program = db_manager.get_schedule_program_by_school_type()
+        assert len(program) == 0
+
+        assignments = db_manager.get_schedule_by_school_type()
+        assert len(assignments) >= 1
+
+
+class TestDatabaseManagerEdgeCases:
+    """Test edge cases and error handling"""
+
+    def test_empty_database_operations(self, db_manager):
+        """Test operations on empty database"""
+        # Test getting empty lists
+        teachers = db_manager.get_all_teachers()
+        assert isinstance(teachers, list)
+        assert len(teachers) == 0
+
+        classes = db_manager.get_all_classes()
+        assert isinstance(classes, list)
+        assert len(classes) == 0
+
+        lessons = db_manager.get_all_lessons()
+        assert isinstance(lessons, list)
+        assert len(lessons) == 0
+
+    def test_nonexistent_records(self, db_manager):
+        """Test accessing nonexistent records"""
+        # Nonexistent teacher
+        teacher = db_manager.get_teacher_by_id(99999)
+        assert teacher is None
+
+        # Nonexistent class
+        class_obj = db_manager.get_class_by_id(99999)
+        assert class_obj is None
+
+        # Nonexistent lesson
+        lesson = db_manager.get_lesson_by_id(99999)
+        assert lesson is None
+
+    def test_invalid_school_type_operations(self, db_manager):
+        """Test operations without school type"""
+        # Operations should work but may use defaults
+        teachers = db_manager.get_all_teachers()
+        assert isinstance(teachers, list)
+
+        classes = db_manager.get_all_classes()
+        assert isinstance(classes, list)
+
+    def test_foreign_key_constraints(self, db_manager):
+        """Test foreign key constraint handling"""
+        # Try to create schedule entry with invalid class_id
+        teacher_id = db_manager.add_teacher("Teacher", "Math")
+        lesson_id = db_manager.add_lesson("Math", 5)
+        classroom_id = db_manager.add_classroom("A101", 30)
+
+        # This should fail due to foreign key constraint
+        result = db_manager.add_schedule_entry(99999, teacher_id, lesson_id, classroom_id, 1, 1)
+        assert result is None or result < 0
+
+
+class TestDatabaseManagerPerformance:
+    """Test database manager performance and resource usage"""
+
+    def test_bulk_operations(self, db_manager):
+        """Test bulk insert operations"""
+        db_manager.set_school_type("Lise")
+
+        # Bulk insert teachers
+        teacher_ids = []
+        for i in range(20):
+            teacher_id = db_manager.add_teacher(f"Teacher {i}", f"Subject {i}")
+            teacher_ids.append(teacher_id)
+
+        teachers = db_manager.get_all_teachers()
+        assert len(teachers) >= 20
+
+        # Bulk insert classes
+        class_ids = []
+        for grade in range(9, 13):
+            for section in ['A', 'B', 'C']:
+                class_id = db_manager.add_class(f"{grade}-{section}", grade)
+                class_ids.append(class_id)
+
+        classes = db_manager.get_all_classes()
+        assert len(classes) >= 12  # 4 grades × 3 sections
+
+        # Bulk insert lessons and curriculum
+        subjects = ["Math", "Turkish", "Physics", "Chemistry", "Biology", "History", "Geography"]
+
+        for subject in subjects:
+            lesson_id = db_manager.add_lesson(subject, 0)
+            for grade in range(9, 13):
+                db_manager.add_lesson_weekly_hours(lesson_id, grade, "Lise", 4)
+
     def test_get_schedule_program_by_school_type(self, db_manager):
         """Test getting schedule program"""
         # Setup

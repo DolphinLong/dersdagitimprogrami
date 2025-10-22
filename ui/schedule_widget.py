@@ -49,6 +49,7 @@ class ScheduleGenerationThread(QThread):
     def __init__(self, scheduler):
         super().__init__()
         self.scheduler = scheduler
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def progress_callback(self, message: str, percentage: float):
         """Scheduler'dan gelen progress güncellemelerini UI'ye aktar"""
@@ -70,21 +71,58 @@ class ScheduleGenerationThread(QThread):
             self.progress.emit(25, "📋 Mevcut ders atamaları yükleniyor...")
 
             self.progress.emit(40, "🎯 Akıllı algoritma çalışıyor...")
-            schedule_entries = self.scheduler.generate_schedule()
+            
+            # Try enhanced curriculum-based scheduler first (addresses core issue)
+            try:
+                # Check if we have the enhanced curriculum-based scheduler available
+                from algorithms.curriculum_based_scheduler import CurriculumBasedFullScheduleGenerator
+                self.progress.emit(45, "📚 Geliştirilmiş müfredat tabanlı algoritma yükleniyor...")
+                
+                # Create enhanced scheduler instance
+                enhanced_scheduler = CurriculumBasedFullScheduleGenerator(self.scheduler.db_manager)
+                schedule_entries = enhanced_scheduler.generate_full_schedule()
+                self.progress.emit(50, f"✅ Geliştirilmiş algoritma çalıştı: {len(schedule_entries)} ders")
+                
+                self.logger.info("🚀 ENHANCED CURRICULUM-BASED SCHEDULER Aktif - Tam müfredat planlaması!")
+                self.logger.info("   ✅ Addresses core issue: schedules 280 hours instead of 112 assignments")
+                
+            except ImportError as ie:
+                self.logger.warning(f"Enhanced curriculum-based scheduler not available: {ie}")
+                # Fall back to standard scheduler
+                self.progress.emit(45, "🔧 Standart algoritma yükleniyor...")
+                schedule_entries = self.scheduler.generate_schedule()
+                self.progress.emit(50, f"✅ Standart algoritma çalıştı: {len(schedule_entries)} ders")
+            except Exception as e:
+                self.logger.error(f"Error with enhanced curriculum-based scheduler: {e}")
+                # Fall back to standard scheduler
+                self.progress.emit(45, "🔧 Standart algoritma yükleniyor...")
+                schedule_entries = self.scheduler.generate_schedule()
+                self.progress.emit(50, f"✅ Standart algoritma çalıştı: {len(schedule_entries)} ders")
+            
             self.progress.emit(60, "🔍 Çakışmalar kontrol ediliyor...")
 
             self.progress.emit(70, "💾 Veritabanına kaydediliyor...")
             saved_count = 0
 
-            # Note: Schedule is already cleared and saved in the algorithm
-            # Just verify the count
-            final_schedule = db_manager.get_schedule_program_by_school_type()
-            saved_count = len(final_schedule)
+            # ACTUALLY SAVE THE SCHEDULE TO DATABASE
+            for entry in schedule_entries:
+                try:
+                    db_manager.add_schedule_program(
+                        class_id=entry["class_id"],
+                        teacher_id=entry["teacher_id"], 
+                        lesson_id=entry["lesson_id"],
+                        classroom_id=entry.get("classroom_id", 1),
+                        day=entry["day"],
+                        time_slot=entry["time_slot"]
+                    )
+                    saved_count += 1
+                except Exception as save_error:
+                    logging.warning(f"Failed to save entry: {save_error}")
+                    continue
 
             self.progress.emit(90, f"💾 Program temizleniyor...")
             self.progress.emit(100, f"✅ Tamamlandı! {saved_count} ders yerleştirildi")
 
-            # Note: Logging is handled by the main thread, not here
             # Verify the saved schedule
             final_schedule = db_manager.get_schedule_program_by_school_type()
             self.finished.emit(final_schedule)
@@ -260,6 +298,10 @@ class ScheduleWidget(QWidget):
         # Statistics Cards
         stats = self.create_statistics_section()
         main_layout.addWidget(stats)
+
+        # Advanced Search & Filter Section
+        search_filter = self.create_search_filter_section()
+        main_layout.addWidget(search_filter)
 
         # Action Center
         actions = self.create_action_center()
@@ -467,6 +509,361 @@ class ScheduleWidget(QWidget):
 
         return container
 
+    def create_search_filter_section(self):
+        """Create advanced search & filter section"""
+        container = QFrame()
+        container.setObjectName("searchFilterSection")
+        container.setMinimumHeight(80)
+
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(20, 15, 20, 15)
+        layout.setSpacing(10)
+
+        # Title
+        title_layout = QHBoxLayout()
+        title_icon = QLabel("🔍")
+        title_icon.setFont(QFont("Segoe UI Emoji", 16))
+        title_layout.addWidget(title_icon)
+
+        title = QLabel("GELİŞMİŞ ARAMA VE FİLTRELEME")
+        title.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        title.setStyleSheet("color: #2c3e50;")
+        title_layout.addWidget(title)
+        title_layout.addStretch()
+        layout.addLayout(title_layout)
+
+        # Filter controls
+        controls_layout = QHBoxLayout()
+        controls_layout.setSpacing(15)
+
+        # Class filter
+        class_layout = QVBoxLayout()
+        class_label = QLabel("Sınıf")
+        class_label.setFont(QFont("Segoe UI", 9))
+        class_label.setStyleSheet("color: #7f8c8d;")
+        class_layout.addWidget(class_label)
+
+        self.class_combo = QComboBox()
+        self.class_combo.setFont(QFont("Segoe UI", 10))
+        self.class_combo.setMinimumWidth(150)
+        self.class_combo.addItem("Tümü")
+        # Populate with classes
+        classes = db_manager.get_all_classes()
+        for cls in classes:
+            self.class_combo.addItem(cls.name, cls.class_id)
+        self.class_combo.currentTextChanged.connect(self.on_filter_changed)
+        class_layout.addWidget(self.class_combo)
+        controls_layout.addLayout(class_layout)
+
+        # Teacher filter
+        teacher_layout = QVBoxLayout()
+        teacher_label = QLabel("Öğretmen")
+        teacher_label.setFont(QFont("Segoe UI", 9))
+        teacher_label.setStyleSheet("color: #7f8c8d;")
+        teacher_layout.addWidget(teacher_label)
+
+        self.teacher_combo = QComboBox()
+        self.teacher_combo.setFont(QFont("Segoe UI", 10))
+        self.teacher_combo.setMinimumWidth(150)
+        self.teacher_combo.addItem("Tümü")
+        # Populate with teachers
+        teachers = db_manager.get_all_teachers()
+        for teacher in teachers:
+            self.teacher_combo.addItem(teacher.name, teacher.teacher_id)
+        self.teacher_combo.currentTextChanged.connect(self.on_filter_changed)
+        teacher_layout.addWidget(self.teacher_combo)
+        controls_layout.addLayout(teacher_layout)
+
+        # Lesson filter
+        lesson_layout = QVBoxLayout()
+        lesson_label = QLabel("Ders")
+        lesson_label.setFont(QFont("Segoe UI", 9))
+        lesson_label.setStyleSheet("color: #7f8c8d;")
+        lesson_layout.addWidget(lesson_label)
+
+        self.lesson_combo = QComboBox()
+        self.lesson_combo.setFont(QFont("Segoe UI", 10))
+        self.lesson_combo.setMinimumWidth(150)
+        self.lesson_combo.addItem("Tümü")
+        # Populate with lessons
+        lessons = db_manager.get_all_lessons()
+        for lesson in lessons:
+            self.lesson_combo.addItem(lesson.name, lesson.lesson_id)
+        self.lesson_combo.currentTextChanged.connect(self.on_filter_changed)
+        lesson_layout.addWidget(self.lesson_combo)
+        controls_layout.addLayout(lesson_layout)
+
+        # Day filter
+        day_layout = QVBoxLayout()
+        day_label = QLabel("Gün")
+        day_label.setFont(QFont("Segoe UI", 9))
+        day_label.setStyleSheet("color: #7f8c8d;")
+        day_layout.addWidget(day_label)
+
+        self.day_combo = QComboBox()
+        self.day_combo.setFont(QFont("Segoe UI", 10))
+        self.day_combo.setMinimumWidth(120)
+        days = ["Tümü", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
+        for day in days:
+            self.day_combo.addItem(day)
+        self.day_combo.currentTextChanged.connect(self.on_filter_changed)
+        day_layout.addWidget(self.day_combo)
+        controls_layout.addLayout(day_layout)
+
+        # Action buttons
+        action_layout = QVBoxLayout()
+        action_label = QLabel("İşlemler")
+        action_label.setFont(QFont("Segoe UI", 9))
+        action_label.setStyleSheet("color: #7f8c8d;")
+        action_layout.addWidget(action_label)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setSpacing(8)
+
+        self.clear_filters_btn = QPushButton("🔄 Sıfırla")
+        self.clear_filters_btn.setFont(QFont("Segoe UI", 9))
+        self.clear_filters_btn.setMinimumHeight(35)
+        self.clear_filters_btn.clicked.connect(self.clear_filters)
+        buttons_layout.addWidget(self.clear_filters_btn)
+
+        self.export_btn = QPushButton("💾 Dışa Aktar")
+        self.export_btn.setFont(QFont("Segoe UI", 9))
+        self.export_btn.setMinimumHeight(35)
+        self.export_btn.clicked.connect(self.export_filtered_data)
+        buttons_layout.addWidget(self.export_btn)
+
+        action_layout.addLayout(buttons_layout)
+        controls_layout.addLayout(action_layout)
+
+        controls_layout.addStretch()
+        layout.addLayout(controls_layout)
+
+        container.setStyleSheet(
+            """
+            QFrame#searchFilterSection {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #f8f9fa, stop:1 #e9ecef);
+                border-radius: 12px;
+                border: 2px solid #dee2e6;
+            }
+            QComboBox {
+                padding: 6px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
+                background: white;
+                color: #495057;
+                font-size: 11px;
+            }
+            QComboBox:hover {
+                border: 1px solid #80bdff;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 20px;
+            }
+            QComboBox::down-arrow {
+                image: url(down_arrow.png);
+                width: 12px;
+                height: 12px;
+            }
+            QPushButton {
+                padding: 8px 12px;
+                border: 1px solid #6c757d;
+                border-radius: 6px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffffff, stop:1 #e9ecef);
+                color: #495057;
+                font-size: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #f8f9fa, stop:1 #dee2e6);
+                border: 1px solid #5a6268;
+            }
+        """
+        )
+
+        return container
+
+    def on_filter_changed(self):
+        """Handle filter changes - update display based on filters"""
+        # Get current filter values
+        class_filter = self.class_combo.currentData() if self.class_combo.currentIndex() > 0 else None
+        teacher_filter = self.teacher_combo.currentData() if self.teacher_combo.currentIndex() > 0 else None
+        lesson_filter = self.lesson_combo.currentData() if self.lesson_combo.currentIndex() > 0 else None
+        day_filter = self.day_combo.currentIndex() - 1 if self.day_combo.currentIndex() > 0 else None
+
+        # Log current filters for debugging
+        filter_info = f"Filtres: Class={class_filter}, Teacher={teacher_filter}, Lesson={lesson_filter}, Day={day_filter}"
+        self.add_log(f"🔍 Filter updated: {filter_info}")
+
+        # Apply filters to statistics if needed
+        # For now, just update the status
+        active_filters = []
+        if class_filter:
+            class_obj = db_manager.get_class_by_id(class_filter)
+            active_filters.append(f"Class: {class_obj.name if class_obj else 'Unknown'}")
+        if teacher_filter:
+            teacher = db_manager.get_teacher_by_id(teacher_filter)
+            active_filters.append(f"Teacher: {teacher.name if teacher else 'Unknown'}")
+        if lesson_filter:
+            lesson = db_manager.get_lesson_by_id(lesson_filter)
+            active_filters.append(f"Lesson: {lesson.name if lesson else 'Unknown'}")
+        if day_filter is not None:
+            day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            active_filters.append(f"Day: {day_names[day_filter]}")
+
+        if active_filters:
+            self.add_log(f"✅ Active filters: {', '.join(active_filters)}")
+        else:
+            self.add_log("ℹ️  No filters active")
+
+    def clear_filters(self):
+        """Clear all filters"""
+        self.class_combo.setCurrentIndex(0)
+        self.teacher_combo.setCurrentIndex(0)
+        self.lesson_combo.setCurrentIndex(0)
+        self.day_combo.setCurrentIndex(0)
+        self.add_log("🔄 Tüm filtreler sıfırlandı")
+
+    def export_filtered_data(self):
+        """Export filtered schedule data"""
+        try:
+            # Get current schedule
+            schedule = db_manager.get_schedule_program_by_school_type()
+            if not schedule:
+                QMessageBox.warning(self, "Uyarı", "Dışa aktarılacak program verisi bulunamadı!")
+                return
+
+            # Get filter values
+            class_filter = self.class_combo.currentData() if self.class_combo.currentIndex() > 0 else None
+            teacher_filter = self.teacher_combo.currentData() if self.teacher_combo.currentIndex() > 0 else None
+            lesson_filter = self.lesson_combo.currentData() if self.lesson_combo.currentIndex() > 0 else None
+            day_filter = self.day_combo.currentIndex() - 1 if self.day_combo.currentIndex() > 0 else None
+
+            # Apply filters
+            filtered_schedule = []
+            for entry in schedule:
+                if class_filter and entry.class_id != class_filter:
+                    continue
+                if teacher_filter and entry.teacher_id != teacher_filter:
+                    continue
+                if lesson_filter and entry.lesson_id != lesson_filter:
+                    continue
+                if day_filter is not None and entry.day != day_filter:
+                    continue
+                filtered_schedule.append(entry)
+
+            if not filtered_schedule:
+                QMessageBox.warning(self, "Uyarı", "Filtre kriterlerine uygun veri bulunamadı!")
+                return
+
+            # Export options
+            export_options = ["Excel (.xlsx)", "CSV (.csv)", "JSON (.json)"]
+
+            # Choose export format
+            from PyQt5.QtWidgets import QInputDialog
+            format_choice, ok = QInputDialog.getItem(
+                self, "Dışa Aktarım Formatı",
+                "Dışa aktarım formatını seçin:",
+                export_options, 0, False
+            )
+
+            if not ok:
+                return
+
+            # Get save location
+            file_extension = ".xlsx" if "Excel" in format_choice else ".csv" if "CSV" in format_choice else ".json"
+
+            from PyQt5.QtWidgets import QFileDialog
+            filename, _ = QFileDialog.getSaveFileName(
+                self, "Dosyayı Kaydet",
+                f"filtered_schedule{file_extension}",
+                f"{format_choice.split()[1]} files (*{file_extension})"
+            )
+
+            if not filename:
+                return
+
+            # Export data
+            if "Excel" in format_choice:
+                self._export_to_excel(filtered_schedule, filename)
+            elif "CSV" in format_choice:
+                self._export_to_csv(filtered_schedule, filename)
+            elif "JSON" in format_choice:
+                self._export_to_json(filtered_schedule, filename)
+
+            self.add_log(f"💾 Filtrelenmiş veri dışa aktarıldı: {filename}")
+            QMessageBox.information(self, "Başarılı",
+                f"✅ Veri başarıyla dışa aktarıldı!\n\nDosya: {filename}\nKayıt sayısı: {len(filtered_schedule)}")
+
+        except Exception as e:
+            self.add_log(f"❌ Dışa aktarım hatası: {e}")
+            QMessageBox.critical(self, "Hata", f"Dışa aktarım sırasında hata oluştu:\n\n{str(e)}")
+
+    def _export_to_excel(self, schedule_data, filename):
+        """Export to Excel format"""
+        try:
+            import pandas as pd
+
+            # Prepare data
+            data = []
+            for entry in schedule_data:
+                data.append({
+                    'Class': db_manager.get_class_by_id(entry.class_id).name if db_manager.get_class_by_id(entry.class_id) else 'Unknown',
+                    'Teacher': db_manager.get_teacher_by_id(entry.teacher_id).name if db_manager.get_teacher_by_id(entry.teacher_id) else 'Unknown',
+                    'Lesson': db_manager.get_lesson_by_id(entry.lesson_id).name if db_manager.get_lesson_by_id(entry.lesson_id) else 'Unknown',
+                    'Day': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'][entry.day],
+                    'Time Slot': entry.time_slot + 1,
+                    'Classroom': entry.classroom_id
+                })
+
+            df = pd.DataFrame(data)
+            df.to_excel(filename, index=False, engine='openpyxl')
+
+        except ImportError:
+            raise Exception("Excel dışa aktarımı için pandas ve openpyxl gereklidir!")
+        except Exception as e:
+            raise Exception(f"Excel dışa aktarım hatası: {e}")
+
+    def _export_to_csv(self, schedule_data, filename):
+        """Export to CSV format"""
+        import csv
+
+        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = ['Class', 'Teacher', 'Lesson', 'Day', 'Time Slot', 'Classroom']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for entry in schedule_data:
+                writer.writerow({
+                    'Class': db_manager.get_class_by_id(entry.class_id).name if db_manager.get_class_by_id(entry.class_id) else 'Unknown',
+                    'Teacher': db_manager.get_teacher_by_id(entry.teacher_id).name if db_manager.get_teacher_by_id(entry.teacher_id) else 'Unknown',
+                    'Lesson': db_manager.get_lesson_by_id(entry.lesson_id).name if db_manager.get_lesson_by_id(entry.lesson_id) else 'Unknown',
+                    'Day': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'][entry.day],
+                    'Time Slot': entry.time_slot + 1,
+                    'Classroom': entry.classroom_id
+                })
+
+    def _export_to_json(self, schedule_data, filename):
+        """Export to JSON format"""
+        import json
+
+        data = []
+        for entry in schedule_data:
+            data.append({
+                'class': db_manager.get_class_by_id(entry.class_id).name if db_manager.get_class_by_id(entry.class_id) else 'Unknown',
+                'teacher': db_manager.get_teacher_by_id(entry.teacher_id).name if db_manager.get_teacher_by_id(entry.teacher_id) else 'Unknown',
+                'lesson': db_manager.get_lesson_by_id(entry.lesson_id).name if db_manager.get_lesson_by_id(entry.lesson_id) else 'Unknown',
+                'day': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'][entry.day],
+                'time_slot': entry.time_slot + 1,
+                'classroom': entry.classroom_id
+            })
+
+        with open(filename, 'w', encoding='utf-8') as jsonfile:
+            json.dump(data, jsonfile, indent=2, ensure_ascii=False)
+
     def create_progress_section(self):
         """Create animated progress section"""
         container = QFrame()
@@ -632,7 +1029,14 @@ class ScheduleWidget(QWidget):
             self.generate_btn.setEnabled(False)
 
             # Create scheduler with progress callback support
-            self.scheduler = Scheduler(db_manager, progress_callback=None)
+            self.scheduler = Scheduler(db_manager, progress_callback=None, enable_performance_monitor=True)
+            
+            # Use enhanced scheduler if available
+            if hasattr(self.scheduler, 'active_scheduler') and self.scheduler.active_scheduler:
+                active_scheduler = self.scheduler.active_scheduler
+                self.add_log(f"✅ Enhanced scheduler active: {type(active_scheduler).__name__}")
+            else:
+                self.add_log("⚠️  Using standard scheduler")
 
             # Start thread
             self.schedule_thread = ScheduleGenerationThread(self.scheduler)

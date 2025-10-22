@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QSplitter,
     QTableWidget,
     QTableWidgetItem,
@@ -225,78 +226,134 @@ class EasyAssignmentDialog(QDialog):
         return panel
 
     def create_right_panel(self):
-        """Sağ panel - Hızlı atama formu"""
+        """Sağ panel - Toplu atama formu"""
         panel = QWidget()
         layout = QVBoxLayout(panel)
         layout.setSpacing(15)
 
-        # Başlık
-        title = QLabel("Hızlı Atama")
+        # Başlık ve mod seçici
+        header_layout = QHBoxLayout()
+        title = QLabel("Toplu Atama")
         title.setFont(QFont("Segoe UI", 11, QFont.Bold))
         title.setStyleSheet("color: #2c3e50; padding: 5px;")
-        layout.addWidget(title)
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
 
-        # Form grubu
-        form_group = QGroupBox("Yeni Atama")
-        form_layout = QVBoxLayout()
-        form_layout.setSpacing(10)
+        # Öğretmen seçimi (önce öğretmen)
+        teacher_group = QGroupBox("1️⃣ Öğretmen Seç")
+        teacher_layout = QVBoxLayout()
+        teacher_layout.setSpacing(8)
 
-        # Sınıf seçimi
-        form_layout.addWidget(QLabel("Sınıf:"))
-        self.new_class_combo = QComboBox()
-        form_layout.addWidget(self.new_class_combo)
-
-        # Ders seçimi
-        form_layout.addWidget(QLabel("Ders:"))
-        self.new_lesson_combo = QComboBox()
-        form_layout.addWidget(self.new_lesson_combo)
-
-        # Öğretmen seçimi
-        form_layout.addWidget(QLabel("Öğretmen:"))
         self.new_teacher_combo = QComboBox()
-        form_layout.addWidget(self.new_teacher_combo)
+        self.new_teacher_combo.currentIndexChanged.connect(self.on_teacher_selected)
+        teacher_layout.addWidget(self.new_teacher_combo)
 
-        # Atama butonu
-        self.assign_btn = QPushButton("ATAMAYI KAYDET")
-        self.assign_btn.setMinimumHeight(50)
-        self.assign_btn.setStyleSheet(
+        # Öğretmen yük göstergesi
+        self.teacher_load_label = QLabel("Mevcut Yük: -")
+        self.teacher_load_label.setStyleSheet("color: #7f8c8d; font-size: 10px; padding: 5px;")
+        teacher_layout.addWidget(self.teacher_load_label)
+
+        teacher_group.setLayout(teacher_layout)
+        layout.addWidget(teacher_group)
+
+        # Ders seçimi (branşa göre filtrelenmiş)
+        lesson_group = QGroupBox("2️⃣ Ders Seç")
+        lesson_layout = QVBoxLayout()
+        lesson_layout.setSpacing(8)
+
+        self.new_lesson_combo = QComboBox()
+        self.new_lesson_combo.currentIndexChanged.connect(self.on_lesson_selected)
+        lesson_layout.addWidget(self.new_lesson_combo)
+
+        # Ders bilgisi
+        self.lesson_info_label = QLabel("")
+        self.lesson_info_label.setStyleSheet("color: #7f8c8d; font-size: 10px; padding: 5px;")
+        self.lesson_info_label.setWordWrap(True)
+        lesson_layout.addWidget(self.lesson_info_label)
+
+        lesson_group.setLayout(lesson_layout)
+        layout.addWidget(lesson_group)
+
+        # Sınıf seçimi (çoklu)
+        class_group = QGroupBox("3️⃣ Sınıfları Seç (Çoklu)")
+        class_layout = QVBoxLayout()
+        class_layout.setSpacing(5)
+
+        # Hızlı seçim butonları
+        quick_select_layout = QHBoxLayout()
+        select_all_btn = QPushButton("Tümünü Seç")
+        select_all_btn.clicked.connect(self.select_all_classes)
+        select_all_btn.setMaximumHeight(30)
+        quick_select_layout.addWidget(select_all_btn)
+
+        deselect_all_btn = QPushButton("Hiçbiri")
+        deselect_all_btn.clicked.connect(self.deselect_all_classes)
+        deselect_all_btn.setMaximumHeight(30)
+        quick_select_layout.addWidget(deselect_all_btn)
+        class_layout.addLayout(quick_select_layout)
+
+        # Sınıf checkboxları için scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setMaximumHeight(200)
+
+        scroll_widget = QWidget()
+        self.class_checkboxes_layout = QVBoxLayout(scroll_widget)
+        self.class_checkboxes_layout.setSpacing(5)
+        self.class_checkboxes = []
+
+        scroll.setWidget(scroll_widget)
+        class_layout.addWidget(scroll)
+
+        class_group.setLayout(class_layout)
+        layout.addWidget(class_group)
+
+        # Toplu atama butonu
+        self.bulk_assign_btn = QPushButton("✓ TOPLU ATAMA YAP")
+        self.bulk_assign_btn.setMinimumHeight(50)
+        self.bulk_assign_btn.setStyleSheet(
             """
             QPushButton {
                 background-color: #27ae60;
                 color: white;
                 font-weight: bold;
-                font-size: 13px;
+                font-size: 14px;
                 border-radius: 5px;
             }
             QPushButton:hover {
                 background-color: #229954;
             }
+            QPushButton:disabled {
+                background-color: #95a5a6;
+            }
         """
         )
-        self.assign_btn.clicked.connect(self.quick_assign)
-        form_layout.addWidget(self.assign_btn)
-
-        form_group.setLayout(form_layout)
-        layout.addWidget(form_group)
+        self.bulk_assign_btn.clicked.connect(self.bulk_assign)
+        self.bulk_assign_btn.setEnabled(False)
+        layout.addWidget(self.bulk_assign_btn)
 
         # Bilgi kutusu
         info_label = QLabel(
-            "<b>İpucu:</b><br><br>"
-            "• Sol panelden filtre kullanarak<br>"
-            "&nbsp;&nbsp;atamaları görüntüleyebilirsiniz<br><br>"
-            "• Tablodaki 'Sil' butonuyla tek<br>"
-            "&nbsp;&nbsp;bir atamayı silebilirsiniz<br><br>"
-            "• Toplu silme butonlarını dikkatli<br>"
-            "&nbsp;&nbsp;kullanın!"
+            "<b>💡 Nasıl Kullanılır:</b><br><br>"
+            "1. Önce öğretmen seçin<br>"
+            "2. Atanacak dersi seçin<br>"
+            "3. Birden fazla sınıf seçin<br>"
+            "4. Toplu atama yapın<br><br>"
+            "<b>Avantajlar:</b><br>"
+            "• Tek seferde çok atama<br>"
+            "• Tüm dersler görünür<br>"
+            "• Öğretmen yükü görünür"
         )
         info_label.setStyleSheet(
             """
             QLabel {
-                background-color: #e8f5e9;
-                border-left: 4px solid #27ae60;
-                padding: 15px;
+                background-color: #e3f2fd;
+                border-left: 4px solid #2196f3;
+                padding: 12px;
                 border-radius: 5px;
                 color: #2c3e50;
+                font-size: 10px;
             }
         """
         )
@@ -311,9 +368,18 @@ class EasyAssignmentDialog(QDialog):
         """Verileri yükle"""
         # Sınıfları yükle
         classes = db_manager.get_all_classes()
-        for combo in [self.filter_class_combo, self.new_class_combo]:
-            for cls in classes:
-                combo.addItem(f"{cls.name} (Seviye {cls.grade})", cls.class_id)
+        
+        # Filtre combo'ya ekle
+        for cls in classes:
+            self.filter_class_combo.addItem(f"{cls.name} (Seviye {cls.grade})", cls.class_id)
+        
+        # Checkbox'lar oluştur
+        for cls in classes:
+            checkbox = QCheckBox(f"{cls.name} (Seviye {cls.grade})")
+            checkbox.setProperty("class_id", cls.class_id)
+            checkbox.stateChanged.connect(self.update_bulk_assign_button)
+            self.class_checkboxes.append(checkbox)
+            self.class_checkboxes_layout.addWidget(checkbox)
 
         # Öğretmenleri yükle
         teachers = db_manager.get_all_teachers()
@@ -321,11 +387,14 @@ class EasyAssignmentDialog(QDialog):
             for teacher in teachers:
                 combo.addItem(f"{teacher.name} ({teacher.subject})", teacher.teacher_id)
 
-        # Dersleri yükle
+        # Dersleri yükle (başlangıçta boş - öğretmen seçilince dolacak)
         lessons = db_manager.get_all_lessons()
-        for combo in [self.filter_lesson_combo, self.new_lesson_combo]:
+        for combo in [self.filter_lesson_combo]:
             for lesson in lessons:
                 combo.addItem(lesson.name, lesson.lesson_id)
+        
+        # ComboBox'ların dropdown arka planını beyaz yap
+        self._fix_combobox_backgrounds()
 
     def refresh_assignments(self):
         """Atama listesini yenile"""
@@ -426,39 +495,225 @@ class EasyAssignmentDialog(QDialog):
         self.filter_class_combo.setCurrentIndex(0)
         self.filter_teacher_combo.setCurrentIndex(0)
         self.filter_lesson_combo.setCurrentIndex(0)
+    
+    def _fix_combobox_backgrounds(self):
+        """Tüm ComboBox'ların dropdown arka planını beyaz yap"""
+        comboboxes = [
+            self.filter_class_combo,
+            self.filter_teacher_combo, 
+            self.filter_lesson_combo,
+            self.new_teacher_combo,
+            self.new_lesson_combo
+        ]
+        
+        for combo in comboboxes:
+            # View'ı al ve stil ayarla
+            view = combo.view()
+            view.setStyleSheet("""
+                QListView {
+                    background-color: white;
+                    color: #2c3e50;
+                    selection-background-color: #3498db;
+                    selection-color: white;
+                    border: 1px solid #dcdde1;
+                    outline: none;
+                }
+                QListView::item {
+                    background-color: white;
+                    color: #2c3e50;
+                    padding: 8px;
+                    min-height: 30px;
+                }
+                QListView::item:hover {
+                    background-color: #ecf0f1;
+                }
+                QListView::item:selected {
+                    background-color: #3498db;
+                    color: white;
+                }
+            """)
 
-    def quick_assign(self):
-        """Hızlı atama yap"""
-        class_id = self.new_class_combo.currentData()
-        lesson_id = self.new_lesson_combo.currentData()
+    def on_teacher_selected(self):
+        """Öğretmen seçildiğinde yük bilgisini göster ve tüm dersleri listele"""
         teacher_id = self.new_teacher_combo.currentData()
-
-        if not all([class_id, lesson_id, teacher_id]):
-            QMessageBox.warning(self, "Uyarı", "Lütfen tüm alanları doldurun!")
+        if not teacher_id:
+            self.new_lesson_combo.clear()
+            self.teacher_load_label.setText("Mevcut Yük: -")
             return
-
-        # Aynı atama var mı kontrol et
+        
+        teacher = db_manager.get_teacher_by_id(teacher_id)
+        if not teacher:
+            return
+        
+        # Öğretmenin mevcut yükünü hesapla
         assignments = db_manager.get_schedule_by_school_type()
-        for assignment in assignments:
-            if assignment.class_id == class_id and assignment.lesson_id == lesson_id:
-                reply = QMessageBox.question(
-                    self,
-                    "Onay",
-                    "Bu sınıf için bu ders zaten atanmış.\nMevcut atama üzerine yazılsın mı?",
-                    QMessageBox.Yes | QMessageBox.No,
-                )
-                if reply == QMessageBox.Yes:
-                    db_manager.delete_schedule_entry(assignment.entry_id)
-                else:
-                    return
-                break
-
-        # Yeni atama yap (day=-1, time_slot=-1 = atama, henüz programa konmadı)
-        if db_manager.add_schedule_entry(class_id, teacher_id, lesson_id, 1, -1, -1):
-            QMessageBox.information(self, "Başarılı", "Atama başarıyla kaydedildi!")
-            self.refresh_assignments()
+        teacher_assignments = [a for a in assignments if a.teacher_id == teacher_id]
+        total_hours = 0
+        for assignment in teacher_assignments:
+            lesson = db_manager.get_lesson_by_id(assignment.lesson_id)
+            cls = db_manager.get_class_by_id(assignment.class_id)
+            if lesson and cls:
+                hours = db_manager.get_weekly_hours_for_lesson(lesson.lesson_id, cls.grade)
+                total_hours += hours or 0
+        
+        self.teacher_load_label.setText(f"Mevcut Yük: {total_hours} saat/hafta | Branş: {teacher.subject}")
+        
+        # Tüm dersleri göster (filtreleme yok)
+        self.new_lesson_combo.clear()
+        all_lessons = db_manager.get_all_lessons()
+        
+        for lesson in all_lessons:
+            self.new_lesson_combo.addItem(lesson.name, lesson.lesson_id)
+        
+        self.lesson_info_label.setText(f"Toplam {len(all_lessons)} ders")
+        
+        # Ders combobox'ının arka planını düzelt
+        view = self.new_lesson_combo.view()
+        view.setStyleSheet("""
+            QListView {
+                background-color: white;
+                color: #2c3e50;
+                selection-background-color: #3498db;
+                selection-color: white;
+                border: 1px solid #dcdde1;
+                outline: none;
+            }
+            QListView::item {
+                background-color: white;
+                color: #2c3e50;
+                padding: 8px;
+                min-height: 30px;
+            }
+            QListView::item:hover {
+                background-color: #ecf0f1;
+            }
+            QListView::item:selected {
+                background-color: #3498db;
+                color: white;
+            }
+        """)
+        
+        self.update_bulk_assign_button()
+    
+    def on_lesson_selected(self):
+        """Ders seçildiğinde bilgi göster"""
+        lesson_id = self.new_lesson_combo.currentData()
+        if not lesson_id:
+            return
+        
+        lesson = db_manager.get_lesson_by_id(lesson_id)
+        if lesson:
+            # Kaç sınıfta bu ders var
+            classes = db_manager.get_all_classes()
+            applicable_count = 0
+            for cls in classes:
+                hours = db_manager.get_weekly_hours_for_lesson(lesson_id, cls.grade)
+                if hours and hours > 0:
+                    applicable_count += 1
+            
+            self.lesson_info_label.setText(f"Bu ders {applicable_count} sınıfta mevcut")
+        
+        self.update_bulk_assign_button()
+    
+    def select_all_classes(self):
+        """Tüm sınıfları seç"""
+        for checkbox in self.class_checkboxes:
+            checkbox.setChecked(True)
+    
+    def deselect_all_classes(self):
+        """Tüm sınıf seçimlerini kaldır"""
+        for checkbox in self.class_checkboxes:
+            checkbox.setChecked(False)
+    
+    def update_bulk_assign_button(self):
+        """Toplu atama butonunu aktif/pasif yap"""
+        teacher_id = self.new_teacher_combo.currentData()
+        lesson_id = self.new_lesson_combo.currentData()
+        selected_classes = [cb for cb in self.class_checkboxes if cb.isChecked()]
+        
+        if teacher_id and lesson_id and len(selected_classes) > 0:
+            self.bulk_assign_btn.setEnabled(True)
+            self.bulk_assign_btn.setText(f"✓ {len(selected_classes)} SINIFA ATAMA YAP")
         else:
-            QMessageBox.critical(self, "Hata", "Atama kaydedilemedi!")
+            self.bulk_assign_btn.setEnabled(False)
+            self.bulk_assign_btn.setText("✓ TOPLU ATAMA YAP")
+    
+    def bulk_assign(self):
+        """Toplu atama yap"""
+        teacher_id = self.new_teacher_combo.currentData()
+        lesson_id = self.new_lesson_combo.currentData()
+        selected_classes = [cb for cb in self.class_checkboxes if cb.isChecked()]
+        
+        if not all([teacher_id, lesson_id]) or len(selected_classes) == 0:
+            QMessageBox.warning(self, "Uyarı", "Lütfen öğretmen, ders ve en az bir sınıf seçin!")
+            return
+        
+        teacher = db_manager.get_teacher_by_id(teacher_id)
+        lesson = db_manager.get_lesson_by_id(lesson_id)
+        
+        # Onay iste
+        class_names = [cb.text() for cb in selected_classes]
+        reply = QMessageBox.question(
+            self,
+            "Toplu Atama Onayı",
+            f"Öğretmen: {teacher.name}\n"
+            f"Ders: {lesson.name}\n"
+            f"Sınıf Sayısı: {len(selected_classes)}\n\n"
+            f"Sınıflar:\n" + "\n".join([f"  • {name}" for name in class_names[:5]]) +
+            (f"\n  ... ve {len(class_names) - 5} sınıf daha" if len(class_names) > 5 else "") +
+            "\n\nBu atamaları yapmak istiyor musunuz?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply != QMessageBox.Yes:
+            return
+        
+        # Atamaları yap
+        success_count = 0
+        overwrite_count = 0
+        error_count = 0
+        
+        for checkbox in selected_classes:
+            class_id = checkbox.property("class_id")
+            
+            # Mevcut atama var mı kontrol et
+            assignments = db_manager.get_schedule_by_school_type()
+            existing = None
+            for assignment in assignments:
+                if assignment.class_id == class_id and assignment.lesson_id == lesson_id:
+                    existing = assignment
+                    break
+            
+            # Mevcut atamayı sil
+            if existing:
+                db_manager.delete_schedule_entry(existing.entry_id)
+                overwrite_count += 1
+            
+            # Yeni atama yap
+            if db_manager.add_schedule_entry(class_id, teacher_id, lesson_id, 1, -1, -1):
+                success_count += 1
+            else:
+                error_count += 1
+        
+        # Sonuç mesajı
+        result_msg = f"✓ Başarılı: {success_count} atama\n"
+        if overwrite_count > 0:
+            result_msg += f"↻ Üzerine yazılan: {overwrite_count} atama\n"
+        if error_count > 0:
+            result_msg += f"✗ Hata: {error_count} atama\n"
+        
+        QMessageBox.information(self, "Toplu Atama Tamamlandı", result_msg)
+        
+        # Seçimleri temizle
+        self.deselect_all_classes()
+        
+        # Listeyi yenile
+        self.refresh_assignments()
+    
+    def quick_assign(self):
+        """Hızlı atama yap (eski tek atama - artık kullanılmıyor)"""
+        # Toplu atama kullanılıyor, bu fonksiyon artık gerekli değil
+        pass
 
     def delete_single_assignment(self, entry_id):
         """Tek bir atamayı sil"""
@@ -682,6 +937,7 @@ class EasyAssignmentDialog(QDialog):
                 color: #2c3e50;
                 padding: 8px;
                 min-height: 30px;
+                border: none;
             }
             QComboBox QAbstractItemView::item:hover {
                 background-color: #ecf0f1;
@@ -690,6 +946,14 @@ class EasyAssignmentDialog(QDialog):
             QComboBox QAbstractItemView::item:selected {
                 background-color: #3498db;
                 color: white;
+            }
+            QComboBox QListView {
+                background-color: white;
+                color: #2c3e50;
+            }
+            QComboBox::item {
+                background-color: white;
+                color: #2c3e50;
             }
             QPushButton {
                 padding: 10px 15px;

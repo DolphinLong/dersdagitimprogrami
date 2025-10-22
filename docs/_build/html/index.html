@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ders Dağıtım Programı - API Dokümantasyonu &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=b0f24d8d"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="genindex.html" />
+    <link rel="search" title="Ara" href="search.html" />
+    <link rel="next" title="Algorithms Modülü" href="modules/algorithms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Ders Dağıtım Programı - API Dokümantasyonu</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> Sayfa kaynağını görüntüle</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ders-dagitim-programi-api-dokumantasyonu">
+<h1>Ders Dağıtım Programı - API Dokümantasyonu<a class="headerlink" href="#ders-dagitim-programi-api-dokumantasyonu" title="Link to this heading"></a></h1>
+<section id="hos-geldiniz">
+<h2>Hoş Geldiniz!<a class="headerlink" href="#hos-geldiniz" title="Link to this heading"></a></h2>
+<p>Bu dokümantasyon, Ders Dağıtım Programı’nın API referansını içerir.</p>
+<p>Modern ve akıllı okul ders programı oluşturma sistemi. Yapay zeka destekli
+algoritmalar ile otomatik ders dağılımı, öğretmen yük dengeleme ve çakışma önleme.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules/algorithms.html">Algorithms Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.base_scheduler">Base Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.hybrid_optimal_scheduler">Hybrid Optimal Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.ultra_aggressive_scheduler">Ultra Aggressive Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.simple_perfect_scheduler">Simple Perfect Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.ultimate_scheduler">Ultimate Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.enhanced_strict_scheduler">Enhanced Strict Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.advanced_scheduler">Advanced Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#ml-scheduler">ML Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.interactive_scheduler">Interactive Scheduler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.csp_solver">CSP Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.soft_constraints">Soft Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.heuristics">Heuristics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.local_search">Local Search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.scheduler_explainer">Scheduler Explainer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.performance_monitor">Performance Monitor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/algorithms.html#module-algorithms.constraint_priority_manager">Constraint Priority Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/database.html">Database Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/database.html#module-database.db_manager">Database Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/database.html#module-database.models">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/database.html#kullanim-ornekleri">Kullanım Örnekleri</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/ui.html">UI Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/ui.html#module-ui.main_window">Main Window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/ui.html#module-ui.schedule_widget">Schedule Widget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/ui.html#module-ui.modern_schedule_planner">Modern Schedule Planner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/ui.html#module-ui.school_type_dialog">School Type Dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/ui.html#dialogs">Dialogs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/utils.html">Utils Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/utils.html#module-utils.password_hasher">Password Hasher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/utils.html#module-utils.helpers">Helpers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/config.html">Config Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/config.html#module-config.config_loader">Config Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/config.html#kullanim-ornekleri">Kullanım Örnekleri</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/reports.html">Reports Modülü</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/reports.html#module-reports.excel_generator">Excel Generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/reports.html#module-reports.pdf_generator">PDF Generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/reports.html#module-reports.html_generator">HTML Generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/reports.html#kullanim-ornekleri">Kullanım Örnekleri</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="hizli-baslangic">
+<h2>Hızlı Başlangıç<a class="headerlink" href="#hizli-baslangic" title="Link to this heading"></a></h2>
+<section id="kurulum">
+<h3>Kurulum<a class="headerlink" href="#kurulum" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</section>
+<section id="kullanim">
+<h3>Kullanım<a class="headerlink" href="#kullanim" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">database.db_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">algorithms.hybrid_optimal_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">HybridOptimalScheduler</span>
+
+<span class="c1"># Veritabanı bağlantısı</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s2">&quot;schedule.db&quot;</span><span class="p">)</span>
+
+<span class="c1"># Zamanlayıcı oluştur</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">HybridOptimalScheduler</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+
+<span class="c1"># Program oluştur</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">generate_schedule</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="ozellikler">
+<h2>Özellikler<a class="headerlink" href="#ozellikler" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>🚀 8+ farklı zamanlama algoritması</p></li>
+<li><p>🎯 Hard ve soft constraint desteği</p></li>
+<li><p>🤖 Makine öğrenmesi entegrasyonu</p></li>
+<li><p>📊 Excel/PDF/HTML rapor üretimi</p></li>
+<li><p>🧪 174+ test (45% coverage)</p></li>
+<li><p>🔒 Güvenli şifre hashleme (bcrypt/PBKDF2)</p></li>
+<li><p>🎨 Modern PyQt5 arayüzü</p></li>
+</ul>
+</section>
+<section id="indeksler-ve-tablolar">
+<h2>İndeksler ve Tablolar<a class="headerlink" href="#indeksler-ve-tablolar" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Dizin</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Modül Dizini</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Arama Sayfası</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules/algorithms.html" class="btn btn-neutral float-right" title="Algorithms Modülü" accesskey="n" rel="next">Sonraki <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ui.dialogs.lesson_dialog &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../../genindex.html" />
+    <link rel="search" title="Ara" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">ui.dialogs.lesson_dialog</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ui.dialogs.lesson_dialog öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QHeaderView</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QLineEdit</span><span class="p">,</span>
+    <span class="n">QMessageBox</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QTableWidget</span><span class="p">,</span>
+    <span class="n">QTableWidgetItem</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_styled_message_box</span>
+
+
+<div class="viewcode-block" id="LessonDialog">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.lesson_dialog.LessonDialog">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LessonDialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog for adding or editing lessons and their curriculum.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LessonDialog.__init__">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.lesson_dialog.LessonDialog.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lesson</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lesson</span> <span class="o">=</span> <span class="n">lesson</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Ders ve Müfredat Yönetimi&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumSize</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_ui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populate_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_styles</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LessonDialog.setup_ui">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.lesson_dialog.LessonDialog.setup_ui">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the user interface.&quot;&quot;&quot;</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+        <span class="c1"># Title</span>
+        <span class="n">title_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Ders ve Müfredat Yönetimi&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title_label</span><span class="p">)</span>
+
+        <span class="c1"># Name input</span>
+        <span class="n">name_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">name_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Ders Adı:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Dersin adını girin&quot;</span><span class="p">)</span>
+        <span class="n">name_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">name_label</span><span class="p">)</span>
+        <span class="n">name_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">name_layout</span><span class="p">)</span>
+
+        <span class="c1"># Curriculum Table</span>
+        <span class="n">curriculum_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Sınıf Seviyesine Göre Haftalık Ders Saatleri:&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">curriculum_label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span> <span class="o">=</span> <span class="n">QTableWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">([</span><span class="s2">&quot;Sınıf Seviyesi&quot;</span><span class="p">,</span> <span class="s2">&quot;Haftalık Saat&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">QHeaderView</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">QHeaderView</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="p">)</span>
+
+        <span class="c1"># Buttons</span>
+        <span class="n">button_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;✅ Kaydet&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_lesson_and_curriculum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;❌ İptal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="p">)</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cancel_button</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">button_layout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LessonDialog.populate_data">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.lesson_dialog.LessonDialog.populate_data">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate dialog with existing lesson and curriculum data.&quot;&quot;&quot;</span>
+        <span class="c1"># Define grades based on school type</span>
+        <span class="n">school_type</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">school_type</span> <span class="o">==</span> <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span>
+            <span class="n">grades</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">school_type</span> <span class="o">==</span> <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span>
+            <span class="n">grades</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Lise and others</span>
+            <span class="n">grades</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">setRowCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grades</span><span class="p">))</span>
+
+        <span class="c1"># Store grades in the first column (as non-editable items)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">grade</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grades</span><span class="p">):</span>
+            <span class="n">grade_item</span> <span class="o">=</span> <span class="n">QTableWidgetItem</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grade</span><span class="si">}</span><span class="s2">. Sınıf&quot;</span><span class="p">)</span>
+            <span class="n">grade_item</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">,</span> <span class="n">grade</span><span class="p">)</span>
+            <span class="n">grade_item</span><span class="o">.</span><span class="n">setFlags</span><span class="p">(</span><span class="n">grade_item</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">grade_item</span><span class="p">)</span>
+
+            <span class="c1"># Add an empty item for weekly hours</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">QTableWidgetItem</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="c1"># Get curriculum data for the lesson</span>
+            <span class="n">curriculum_data</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_curriculum_for_lesson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+            <span class="n">curriculum_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="o">.</span><span class="n">grade</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">weekly_hours</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">curriculum_data</span><span class="p">}</span>
+
+            <span class="c1"># Populate the table with existing hours</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()):</span>
+                <span class="n">grade_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">grade</span> <span class="o">=</span> <span class="n">grade_item</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">grade</span> <span class="ow">in</span> <span class="n">curriculum_map</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">curriculum_map</span><span class="p">[</span><span class="n">grade</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="LessonDialog.save_lesson_and_curriculum">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.lesson_dialog.LessonDialog.save_lesson_and_curriculum">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_lesson_and_curriculum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save lesson name and its curriculum data.&quot;&quot;&quot;</span>
+        <span class="n">lesson_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lesson_name</span><span class="p">:</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Ders adı boş bırakılamaz.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Step 1: Save the lesson name (add or update)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="p">:</span>
+                <span class="c1"># Update existing lesson name if it has changed</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">lesson_name</span><span class="p">:</span>
+                    <span class="n">db_manager</span><span class="o">.</span><span class="n">update_lesson</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">lesson_name</span><span class="p">)</span>
+                <span class="n">lesson_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lesson</span><span class="o">.</span><span class="n">lesson_id</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Add new lesson</span>
+                <span class="n">lesson_id</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">add_lesson</span><span class="p">(</span><span class="n">lesson_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">lesson_id</span><span class="p">:</span>
+                    <span class="c1"># This could happen if there&#39;s a database error</span>
+                    <span class="n">create_styled_message_box</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2">&#39; dersi eklenirken bir hata oluştu. Lütfen tekrar deneyin.&quot;</span><span class="p">,</span>
+                        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span><span class="p">,</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Check if this is an existing lesson (returned existing ID)</span>
+                    <span class="n">existing_lessons</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">()</span>
+                    <span class="n">is_existing</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">lesson_id</span> <span class="o">==</span> <span class="n">lesson_id</span> <span class="ow">and</span> <span class="n">l</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">lesson_name</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">existing_lessons</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">is_existing</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using existing lesson &#39;</span><span class="si">{</span><span class="n">lesson_name</span><span class="si">}</span><span class="s2">&#39; with ID </span><span class="si">{</span><span class="n">lesson_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Step 2: Save the curriculum data from the table</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()):</span>
+                <span class="n">grade</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">UserRole</span><span class="p">)</span>
+                <span class="n">hours_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curriculum_table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">hours_text</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">weekly_hours</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hours_text</span><span class="p">)</span>
+                        <span class="n">db_manager</span><span class="o">.</span><span class="n">add_or_update_curriculum</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">weekly_hours</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">create_styled_message_box</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="p">,</span>
+                            <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grade</span><span class="si">}</span><span class="s2">. sınıf için girilen saat geçersiz bir sayı.&quot;</span><span class="p">,</span>
+                            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span><span class="p">,</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                        <span class="k">return</span>  <span class="c1"># Stop saving on first error</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Optional: handle empty hours - maybe delete the curriculum entry if it exists</span>
+                    <span class="k">pass</span>
+
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="s2">&quot;Ders ve müfredat bilgileri başarıyla kaydedildi.&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error saving lesson/curriculum: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Kaydederken bir hata oluştu: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LessonDialog.apply_styles">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.lesson_dialog.LessonDialog.apply_styles">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply modern styles.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QDialog {</span>
+<span class="sd">                background-color: #f8f9fa;</span>
+<span class="sd">            }</span>
+<span class="sd">            QLabel, QLineEdit, QPushButton {</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #title {</span>
+<span class="sd">                font-size: 18px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: #343a40;</span>
+<span class="sd">            }</span>
+<span class="sd">            QLineEdit {</span>
+<span class="sd">                padding: 8px;</span>
+<span class="sd">                border: 1px solid #ced4da;</span>
+<span class="sd">                border-radius: 4px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QTableWidget {</span>
+<span class="sd">                border: 1px solid #dee2e6;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton {</span>
+<span class="sd">                padding: 10px 15px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 4px;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:hover {</span>
+<span class="sd">                opacity: 0.9;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

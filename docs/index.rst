@@ -13,6 +13,7 @@ algoritmalar ile otomatik ders dağılımı, öğretmen yük dengeleme ve çakı
    :maxdepth: 2
    :caption: İçindekiler:
 
+   algorithm_selection
    modules/algorithms
    modules/database
    modules/ui

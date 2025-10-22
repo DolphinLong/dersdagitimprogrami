@@ -1,0 +1,1228 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ui.schedule_widget &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">ui.schedule_widget</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ui.schedule_widget öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">🚀 MODERN SCHEDULE PLANNER - Çarpıcı Yeni Tasarım</span>
+<span class="sd">Ultra-modern, animasyonlu, etkileyici arayüz</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;win&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;reconfigure&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">reconfigure</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">QEasingCurve</span><span class="p">,</span> <span class="n">QPropertyAnimation</span><span class="p">,</span> <span class="n">QSize</span><span class="p">,</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">QThread</span><span class="p">,</span> <span class="n">QTimer</span><span class="p">,</span> <span class="n">pyqtSignal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QBrush</span><span class="p">,</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QFont</span><span class="p">,</span> <span class="n">QIcon</span><span class="p">,</span> <span class="n">QLinearGradient</span><span class="p">,</span> <span class="n">QPainter</span><span class="p">,</span> <span class="n">QPalette</span><span class="p">,</span> <span class="n">QPen</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QComboBox</span><span class="p">,</span>
+    <span class="n">QFrame</span><span class="p">,</span>
+    <span class="n">QGraphicsDropShadowEffect</span><span class="p">,</span>
+    <span class="n">QGridLayout</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QMessageBox</span><span class="p">,</span>
+    <span class="n">QProgressBar</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QScrollArea</span><span class="p">,</span>
+    <span class="n">QSplitter</span><span class="p">,</span>
+    <span class="n">QTextEdit</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+    <span class="n">QWidget</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">algorithms.scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scheduler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_color_for_lesson</span>
+
+
+<div class="viewcode-block" id="ScheduleGenerationThread">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleGenerationThread">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScheduleGenerationThread</span><span class="p">(</span><span class="n">QThread</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Background thread for schedule generation&quot;&quot;&quot;</span>
+
+    <span class="n">progress</span> <span class="o">=</span> <span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>  <span class="c1"># percentage, message</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>  <span class="c1"># schedule_entries</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>  <span class="c1"># error message</span>
+
+<div class="viewcode-block" id="ScheduleGenerationThread.__init__">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleGenerationThread.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scheduler</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleGenerationThread.progress_callback">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleGenerationThread.progress_callback">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">percentage</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scheduler&#39;dan gelen progress güncellemelerini UI&#39;ye aktar&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">percentage</span><span class="p">),</span> <span class="n">message</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleGenerationThread.run">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleGenerationThread.run">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;🔍 Ders atamaları kontrol ediliyor...&quot;</span><span class="p">)</span>
+            <span class="n">assignments</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">assignments</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                    <span class="s2">&quot;❌ Ders ataması bulunamadı!</span><span class="se">\n\n</span><span class="s2">Lütfen önce &#39;Ders Atama&#39; menüsünden dersleri öğretmenlere atayın.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;🧹 Mevcut program temizleniyor...&quot;</span><span class="p">)</span>
+            <span class="n">db_manager</span><span class="o">.</span><span class="n">clear_schedule</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="s2">&quot;📋 Mevcut ders atamaları yükleniyor...&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;🎯 Akıllı algoritma çalışıyor...&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Try enhanced curriculum-based scheduler first (addresses core issue)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Check if we have the enhanced curriculum-based scheduler available</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">algorithms.curriculum_based_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">CurriculumBasedFullScheduleGenerator</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="s2">&quot;📚 Geliştirilmiş müfredat tabanlı algoritma yükleniyor...&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Create enhanced scheduler instance</span>
+                <span class="n">enhanced_scheduler</span> <span class="o">=</span> <span class="n">CurriculumBasedFullScheduleGenerator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">db_manager</span><span class="p">)</span>
+                <span class="n">schedule_entries</span> <span class="o">=</span> <span class="n">enhanced_scheduler</span><span class="o">.</span><span class="n">generate_full_schedule</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;✅ Geliştirilmiş algoritma çalıştı: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">schedule_entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders&quot;</span><span class="p">)</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;🚀 ENHANCED CURRICULUM-BASED SCHEDULER Aktif - Tam müfredat planlaması!&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   ✅ Addresses core issue: schedules 280 hours instead of 112 assignments&quot;</span><span class="p">)</span>
+                
+            <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enhanced curriculum-based scheduler not available: </span><span class="si">{</span><span class="n">ie</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># Fall back to standard scheduler</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="s2">&quot;🔧 Standart algoritma yükleniyor...&quot;</span><span class="p">)</span>
+                <span class="n">schedule_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">generate_schedule</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;✅ Standart algoritma çalıştı: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">schedule_entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error with enhanced curriculum-based scheduler: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># Fall back to standard scheduler</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="s2">&quot;🔧 Standart algoritma yükleniyor...&quot;</span><span class="p">)</span>
+                <span class="n">schedule_entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">generate_schedule</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;✅ Standart algoritma çalıştı: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">schedule_entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders&quot;</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="s2">&quot;🔍 Çakışmalar kontrol ediliyor...&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">70</span><span class="p">,</span> <span class="s2">&quot;💾 Veritabanına kaydediliyor...&quot;</span><span class="p">)</span>
+            <span class="n">saved_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># ACTUALLY SAVE THE SCHEDULE TO DATABASE</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule_entries</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">db_manager</span><span class="o">.</span><span class="n">add_schedule_program</span><span class="p">(</span>
+                        <span class="n">class_id</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span>
+                        <span class="n">teacher_id</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">],</span> 
+                        <span class="n">lesson_id</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;lesson_id&quot;</span><span class="p">],</span>
+                        <span class="n">classroom_id</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classroom_id&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                        <span class="n">day</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;day&quot;</span><span class="p">],</span>
+                        <span class="n">time_slot</span><span class="o">=</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;time_slot&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">saved_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">save_error</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to save entry: </span><span class="si">{</span><span class="n">save_error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;💾 Program temizleniyor...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;✅ Tamamlandı! </span><span class="si">{</span><span class="n">saved_count</span><span class="si">}</span><span class="s2"> ders yerleştirildi&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Verify the saved schedule</span>
+            <span class="n">final_schedule</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_program_by_school_type</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">final_schedule</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Schedule generation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hata oluştu: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StatCard">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.StatCard">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StatCard</span><span class="p">(</span><span class="n">QFrame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Modern istatistik kartı&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StatCard.__init__">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.StatCard.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;statCard&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_text</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># Shadow effect</span>
+        <span class="n">shadow</span> <span class="o">=</span> <span class="n">QGraphicsDropShadowEffect</span><span class="p">()</span>
+        <span class="n">shadow</span><span class="o">.</span><span class="n">setBlurRadius</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+        <span class="n">shadow</span><span class="o">.</span><span class="n">setOffset</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">shadow</span><span class="o">.</span><span class="n">setColor</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setGraphicsEffect</span><span class="p">(</span><span class="n">shadow</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+        <span class="c1"># Icon and value</span>
+        <span class="n">top_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+
+        <span class="n">icon_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+        <span class="n">icon_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI Emoji&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">))</span>
+        <span class="n">top_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">icon_label</span><span class="p">)</span>
+
+        <span class="n">top_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;color: </span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2">;&quot;</span><span class="p">)</span>
+        <span class="n">top_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_label</span><span class="p">)</span>
+
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">top_layout</span><span class="p">)</span>
+
+        <span class="c1"># Title</span>
+        <span class="n">title_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: #7f8c8d;&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title_label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFixedHeight</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
+
+        <span class="c1"># Styling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QFrame#statCard {</span>
+<span class="sd">                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,</span>
+<span class="sd">                    stop:0 #ffffff, stop:1 #f8f9fa);</span>
+<span class="sd">                border-radius: 15px;</span>
+<span class="sd">                border: 2px solid #e9ecef;</span>
+<span class="sd">            }</span>
+<span class="sd">            QFrame#statCard:hover {</span>
+<span class="sd">                border: 2px solid &quot;&quot;&quot;</span>
+            <span class="o">+</span> <span class="n">color</span>
+            <span class="o">+</span> <span class="s2">&quot;&quot;&quot;;</span>
+<span class="s2">                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,</span>
+<span class="s2">                    stop:0 #ffffff, stop:1 #f0f7ff);</span>
+<span class="s2">            }</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="StatCard.update_value">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.StatCard.update_value">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Animate value change&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModernButton">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ModernButton">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernButton</span><span class="p">(</span><span class="n">QPushButton</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ultra-modern buton&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernButton.__init__">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ModernButton.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setCursor</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">PointingHandCursor</span><span class="p">)</span>
+
+        <span class="c1"># Shadow</span>
+        <span class="n">shadow</span> <span class="o">=</span> <span class="n">QGraphicsDropShadowEffect</span><span class="p">()</span>
+        <span class="n">shadow</span><span class="o">.</span><span class="n">setBlurRadius</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">shadow</span><span class="o">.</span><span class="n">setOffset</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">shadow</span><span class="o">.</span><span class="n">setColor</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">80</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setGraphicsEffect</span><span class="p">(</span><span class="n">shadow</span><span class="p">)</span>
+
+        <span class="c1"># Styling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            QPushButton </span><span class="se">{{</span>
+<span class="s2">                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,</span>
+<span class="s2">                    stop:0 </span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2">, stop:1 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_darken_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span><span class="si">}</span><span class="s2">);</span>
+<span class="s2">                color: white;</span>
+<span class="s2">                border: none;</span>
+<span class="s2">                border-radius: 12px;</span>
+<span class="s2">                padding: 12px 24px;</span>
+<span class="s2">                text-align: left;</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            QPushButton:hover </span><span class="se">{{</span>
+<span class="s2">                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,</span>
+<span class="s2">                    stop:0 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lighten_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span><span class="si">}</span><span class="s2">, stop:1 </span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2">);</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            QPushButton:pressed </span><span class="se">{{</span>
+<span class="s2">                background: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_darken_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span><span class="si">}</span><span class="s2">;</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            QPushButton:disabled </span><span class="se">{{</span>
+<span class="s2">                background: #bdc3c7;</span>
+<span class="s2">                color: #7f8c8d;</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_darken_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Darken a color&quot;&quot;&quot;</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;#27ae60&quot;</span><span class="p">:</span> <span class="s2">&quot;#229954&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#3498db&quot;</span><span class="p">:</span> <span class="s2">&quot;#2980b9&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#e74c3c&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0392b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#f39c12&quot;</span><span class="p">:</span> <span class="s2">&quot;#e67e22&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#9b59b6&quot;</span><span class="p">:</span> <span class="s2">&quot;#8e44ad&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lighten_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lighten a color&quot;&quot;&quot;</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;#27ae60&quot;</span><span class="p">:</span> <span class="s2">&quot;#2ecc71&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#3498db&quot;</span><span class="p">:</span> <span class="s2">&quot;#5dade2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#e74c3c&quot;</span><span class="p">:</span> <span class="s2">&quot;#ec7063&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#f39c12&quot;</span><span class="p">:</span> <span class="s2">&quot;#f8c471&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#9b59b6&quot;</span><span class="p">:</span> <span class="s2">&quot;#af7ac5&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ScheduleWidget">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScheduleWidget</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;🚀 Ultra-modern Schedule Planner (ScheduleWidget for backward compatibility)&quot;&quot;&quot;</span>
+
+    <span class="n">SCHOOL_TIME_SLOTS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">&quot;Lise&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Anadolu Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Fen Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;Sosyal Bilimler Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="ScheduleWidget.__init__">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c1"># Scheduler will be created dynamically (to support progress callback)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_ui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_statistics</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.setup_ui">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.setup_ui">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup the stunning UI&quot;&quot;&quot;</span>
+        <span class="n">main_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+
+        <span class="c1"># Hero Section</span>
+        <span class="n">hero</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_hero_section</span><span class="p">()</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">hero</span><span class="p">)</span>
+
+        <span class="c1"># Statistics Cards</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_statistics_section</span><span class="p">()</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+
+        <span class="c1"># Action Center</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_action_center</span><span class="p">()</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+
+        <span class="c1"># Progress Section (hidden by default)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_progress_section</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_section</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progress_section</span><span class="p">)</span>
+
+        <span class="c1"># Live Log (collapsible)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_log_section</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_section</span><span class="o">.</span><span class="n">setMaximumHeight</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_section</span><span class="p">)</span>
+
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="c1"># Apply global styling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_global_styles</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.create_hero_section">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.create_hero_section">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_hero_section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create hero section with gradient background&quot;&quot;&quot;</span>
+        <span class="n">hero</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">hero</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;heroSection&quot;</span><span class="p">)</span>
+        <span class="n">hero</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">180</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">hero</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="c1"># Title with icon</span>
+        <span class="n">title_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;🎯&quot;</span><span class="p">)</span>
+        <span class="n">icon</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI Emoji&quot;</span><span class="p">,</span> <span class="mi">48</span><span class="p">))</span>
+        <span class="n">title_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;DERS PROGRAMI OLUŞTURUCU&quot;</span><span class="p">)</span>
+        <span class="n">title</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="n">title</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: white; letter-spacing: 2px;&quot;</span><span class="p">)</span>
+        <span class="n">title_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="n">title_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">title_layout</span><span class="p">)</span>
+
+        <span class="c1"># Subtitle</span>
+        <span class="n">subtitle</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Yapay zeka destekli akıllı program oluşturma sistemi&quot;</span><span class="p">)</span>
+        <span class="n">subtitle</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">))</span>
+        <span class="n">subtitle</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: rgba(255, 255, 255, 0.9);&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">subtitle</span><span class="p">)</span>
+
+        <span class="c1"># Features</span>
+        <span class="n">features_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;✨ Akıllı dağılım algoritması&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;🎯 2+2+1 optimal bloklar&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;⚡ Çakışma tespiti&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;🔄 Otomatik düzeltme&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+            <span class="n">feature_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+            <span class="n">feature_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="n">feature_label</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+                <span class="s2">&quot;color: rgba(255, 255, 255, 0.85); padding: 5px 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;&quot;</span>
+            <span class="p">)</span>
+            <span class="n">features_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">feature_label</span><span class="p">)</span>
+        <span class="n">features_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">features_layout</span><span class="p">)</span>
+
+        <span class="n">hero</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QFrame#heroSection {</span>
+<span class="sd">                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,</span>
+<span class="sd">                    stop:0 #667eea, stop:0.5 #764ba2, stop:1 #f093fb);</span>
+<span class="sd">                border-radius: 20px;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hero</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.create_statistics_section">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.create_statistics_section">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_statistics_section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create statistics cards&quot;&quot;&quot;</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QGridLayout</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Get statistics</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+        <span class="n">teachers</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+        <span class="n">lessons</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">()</span>
+        <span class="n">assignments</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+        <span class="c1"># Create cards</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes_card</span> <span class="o">=</span> <span class="n">StatCard</span><span class="p">(</span><span class="s2">&quot;🏫&quot;</span><span class="p">,</span> <span class="s2">&quot;SINIFLAR&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="s2">&quot;#3498db&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teachers_card</span> <span class="o">=</span> <span class="n">StatCard</span><span class="p">(</span><span class="s2">&quot;👨‍🏫&quot;</span><span class="p">,</span> <span class="s2">&quot;ÖĞRETMENLER&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">teachers</span><span class="p">),</span> <span class="s2">&quot;#27ae60&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lessons_card</span> <span class="o">=</span> <span class="n">StatCard</span><span class="p">(</span><span class="s2">&quot;📚&quot;</span><span class="p">,</span> <span class="s2">&quot;DERSLER&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lessons</span><span class="p">),</span> <span class="s2">&quot;#f39c12&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assignments_card</span> <span class="o">=</span> <span class="n">StatCard</span><span class="p">(</span><span class="s2">&quot;📝&quot;</span><span class="p">,</span> <span class="s2">&quot;ATAMALAR&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">assignments</span><span class="p">),</span> <span class="s2">&quot;#9b59b6&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">teachers_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lessons_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assignments_card</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">container</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.create_action_center">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.create_action_center">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_action_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create action center with modern buttons&quot;&quot;&quot;</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">container</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;actionCenter&quot;</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="c1"># Main action button with card style</span>
+        <span class="n">main_card</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">main_card</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;mainCard&quot;</span><span class="p">)</span>
+        <span class="n">main_card_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">main_card</span><span class="p">)</span>
+        <span class="n">main_card_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">main_card_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># Title for main action</span>
+        <span class="n">main_title</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Yeni Program Oluştur&quot;</span><span class="p">)</span>
+        <span class="n">main_title</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="n">main_title</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: #2c3e50;&quot;</span><span class="p">)</span>
+        <span class="n">main_card_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">main_title</span><span class="p">)</span>
+
+        <span class="c1"># Description</span>
+        <span class="n">main_desc</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Akıllı algoritma ile otomatik ders programı oluştur&quot;</span><span class="p">)</span>
+        <span class="n">main_desc</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="n">main_desc</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: #7f8c8d;&quot;</span><span class="p">)</span>
+        <span class="n">main_desc</span><span class="o">.</span><span class="n">setWordWrap</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">main_card_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">main_desc</span><span class="p">)</span>
+
+        <span class="c1"># Main buttons (horizontal layout)</span>
+        <span class="n">main_buttons_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">main_buttons_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span> <span class="o">=</span> <span class="n">ModernButton</span><span class="p">(</span><span class="s2">&quot;PROGRAMI OLUŞTUR&quot;</span><span class="p">,</span> <span class="s2">&quot;🚀&quot;</span><span class="p">,</span> <span class="s2">&quot;#27ae60&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_schedule</span><span class="p">)</span>
+        <span class="n">main_buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_gaps_btn</span> <span class="o">=</span> <span class="n">ModernButton</span><span class="p">(</span><span class="s2">&quot;BOŞLUKLARI DOLDUR&quot;</span><span class="p">,</span> <span class="s2">&quot;⚡&quot;</span><span class="p">,</span> <span class="s2">&quot;#e67e22&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_gaps_btn</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_gaps_btn</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_gaps_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fill_empty_slots</span><span class="p">)</span>
+        <span class="n">main_buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fill_gaps_btn</span><span class="p">)</span>
+
+        <span class="n">main_card_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">main_buttons_layout</span><span class="p">)</span>
+
+        <span class="n">main_card</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QFrame#mainCard {</span>
+<span class="sd">                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,</span>
+<span class="sd">                    stop:0 #e8f5e9, stop:1 #c8e6c9);</span>
+<span class="sd">                border-radius: 15px;</span>
+<span class="sd">                border: 2px solid #81c784;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">main_card</span><span class="p">)</span>
+
+        <span class="c1"># Secondary actions title</span>
+        <span class="n">sec_title</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Diğer İşlemler&quot;</span><span class="p">)</span>
+        <span class="n">sec_title</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">))</span>
+        <span class="n">sec_title</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: #2c3e50; margin-top: 10px;&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">sec_title</span><span class="p">)</span>
+
+        <span class="c1"># Secondary buttons grid</span>
+        <span class="n">buttons_layout</span> <span class="o">=</span> <span class="n">QGridLayout</span><span class="p">()</span>
+        <span class="n">buttons_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_class_btn</span> <span class="o">=</span> <span class="n">ModernButton</span><span class="p">(</span><span class="s2">&quot;Sınıf Programı&quot;</span><span class="p">,</span> <span class="s2">&quot;📊&quot;</span><span class="p">,</span> <span class="s2">&quot;#3498db&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_class_btn</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_class_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_class_schedule</span><span class="p">)</span>
+        <span class="n">buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_class_btn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_teacher_btn</span> <span class="o">=</span> <span class="n">ModernButton</span><span class="p">(</span><span class="s2">&quot;Öğretmen Programı&quot;</span><span class="p">,</span> <span class="s2">&quot;👨‍🏫&quot;</span><span class="p">,</span> <span class="s2">&quot;#9b59b6&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_teacher_btn</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_teacher_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_teacher_schedule</span><span class="p">)</span>
+        <span class="n">buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_teacher_btn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_btn</span> <span class="o">=</span> <span class="n">ModernButton</span><span class="p">(</span><span class="s2">&quot;Programı Temizle&quot;</span><span class="p">,</span> <span class="s2">&quot;🗑️&quot;</span><span class="p">,</span> <span class="s2">&quot;#e74c3c&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_btn</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clear_schedule</span><span class="p">)</span>
+        <span class="n">buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clear_btn</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">buttons_layout</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+
+        <span class="n">container</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QFrame#actionCenter {</span>
+<span class="sd">                background: white;</span>
+<span class="sd">                border-radius: 20px;</span>
+<span class="sd">                border: 2px solid #e9ecef;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">container</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.create_progress_section">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.create_progress_section">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_progress_section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create animated progress section&quot;&quot;&quot;</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">container</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;progressSection&quot;</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="c1"># Progress bar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span> <span class="o">=</span> <span class="n">QProgressBar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setTextVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setFormat</span><span class="p">(</span><span class="s2">&quot;%p</span><span class="si">% - %</span><span class="s2">v/%m&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QProgressBar {</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 20px;</span>
+<span class="sd">                background: #ecf0f1;</span>
+<span class="sd">                text-align: center;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">            }</span>
+<span class="sd">            QProgressBar::chunk {</span>
+<span class="sd">                border-radius: 20px;</span>
+<span class="sd">                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,</span>
+<span class="sd">                    stop:0 #667eea, stop:0.5 #764ba2, stop:1 #f093fb);</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="p">)</span>
+
+        <span class="c1"># Status label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Hazır...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;color: #7f8c8d;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status_label</span><span class="p">)</span>
+
+        <span class="n">container</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QFrame#progressSection {</span>
+<span class="sd">                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,</span>
+<span class="sd">                    stop:0 #ffecd2, stop:1 #fcb69f);</span>
+<span class="sd">                border-radius: 15px;</span>
+<span class="sd">                border: 2px solid #ffa07a;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">container</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.create_log_section">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.create_log_section">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_log_section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create collapsible log section&quot;&quot;&quot;</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">container</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;logSection&quot;</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># Toggle button</span>
+        <span class="n">toggle_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;▼ Detaylı Log&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toggle_log</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QPushButton {</span>
+<span class="sd">                background: transparent;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                color: #3498db;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                text-align: left;</span>
+<span class="sd">                padding: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QPushButton:hover {</span>
+<span class="sd">                color: #2980b9;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="n">toggle_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="p">)</span>
+        <span class="n">toggle_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">toggle_layout</span><span class="p">)</span>
+
+        <span class="c1"># Log text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_text</span> <span class="o">=</span> <span class="n">QTextEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_text</span><span class="o">.</span><span class="n">setReadOnly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_text</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">QFont</span><span class="p">(</span><span class="s2">&quot;Consolas&quot;</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_text</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QTextEdit {</span>
+<span class="sd">                background: #2c3e50;</span>
+<span class="sd">                color: #ecf0f1;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">                padding: 10px;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_text</span><span class="p">)</span>
+
+        <span class="n">container</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QFrame#logSection {</span>
+<span class="sd">                background: white;</span>
+<span class="sd">                border-radius: 10px;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">container</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.apply_global_styles">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.apply_global_styles">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_global_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply global styling&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QWidget {</span>
+<span class="sd">                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,</span>
+<span class="sd">                    stop:0 #f5f7fa, stop:1 #e3e8ef);</span>
+<span class="sd">                font-family: &quot;Segoe UI&quot;, Arial, sans-serif;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.generate_schedule">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.generate_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate schedule with animation&quot;&quot;&quot;</span>
+        <span class="n">reply</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">question</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;Program Oluştur&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;🚀 Akıllı algoritma ile yeni program oluşturulsun mu?</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;• Mevcut program silinecek</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;• 2+2+1 optimal dağılım yapılacak</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;• Çakışmalar otomatik çözülecek&quot;</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reply</span> <span class="o">==</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="c1"># Check if assignments exist</span>
+            <span class="n">assignments</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">assignments</span><span class="p">:</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="s2">&quot;Ders Ataması Gerekli&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;❌ Önce &#39;Ders Atama&#39; menüsünden dersleri öğretmenlere atayın.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;Program oluşturmak için en az bir ders ataması yapılmış olmalıdır.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Show progress</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_section</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Başlatılıyor...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_text</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;🚀 Program oluşturma başlatıldı...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📋 </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">assignments</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders ataması bulundu&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;💪 Ultra Aggressive Scheduler - %100 doluluk hedefi!&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Disable button</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># Create scheduler with progress callback support</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="n">db_manager</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enable_performance_monitor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="c1"># Use enhanced scheduler if available</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="p">,</span> <span class="s1">&#39;active_scheduler&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">active_scheduler</span><span class="p">:</span>
+                <span class="n">active_scheduler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">active_scheduler</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ Enhanced scheduler active: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">active_scheduler</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;⚠️  Using standard scheduler&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Start thread</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span> <span class="o">=</span> <span class="n">ScheduleGenerationThread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="p">)</span>
+
+            <span class="c1"># Connect ultra scheduler&#39;s callback to thread if available</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="p">,</span> <span class="s2">&quot;ultra_scheduler&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">ultra_scheduler</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">ultra_scheduler</span><span class="o">.</span><span class="n">progress_callback</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span><span class="o">.</span><span class="n">progress_callback</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_progress</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_finished</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_error</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.on_progress">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.on_progress">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">percentage</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle progress updates&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">percentage</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.on_finished">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.on_finished">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule_entries</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle completion&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ BAŞARILI! </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">schedule_entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders yerleştirildi&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Update statistics</span>
+        <span class="n">QTimer</span><span class="o">.</span><span class="n">singleShot</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_statistics</span><span class="p">)</span>
+
+        <span class="c1"># ÇAKIŞMA KONTROLÜ</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;🔍 Çakışma kontrolü yapılıyor...&quot;</span><span class="p">)</span>
+        <span class="n">conflicts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_conflicts</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">conflicts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠️  </span><span class="si">{</span><span class="n">conflicts</span><span class="si">}</span><span class="s2"> çakışma tespit edildi!&quot;</span><span class="p">)</span>
+            <span class="c1"># Warning message</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;⚠️ Çakışma Tespit Edildi&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Program oluşturuldu ancak </span><span class="si">{</span><span class="n">conflicts</span><span class="si">}</span><span class="s2"> çakışma tespit edildi!</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;🔧 Öneriler:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;• Programı yeniden oluşturmayı deneyin</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;• Öğretmen uygunluğunu kontrol edin</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;• &#39;Boşlukları Doldur&#39; özelliğini kullanın</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;Detaylar için terminal loglarını kontrol edin.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;✅ Çakışma yok!&quot;</span><span class="p">)</span>
+            <span class="c1"># Success message</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;🎉 Başarılı!&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;✅ Program başarıyla oluşturuldu!</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;📊 Toplam: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">schedule_entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders yerleştirildi</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;✨ 2+2+1 akıllı dağılım uygulandı</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;🎯 Çakışma yok - Mükemmel!</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;💾 Veritabanına kaydedildi</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;📋 &#39;Sınıf Programı&#39; veya &#39;Öğretmen Programı&#39; menülerinden programı görüntüleyebilirsiniz.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Hide progress after delay</span>
+        <span class="n">QTimer</span><span class="o">.</span><span class="n">singleShot</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_section</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.on_error">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.on_error">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle errors&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_btn</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_section</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ HATA: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Show more user-friendly error messages</span>
+        <span class="k">if</span> <span class="s2">&quot;Ders ataması bulunamadı&quot;</span> <span class="ow">in</span> <span class="n">error_msg</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">💡 Çözüm: &#39;Ders Atama&#39; menüsünden dersleri öğretmenlere atayın.&quot;</span>
+
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.add_log">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.add_log">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add message to log&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detect_conflicts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Çakışmaları tespit et</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Toplam çakışma sayısı</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">schedule</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_program_by_school_type</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">schedule</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">total_conflicts</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Sınıf çakışmaları</span>
+        <span class="n">class_slots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">time_slot</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">class_slots</span><span class="p">:</span>
+                <span class="n">class_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">class_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="n">class_slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">total_conflicts</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   ❌ Sınıf çakışması: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> ders aynı slotta&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Öğretmen çakışmaları</span>
+        <span class="n">teacher_slots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">schedule</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">time_slot</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">teacher_slots</span><span class="p">:</span>
+                <span class="n">teacher_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">teacher_slots</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="n">teacher_slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">total_conflicts</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">teacher</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_teacher_by_id</span><span class="p">(</span><span class="n">entries</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">)</span>
+                <span class="n">teacher_name</span> <span class="o">=</span> <span class="n">teacher</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">teacher</span> <span class="k">else</span> <span class="s2">&quot;?&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;   ❌ Öğretmen çakışması: </span><span class="si">{</span><span class="n">teacher_name</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> sınıfta aynı anda&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">total_conflicts</span>
+
+<div class="viewcode-block" id="ScheduleWidget.toggle_log">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.toggle_log">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">toggle_log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toggle log visibility&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;▲ Detaylı Log&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">animate_height</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_section</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_toggle_btn</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;▼ Detaylı Log&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">animate_height</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_section</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.animate_height">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.animate_height">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">animate_height</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Animate widget height&quot;&quot;&quot;</span>
+        <span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+        <span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+        <span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+        <span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuad</span><span class="p">)</span>
+        <span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height_animation</span> <span class="o">=</span> <span class="n">animation</span>  <span class="c1"># Keep reference</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.load_statistics">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.load_statistics">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reload statistics&quot;&quot;&quot;</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+        <span class="n">teachers</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+        <span class="n">lessons</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_lessons</span><span class="p">()</span>
+        <span class="n">assignments</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes_card</span><span class="o">.</span><span class="n">update_value</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">teachers_card</span><span class="o">.</span><span class="n">update_value</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">teachers</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lessons_card</span><span class="o">.</span><span class="n">update_value</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lessons</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assignments_card</span><span class="o">.</span><span class="n">update_value</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">assignments</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.view_class_schedule">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.view_class_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_class_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;View class schedule&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.class_schedule_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassScheduleDialog</span>
+
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">ClassScheduleDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.view_teacher_schedule">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.view_teacher_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_teacher_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;View teacher schedule&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ui.dialogs.teacher_schedule_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">TeacherScheduleDialog</span>
+
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">TeacherScheduleDialog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.fill_empty_slots">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.fill_empty_slots">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_empty_slots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill empty slots with remaining lessons&quot;&quot;&quot;</span>
+        <span class="n">reply</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">question</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;Boşlukları Doldur&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;⚡ Programdaki boş slotlar doldurulmaya çalışılacak.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Bu işlem:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;• Henüz tam yerleştirilmemiş dersleri bulur</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;• Boş slotlara uygun dersleri yerleştirir</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;• Öğretmen uygunluğunu ve çakışmaları kontrol eder</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Devam etmek istiyor musunuz?&quot;</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reply</span> <span class="o">!=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;⚡ Boş slotlar dolduruluyor...&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Get all classes</span>
+            <span class="n">classes</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">classes</span><span class="p">:</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Uyarı&quot;</span><span class="p">,</span> <span class="s2">&quot;Hiç sınıf bulunamadı!&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Get school type and time slots</span>
+            <span class="n">school_type</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_school_type</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;Lise&quot;</span>
+            <span class="n">time_slots_map</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;İlkokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                <span class="s2">&quot;Ortaokul&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                <span class="s2">&quot;Lise&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s2">&quot;Anadolu Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s2">&quot;Fen Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s2">&quot;Sosyal Bilimler Lisesi&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">time_slots_count</span> <span class="o">=</span> <span class="n">time_slots_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">school_type</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+
+            <span class="c1"># Get all current schedule</span>
+            <span class="n">current_schedule</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_program_by_school_type</span><span class="p">()</span>
+
+            <span class="c1"># Get all lesson assignments</span>
+            <span class="n">all_assignments</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_by_school_type</span><span class="p">()</span>
+
+            <span class="n">total_filled</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">total_attempted</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># For each class, find what&#39;s missing and try to fill</span>
+            <span class="k">for</span> <span class="n">class_obj</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+                <span class="c1"># Calculate what lessons are needed vs what&#39;s scheduled</span>
+                <span class="n">needed_hours</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {lesson_id: {teacher_id, hours_needed}}</span>
+                <span class="n">scheduled_hours</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {lesson_id: hours_scheduled}</span>
+
+                <span class="c1"># Get needed hours from assignments</span>
+                <span class="k">for</span> <span class="n">assignment</span> <span class="ow">in</span> <span class="n">all_assignments</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">assignment</span><span class="o">.</span><span class="n">class_id</span> <span class="o">==</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">:</span>
+                        <span class="n">lesson</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">lesson</span><span class="p">:</span>
+                            <span class="n">weekly_hours</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_weekly_hours_for_lesson</span><span class="p">(</span>
+                                <span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">grade</span>
+                            <span class="p">)</span>
+                            <span class="k">if</span> <span class="n">weekly_hours</span><span class="p">:</span>
+                                <span class="n">needed_hours</span><span class="p">[</span><span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                                    <span class="s2">&quot;teacher_id&quot;</span><span class="p">:</span> <span class="n">assignment</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">,</span>
+                                    <span class="s2">&quot;hours&quot;</span><span class="p">:</span> <span class="n">weekly_hours</span><span class="p">,</span>
+                                <span class="p">}</span>
+                                <span class="n">scheduled_hours</span><span class="p">[</span><span class="n">assignment</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="c1"># Count scheduled hours</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">current_schedule</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">class_id</span> <span class="o">==</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">:</span>
+                        <span class="n">scheduled_hours</span><span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">scheduled_hours</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">lesson_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="p">)</span>
+
+                <span class="c1"># Find empty slots for this class</span>
+                <span class="n">occupied_slots</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">current_schedule</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">class_id</span> <span class="o">==</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">:</span>
+                        <span class="n">occupied_slots</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">entry</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">time_slot</span><span class="p">))</span>
+
+                <span class="n">empty_slots</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_slots_count</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">occupied_slots</span><span class="p">:</span>
+                            <span class="n">empty_slots</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">))</span>
+
+                <span class="c1"># Try to fill missing hours into empty slots</span>
+                <span class="k">for</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">needed_hours</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">hours_needed</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;hours&quot;</span><span class="p">]</span>
+                    <span class="n">hours_scheduled</span> <span class="o">=</span> <span class="n">scheduled_hours</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="n">hours_missing</span> <span class="o">=</span> <span class="n">hours_needed</span> <span class="o">-</span> <span class="n">hours_scheduled</span>
+
+                    <span class="k">if</span> <span class="n">hours_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">teacher_id</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;teacher_id&quot;</span><span class="p">]</span>
+                        <span class="n">lesson</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_lesson_by_id</span><span class="p">(</span><span class="n">lesson_id</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;  • </span><span class="si">{</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">lesson</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">hours_missing</span><span class="si">}</span><span class="s2"> saat eksik&quot;</span>
+                        <span class="p">)</span>
+
+                        <span class="c1"># Try to place missing hours</span>
+                        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">hours_missing</span><span class="p">):</span>
+                            <span class="n">total_attempted</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="n">placed</span> <span class="o">=</span> <span class="kc">False</span>
+
+                            <span class="k">for</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">empty_slots</span><span class="p">[:]:</span>
+                                <span class="c1"># Check if teacher is available</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">is_teacher_available</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">):</span>
+                                    <span class="k">continue</span>
+
+                                <span class="c1"># Check if teacher has conflict</span>
+                                <span class="n">teacher_conflict</span> <span class="o">=</span> <span class="kc">False</span>
+                                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">current_schedule</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="p">(</span>
+                                        <span class="n">entry</span><span class="o">.</span><span class="n">teacher_id</span> <span class="o">==</span> <span class="n">teacher_id</span>
+                                        <span class="ow">and</span> <span class="n">entry</span><span class="o">.</span><span class="n">day</span> <span class="o">==</span> <span class="n">day</span>
+                                        <span class="ow">and</span> <span class="n">entry</span><span class="o">.</span><span class="n">time_slot</span> <span class="o">==</span> <span class="n">slot</span>
+                                    <span class="p">):</span>
+                                        <span class="n">teacher_conflict</span> <span class="o">=</span> <span class="kc">True</span>
+                                        <span class="k">break</span>
+
+                                <span class="k">if</span> <span class="n">teacher_conflict</span><span class="p">:</span>
+                                    <span class="k">continue</span>
+
+                                <span class="c1"># Place the lesson</span>
+                                <span class="k">if</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">add_schedule_program</span><span class="p">(</span>
+                                    <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">teacher_id</span><span class="p">,</span> <span class="n">lesson_id</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">slot</span>
+                                <span class="p">):</span>
+                                    <span class="n">empty_slots</span><span class="o">.</span><span class="n">remove</span><span class="p">((</span><span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">))</span>
+                                    <span class="n">occupied_slots</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">day</span><span class="p">,</span> <span class="n">slot</span><span class="p">))</span>
+                                    <span class="n">total_filled</span> <span class="o">+=</span> <span class="mi">1</span>
+                                    <span class="n">placed</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    ✓ Yerleştirildi: Gün </span><span class="si">{</span><span class="n">day</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">, Saat </span><span class="si">{</span><span class="n">slot</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                    <span class="k">break</span>
+
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">placed</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    ✗ Uygun slot bulunamadı&quot;</span><span class="p">)</span>
+                                <span class="k">break</span>
+
+            <span class="c1"># Reload schedule</span>
+            <span class="n">current_schedule</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_schedule_program_by_school_type</span><span class="p">()</span>
+
+            <span class="c1"># Show result</span>
+            <span class="n">result_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;⚡ BOŞLUK DOLDURMA SONUÇLARI</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="n">result_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;📊 Denenen: </span><span class="si">{</span><span class="n">total_attempted</span><span class="si">}</span><span class="s2"> ders</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">result_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;✅ Yerleştirilen: </span><span class="si">{</span><span class="n">total_filled</span><span class="si">}</span><span class="s2"> ders</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">result_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;❌ Yerleştirilemeyen: </span><span class="si">{</span><span class="n">total_attempted</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">total_filled</span><span class="si">}</span><span class="s2"> ders</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+            <span class="k">if</span> <span class="n">total_filled</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">result_msg</span> <span class="o">+=</span> <span class="s2">&quot;Başarıyla tamamlandı!&quot;</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="n">result_msg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result_msg</span> <span class="o">+=</span> <span class="s2">&quot;Hiç ders yerleştirilemedi.</span><span class="se">\n\n</span><span class="s2">Mümkün olduğunca program dolu veya uygun slot yok.&quot;</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Uyarı&quot;</span><span class="p">,</span> <span class="n">result_msg</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ Boşluk doldurma tamamlandı: </span><span class="si">{</span><span class="n">total_filled</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_attempted</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fill empty slots error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Bir hata oluştu:</span><span class="se">\n\n</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleWidget.clear_schedule">
+<a class="viewcode-back" href="../../modules/ui.html#ui.schedule_widget.ScheduleWidget.clear_schedule">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear schedule&quot;&quot;&quot;</span>
+        <span class="n">reply</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">question</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;Programı Temizle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;⚠️ Tüm program silinecek!</span><span class="se">\n\n</span><span class="s2">Emin misiniz?&quot;</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reply</span> <span class="o">==</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="n">db_manager</span><span class="o">.</span><span class="n">clear_schedule</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_log</span><span class="p">(</span><span class="s2">&quot;🗑️ Program temizlendi&quot;</span><span class="p">)</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="s2">&quot;Program başarıyla temizlendi.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_statistics</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="c1"># Alias for backward compatibility</span>
+<span class="n">ModernSchedulePlanner</span> <span class="o">=</span> <span class="n">ScheduleWidget</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

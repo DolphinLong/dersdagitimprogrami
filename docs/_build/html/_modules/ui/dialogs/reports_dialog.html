@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ui.dialogs.reports_dialog &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../../genindex.html" />
+    <link rel="search" title="Ara" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">ui.dialogs.reports_dialog</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>ui.dialogs.reports_dialog öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Reports dialog for the Class Scheduling Program - Redesigned for a professional look and feel.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QFont</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QComboBox</span><span class="p">,</span>
+    <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QFileDialog</span><span class="p">,</span>
+    <span class="n">QFrame</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QHeaderView</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QMessageBox</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QTableWidget</span><span class="p">,</span>
+    <span class="n">QTableWidgetItem</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+    <span class="n">QWidget</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reports.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReportGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_styled_message_box</span>
+
+
+<div class="viewcode-block" id="ReportsDialog">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog">[belgeler]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReportsDialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog for generating and exporting reports with a professional table view.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ReportsDialog.__init__">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.__init__">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span> <span class="o">=</span> <span class="n">ReportGenerator</span><span class="p">(</span><span class="n">db_manager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Raporlar&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumSize</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">700</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_ui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_styles</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populate_data</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.setup_ui">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.setup_ui">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the user interface with a two-panel design.&quot;&quot;&quot;</span>
+        <span class="n">main_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># --- Left Panel (Controls) ---</span>
+        <span class="n">left_panel</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">left_panel</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;leftPanel&quot;</span><span class="p">)</span>
+        <span class="n">left_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">left_panel</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="n">title_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;📊 Rapor Merkezi&quot;</span><span class="p">)</span>
+        <span class="n">title_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;titleLabel&quot;</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">title_label</span><span class="p">)</span>
+
+        <span class="c1"># Report Type</span>
+        <span class="n">type_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Rapor Türü&quot;</span><span class="p">)</span>
+        <span class="n">type_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;fieldLabel&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;reportTypeCombo&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;Sınıf Programı&quot;</span><span class="p">,</span> <span class="s2">&quot;Öğretmen Programı&quot;</span><span class="p">,</span> <span class="s2">&quot;Derslik Kullanımı&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="o">.</span><span class="n">currentIndexChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_report_type_changed</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">type_label</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="p">)</span>
+
+        <span class="c1"># Entity Selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_widget</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
+        <span class="n">entity_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity_widget</span><span class="p">)</span>
+        <span class="n">entity_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Sınıf&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;fieldLabel&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;entityCombo&quot;</span><span class="p">)</span>
+        <span class="n">entity_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity_label</span><span class="p">)</span>
+        <span class="n">entity_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity_widget</span><span class="p">)</span>
+
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Generate Button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Rapor Oluştur&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;generateButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_report</span><span class="p">)</span>
+        <span class="n">left_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_button</span><span class="p">)</span>
+
+        <span class="c1"># --- Right Panel (Display) ---</span>
+        <span class="n">right_panel</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">()</span>
+        <span class="n">right_panel</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;rightPanel&quot;</span><span class="p">)</span>
+        <span class="n">right_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">right_panel</span><span class="p">)</span>
+        <span class="n">right_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">right_layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="c1"># Report Table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span> <span class="o">=</span> <span class="n">QTableWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;reportTable&quot;</span><span class="p">)</span>
+        <span class="n">right_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="p">)</span>
+
+        <span class="c1"># Export Buttons</span>
+        <span class="n">export_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">export_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdf_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;📄 PDF Olarak Aktar&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdf_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;exportButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdf_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export_to_pdf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">excel_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;📋 Excel Olarak Aktar&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">excel_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;exportButton&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">excel_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export_to_excel</span><span class="p">)</span>
+        <span class="n">export_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdf_button</span><span class="p">)</span>
+        <span class="n">export_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">excel_button</span><span class="p">)</span>
+        <span class="n">right_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">export_layout</span><span class="p">)</span>
+
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">left_panel</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">right_panel</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_report_type_changed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.apply_styles">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.apply_styles">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply a professional and surprising stylesheet.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            QDialog {</span>
+<span class="sd">                background-color: #f8f9fa;</span>
+<span class="sd">            }</span>
+<span class="sd">            #leftPanel {</span>
+<span class="sd">                background-color: #2c3e50;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">            }</span>
+<span class="sd">            #rightPanel {</span>
+<span class="sd">                background-color: #f8f9fa;</span>
+<span class="sd">            }</span>
+<span class="sd">            #titleLabel {</span>
+<span class="sd">                font-size: 24px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: #ffffff;</span>
+<span class="sd">                padding-bottom: 10px;</span>
+<span class="sd">                border-bottom: 1px solid #34495e;</span>
+<span class="sd">            }</span>
+<span class="sd">            #fieldLabel {</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: #ecf0f1;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                margin-top: 10px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox {</span>
+<span class="sd">                padding: 10px;</span>
+<span class="sd">                border: 2px solid #dcdde1;</span>
+<span class="sd">                border-radius: 5px;</span>
+<span class="sd">                background-color: white;</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                min-height: 30px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox:focus {</span>
+<span class="sd">                border: 2px solid #3498db;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox::drop-down {</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 5px;</span>
+<span class="sd">                padding-right: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView {</span>
+<span class="sd">                background-color: white;</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">                selection-background-color: #3498db;</span>
+<span class="sd">                selection-color: white;</span>
+<span class="sd">                border: 1px solid #dcdde1;</span>
+<span class="sd">                outline: 0px;</span>
+<span class="sd">                padding: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView::item {</span>
+<span class="sd">                background-color: white;</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">                padding: 8px;</span>
+<span class="sd">                min-height: 30px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView::item:hover {</span>
+<span class="sd">                background-color: #ecf0f1;</span>
+<span class="sd">                color: #2c3e50;</span>
+<span class="sd">            }</span>
+<span class="sd">            QComboBox QAbstractItemView::item:selected {</span>
+<span class="sd">                background-color: #3498db;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">            }</span>
+<span class="sd">            #generateButton {</span>
+<span class="sd">                padding: 12px;</span>
+<span class="sd">                font-size: 14px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                background-color: #27ae60;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">            #generateButton:hover {</span>
+<span class="sd">                background-color: #2ecc71;</span>
+<span class="sd">            }</span>
+<span class="sd">            #reportTable {</span>
+<span class="sd">                gridline-color: #dcdcdc;</span>
+<span class="sd">                background-color: #ffffff;</span>
+<span class="sd">                border: 1px solid #dcdcdc;</span>
+<span class="sd">                border-radius: 5px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QHeaderView::section {</span>
+<span class="sd">                background-color: #34495e;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                padding: 8px;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                font-size: 13px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QTableWidget::item {</span>
+<span class="sd">                padding: 10px;</span>
+<span class="sd">            }</span>
+<span class="sd">            QTableWidget::item:alternate {</span>
+<span class="sd">                background-color: #f2f2f2;</span>
+<span class="sd">            }</span>
+<span class="sd">            #exportButton {</span>
+<span class="sd">                padding: 10px 15px;</span>
+<span class="sd">                font-size: 12px;</span>
+<span class="sd">                font-weight: bold;</span>
+<span class="sd">                color: white;</span>
+<span class="sd">                border: none;</span>
+<span class="sd">                border-radius: 5px;</span>
+<span class="sd">                background-color: #3498db;</span>
+<span class="sd">            }</span>
+<span class="sd">            #exportButton:hover {</span>
+<span class="sd">                background-color: #5dade2;</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the QTableWidget with structured data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">setRowCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row_idx</span><span class="p">,</span> <span class="n">row_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">col_idx</span><span class="p">,</span> <span class="n">cell_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row_data</span><span class="p">):</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cell_data</span><span class="p">))</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">setTextAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row_idx</span><span class="p">,</span> <span class="n">col_idx</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">setAlternatingRowColors</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_data_from_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts headers and data from the report table.&quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">horizontalHeaderItem</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">columnCount</span><span class="p">())</span>
+        <span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()):</span>
+            <span class="n">row_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">columnCount</span><span class="p">()):</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+                <span class="n">row_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="k">if</span> <span class="n">item</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">headers</span><span class="p">,</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="ReportsDialog.populate_data">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.populate_data">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populate_classes</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.populate_classes">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.populate_classes">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_classes</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">class_obj</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">class_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">class_obj</span><span class="o">.</span><span class="n">class_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.populate_teachers">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.populate_teachers">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_teachers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">teachers</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">get_all_teachers</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">teacher</span> <span class="ow">in</span> <span class="n">teachers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">teacher</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">teacher</span><span class="o">.</span><span class="n">teacher_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.on_report_type_changed">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.on_report_type_changed">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_report_type_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Sınıf:&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">populate_classes</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_widget</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Öğretmen:&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">populate_teachers</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_widget</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entity_widget</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.generate_report">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.generate_report">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate the selected report and display it in the table.&quot;&quot;&quot;</span>
+        <span class="n">report_type_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">headers</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">report_type_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">class_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">currentData</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">class_id</span><span class="p">:</span>
+                    <span class="n">create_styled_message_box</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Lütfen bir sınıf seçin.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                    <span class="k">return</span>
+                <span class="n">headers</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span><span class="o">.</span><span class="n">generate_class_schedule_report</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">report_type_index</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">teacher_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity_combo</span><span class="o">.</span><span class="n">currentData</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">teacher_id</span><span class="p">:</span>
+                    <span class="n">create_styled_message_box</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="s2">&quot;Lütfen bir öğretmen seçin.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                    <span class="k">return</span>
+                <span class="n">headers</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span><span class="o">.</span><span class="n">generate_teacher_schedule_report</span><span class="p">(</span><span class="n">teacher_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">headers</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span><span class="o">.</span><span class="n">generate_classroom_usage_report</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_populate_table</span><span class="p">(</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Rapor oluşturulurken bir hata oluştu: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.export_to_pdf">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.export_to_pdf">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_to_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export the current table view to a PDF file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Dışa aktarılacak bir rapor yok. Lütfen önce bir rapor oluşturun.&quot;</span><span class="p">,</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="n">report_title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;PDF Olarak Kaydet&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">report_title</span><span class="si">}</span><span class="s2">.pdf&quot;</span><span class="p">,</span> <span class="s2">&quot;PDF Files (*.pdf)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">headers</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_from_table</span><span class="p">()</span>
+            <span class="c1"># The new PDF generator is in the pdf_generator attribute of the report_generator</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span><span class="o">.</span><span class="n">pdf_generator</span><span class="o">.</span><span class="n">generate_pdf</span><span class="p">(</span>
+                <span class="n">report_title</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">filename</span>
+            <span class="p">)</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Hata&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;PDF oluşturulurken bir hata oluştu: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ReportsDialog.export_to_excel">
+<a class="viewcode-back" href="../../../modules/ui.html#ui.dialogs.reports_dialog.ReportsDialog.export_to_excel">[belgeler]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_to_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export the current table view to an Excel file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Dışa aktarılacak bir rapor yok. Lütfen önce bir rapor oluşturun.&quot;</span><span class="p">,</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Warning</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="n">report_title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_type_combo</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Excel Olarak Kaydet&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">report_title</span><span class="si">}</span><span class="s2">.xlsx&quot;</span><span class="p">,</span> <span class="s2">&quot;Excel Files (*.xlsx)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">headers</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_from_table</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_generator</span><span class="o">.</span><span class="n">excel_generator</span><span class="o">.</span><span class="n">generate_excel</span><span class="p">(</span>
+                <span class="n">report_title</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">filename</span>
+            <span class="p">)</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Başarılı&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">create_styled_message_box</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;Hata&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Excel oluşturulurken bir hata oluştu: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Critical</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

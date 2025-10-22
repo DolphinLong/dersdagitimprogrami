@@ -1,0 +1,241 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="tr" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.helpers &mdash; Ders Dağıtım Programı 3.4 belgelendirmesi</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d67bfa8b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=b0f24d8d"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Dizin" href="../../genindex.html" />
+    <link rel="search" title="Ara" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Ders Dağıtım Programı
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Belgeleri arayın" aria-label="Belgeleri arayın" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">İçindekiler:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/algorithms.html">Algorithms Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/database.html">Database Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/ui.html">UI Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/utils.html">Utils Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/config.html">Config Modülü</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules/reports.html">Reports Modülü</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ders Dağıtım Programı</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Modül kodu</a></li>
+      <li class="breadcrumb-item active">utils.helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>utils.helpers öğesinin kaynak kodu</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helper functions for the Class Scheduling Program</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QFont</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">QMessageBox</span>
+
+
+<div class="viewcode-block" id="setup_logging">
+<a class="viewcode-back" href="../../modules/utils.html#utils.helpers.setup_logging">[belgeler]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_logging</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configure logging.</span>
+
+<span class="sd">    Prefer the project&#39;s centralized logging configuration in `logging_config.setup_logging`.</span>
+<span class="sd">    Falls back to a simple error-only file handler if that module isn&#39;t available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Prefer central logging setup</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">logging_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span> <span class="k">as</span> <span class="n">central_setup</span>
+
+        <span class="n">central_setup</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># Minimal fallback for tests / environments where logging_config can&#39;t run</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+            <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;error.log&quot;</span><span class="p">,</span>
+            <span class="n">filemode</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="generate_color_for_lesson">
+<a class="viewcode-back" href="../../modules/utils.html#utils.helpers.generate_color_for_lesson">[belgeler]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_color_for_lesson</span><span class="p">(</span><span class="n">lesson_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a beautiful, consistent color for a lesson based on its name&quot;&quot;&quot;</span>
+    <span class="c1"># Enhanced color palette for different subjects</span>
+    <span class="n">color_palette</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Ana dersler - güçlü renkler</span>
+        <span class="s2">&quot;Matematik&quot;</span><span class="p">:</span> <span class="s2">&quot;#FF6B6B&quot;</span><span class="p">,</span>  <span class="c1"># Parlak kırmızı</span>
+        <span class="s2">&quot;Türkçe&quot;</span><span class="p">:</span> <span class="s2">&quot;#4ECDC4&quot;</span><span class="p">,</span>  <span class="c1"># Turkuaz</span>
+        <span class="s2">&quot;Fen Bilimleri&quot;</span><span class="p">:</span> <span class="s2">&quot;#45B7D1&quot;</span><span class="p">,</span>  <span class="c1"># Mavi</span>
+        <span class="s2">&quot;Sosyal Bilgiler&quot;</span><span class="p">:</span> <span class="s2">&quot;#FFA07A&quot;</span><span class="p">,</span>  <span class="c1"># Açık somon</span>
+        <span class="s2">&quot;İngilizce&quot;</span><span class="p">:</span> <span class="s2">&quot;#98D8C8&quot;</span><span class="p">,</span>  <span class="c1"># Açık yeşil</span>
+        <span class="s2">&quot;Din Kültürü&quot;</span><span class="p">:</span> <span class="s2">&quot;#F7DC6F&quot;</span><span class="p">,</span>  <span class="c1"># Açık sarı</span>
+        <span class="s2">&quot;Görsel Sanatlar&quot;</span><span class="p">:</span> <span class="s2">&quot;#BB8FCE&quot;</span><span class="p">,</span>  <span class="c1"># Açık mor</span>
+        <span class="s2">&quot;Beden Eğitimi&quot;</span><span class="p">:</span> <span class="s2">&quot;#85C1E9&quot;</span><span class="p">,</span>  <span class="c1"># Açık mavi</span>
+        <span class="s2">&quot;Müzik&quot;</span><span class="p">:</span> <span class="s2">&quot;#F8C471&quot;</span><span class="p">,</span>  <span class="c1"># Açık turuncu</span>
+        <span class="c1"># Seçmeli dersler - pastel renkler</span>
+        <span class="s2">&quot;Almanca&quot;</span><span class="p">:</span> <span class="s2">&quot;#D7DBDD&quot;</span><span class="p">,</span>  <span class="c1"># Açık gri</span>
+        <span class="s2">&quot;Fransızca&quot;</span><span class="p">:</span> <span class="s2">&quot;#AED6F1&quot;</span><span class="p">,</span>  <span class="c1"># Çok açık mavi</span>
+        <span class="s2">&quot;Bilgisayar&quot;</span><span class="p">:</span> <span class="s2">&quot;#A3E4D7&quot;</span><span class="p">,</span>  <span class="c1"># Açık nane</span>
+        <span class="s2">&quot;Rehberlik&quot;</span><span class="p">:</span> <span class="s2">&quot;#F9E79F&quot;</span><span class="p">,</span>  <span class="c1"># Açık krem</span>
+        <span class="s2">&quot;T.C. İnkılap Tarihi&quot;</span><span class="p">:</span> <span class="s2">&quot;#D5A6BD&quot;</span><span class="p">,</span>  <span class="c1"># Açık pembe</span>
+        <span class="c1"># Diğer dersler için fallback renkler</span>
+        <span class="s2">&quot;default_colors&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;#FDEAA7&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#F8C471&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#85C1E9&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#82E0AA&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#F1948A&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#BB8FCE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#85C1E9&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;#D7DBDD&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Önce tam eşleşme ara</span>
+    <span class="k">if</span> <span class="n">lesson_name</span> <span class="ow">in</span> <span class="n">color_palette</span><span class="p">:</span>
+        <span class="n">color_hex</span> <span class="o">=</span> <span class="n">color_palette</span><span class="p">[</span><span class="n">lesson_name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">QColor</span><span class="p">(</span><span class="n">color_hex</span><span class="p">)</span>
+
+    <span class="c1"># Kısmi eşleşme ara (örneğin &quot;Matematik&quot; için &quot;Mat&quot; içeren)</span>
+    <span class="n">lesson_lower</span> <span class="o">=</span> <span class="n">lesson_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">lesson</span><span class="p">,</span> <span class="n">color_hex</span> <span class="ow">in</span> <span class="n">color_palette</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">lesson</span> <span class="o">!=</span> <span class="s2">&quot;default_colors&quot;</span> <span class="ow">and</span> <span class="n">lesson</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">lesson_lower</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">QColor</span><span class="p">(</span><span class="n">color_hex</span><span class="p">)</span>
+
+    <span class="c1"># Hiç eşleşme yoksa basit hash-based renk kullan</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="n">lesson_name</span><span class="p">)</span>
+    <span class="n">default_colors</span> <span class="o">=</span> <span class="n">color_palette</span><span class="p">[</span><span class="s2">&quot;default_colors&quot;</span><span class="p">]</span>
+    <span class="n">color_index</span> <span class="o">=</span> <span class="n">hash_value</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_colors</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">QColor</span><span class="p">(</span><span class="n">default_colors</span><span class="p">[</span><span class="n">color_index</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="create_styled_message_box">
+<a class="viewcode-back" href="../../modules/utils.html#utils.helpers.create_styled_message_box">[belgeler]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_styled_message_box</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Information</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a styled QMessageBox with consistent appearance&quot;&quot;&quot;</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+
+    <span class="c1"># Apply consistent styling</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QMessageBox {</span>
+<span class="sd">            background-color: #ffffff;</span>
+<span class="sd">            color: #212529;</span>
+<span class="sd">            font-family: &quot;Segoe UI&quot;, sans-serif;</span>
+<span class="sd">        }</span>
+<span class="sd">        QMessageBox QLabel {</span>
+<span class="sd">            color: #212529;</span>
+<span class="sd">            font-size: 14px;</span>
+<span class="sd">        }</span>
+<span class="sd">        QMessageBox QPushButton {</span>
+<span class="sd">            background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                      stop: 0 #3498db, stop: 1 #2980b9);</span>
+<span class="sd">            color: white;</span>
+<span class="sd">            border: none;</span>
+<span class="sd">            padding: 8px 16px;</span>
+<span class="sd">            border-radius: 4px;</span>
+<span class="sd">            font-weight: bold;</span>
+<span class="sd">            min-width: 80px;</span>
+<span class="sd">            font-size: 14px;</span>
+<span class="sd">        }</span>
+<span class="sd">        QMessageBox QPushButton:hover {</span>
+<span class="sd">            background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                      stop: 0 #2980b9, stop: 1 #2573a7);</span>
+<span class="sd">        }</span>
+<span class="sd">        QMessageBox QPushButton:pressed {</span>
+<span class="sd">            background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,</span>
+<span class="sd">                                      stop: 0 #2573a7, stop: 1 #1f618d);</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">msg</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DolphinLong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    kullanılarak <a href="https://readthedocs.org">Read the Docs</a> tarafından sağlanmasıyla oluşturuldu.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
