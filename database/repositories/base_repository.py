@@ -1,45 +1,130 @@
+"""
+Base Repository - Common database operations for all repositories.
+Provides a base class with common CRUD operations and database connection handling.
+"""
 
-'''
-Base Repository class providing common database functionalities.
-'''
 import logging
-import sqlite3
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic
+from abc import ABC, abstractmethod
 
-class BaseRepository:
+T = TypeVar('T')
+
+class BaseRepository(ABC, Generic[T]):
     """
-    A base class for repositories that provides a shared database connection
-    and basic execution helpers.
+    Base repository class providing common database operations.
+
+    This class provides:
+    - Connection management through DBManager
+    - Common CRUD operations
+    - Error handling and logging
+    - Connection cleanup
+
+    All repository classes should inherit from this class.
     """
-    def __init__(self, db_manager):
+
+    def __init__(self, db_manager: 'DBManager'):
         """
-        Initializes the repository with the DatabaseManager instance.
+        Initialize repository with database manager.
+
         Args:
-            db_manager: An instance of the DatabaseManager.
+            db_manager: DatabaseManager instance for connection handling
         """
-        self._db_manager = db_manager
+        self.db_manager = db_manager
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def _execute(self, sql: str, params: tuple = None) -> sqlite3.Cursor:
+    def _get_connection(self):
         """
-        Executes a given SQL query using the thread-safe connection from the db_manager.
-
-        Args:
-            sql (str): The SQL query to execute.
-            params (tuple, optional): Parameters to substitute into the query. Defaults to None.
+        Get database connection from the manager.
 
         Returns:
-            sqlite3.Cursor: The cursor object after execution.
+            SQLite connection object
+        """
+        return self.db_manager.get_connection()
+
+    def _safe_commit(self) -> bool:
+        """
+        Safely commit database changes.
+
+        Returns:
+            True if commit successful, False otherwise
+        """
+        return self.db_manager._safe_commit()
+
+    def _execute_query(self, query: str, params: Tuple = ()) -> List[Dict[str, Any]]:
+        """
+        Execute a SELECT query and return results as list of dictionaries.
+
+        Args:
+            query: SQL query string
+            params: Query parameters tuple
+
+        Returns:
+            List of dictionaries representing rows
         """
         try:
-            # Get the thread-local connection for every execution
-            conn = self._db_manager.get_connection()
+            conn = self._get_connection()
             cursor = conn.cursor()
-            cursor.execute(sql, params or ())
-            return cursor
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error in _execute: {e}\nQuery: {sql}\nParams: {params}", exc_info=True)
-            raise
+            cursor.execute(query, params)
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        except Exception as e:
+            self.logger.error(f"Error executing query '{query}': {e}")
+            return []
 
-    def _commit(self):
-        """Commits the current transaction via the db_manager."""
-        self._db_manager._safe_commit()
+    def _execute_write(self, query: str, params: Tuple = ()) -> Optional[int]:
+        """
+        Execute an INSERT/UPDATE/DELETE query.
+
+        Args:
+            query: SQL query string
+            params: Query parameters tuple
+
+        Returns:
+            Last row ID for INSERT operations, None for others
+        """
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            if not self._safe_commit():
+                return None
+            return cursor.lastrowid if cursor.lastrowid else None
+        except Exception as e:
+            self.logger.error(f"Error executing write query '{query}': {e}")
+            return None
+
+    @abstractmethod
+    def _row_to_entity(self, row: Dict[str, Any]) -> Optional[T]:
+        """
+        Convert a database row dictionary to an entity object.
+
+        Args:
+            row: Database row as dictionary
+
+        Returns:
+            Entity object or None if conversion fails
+        """
+        pass
+
+    @abstractmethod
+    def get_by_id(self, entity_id: int) -> Optional[T]:
+        """
+        Get entity by ID.
+
+        Args:
+            entity_id: Entity ID
+
+        Returns:
+            Entity object or None if not found
+        """
+        pass
+
+    @abstractmethod
+    def get_all(self) -> List[T]:
+        """
+        Get all entities.
+
+        Returns:
+            List of entity objects
+        """
+        pass

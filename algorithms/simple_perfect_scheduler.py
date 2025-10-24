@@ -13,9 +13,9 @@ from typing import Any, Dict, List
 
 # Set encoding for Windows
 if sys.platform.startswith("win"):
-    if hasattr(sys.stdout, "reconfigure"):
+    try:
         sys.stdout.reconfigure(encoding="utf-8")
-    else:
+    except AttributeError:
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 
@@ -37,13 +37,14 @@ class SimplePerfectScheduler:
         "Sosyal Bilimler Lisesi": 8,
     }
 
-    def __init__(self, db_manager, heuristics=None):
+    def __init__(self, db_manager, heuristics=None, relaxed_mode=False):
         self.db_manager = db_manager
         self.schedule_entries = []
         self.teacher_slots = defaultdict(set)  # {teacher_id: {(day, slot)}}
         self.class_slots = defaultdict(set)  # {class_id: {(day, slot)}}
         self.logger = logging.getLogger(__name__)
         self.heuristics = heuristics  # Heuristics manager for smart slot selection
+        self.relaxed_mode = relaxed_mode  # Relaxed mode: skip teacher availability checks for better coverage
 
     def generate_schedule(self) -> List[Dict]:
         """Program oluştur"""
@@ -147,16 +148,21 @@ class SimplePerfectScheduler:
                 saved += 1
         self.logger.info(f"✅ {saved} kayıt tamamlandı")
         
-        # ENHANCED GAP FILLING - Try to improve coverage by scheduling full curriculum
-        self.logger.info("\n🔧 FULL CURRICULUM SCHEDULING:")
-        curriculum_filled = self._schedule_full_curriculum(classes, teachers, lessons, assignments, time_slots_count)
-        self.logger.info(f"   • {curriculum_filled} saat tam müfredat programı oluşturuldu")
-        
-        # Try to fill remaining gaps with advanced strategies
-        if curriculum_filled > 0:
-            self.logger.info("   • Gelişmiş boşluk doldurma stratejisi uygulanıyor...")
-            gap_filled = self._advanced_gap_filling()
-            self.logger.info(f"   • {gap_filled} ek saat dolduruldu")
+        # GAP FILLING - DEVRE DIŞI (Strict mode - blok kurallarını bozuyor)
+        if self.relaxed_mode:
+            # Sadece relaxed mode'da gap filling yap
+            self.logger.info("\n🔧 RELAXED MODE: Gap filling aktif")
+            self.logger.info("\n🔧 FULL CURRICULUM SCHEDULING:")
+            curriculum_filled = self._schedule_full_curriculum(classes, teachers, lessons, assignments, time_slots_count)
+            self.logger.info(f"   • {curriculum_filled} saat tam müfredat programı oluşturuldu")
+            
+            if curriculum_filled > 0:
+                self.logger.info("   • Gelişmiş boşluk doldurma stratejisi uygulanıyor...")
+                gap_filled = self._advanced_gap_filling()
+                self.logger.info(f"   • {gap_filled} ek saat dolduruldu")
+        else:
+            # Strict mode - gap filling devre dışı
+            self.logger.info("\n🔒 STRICT MODE: Gap filling devre dışı (blok kuralları korunur)")
 
         return self.schedule_entries
 
@@ -298,6 +304,15 @@ class SimplePerfectScheduler:
         
         return placed_count
 
+    def _get_school_config(self) -> dict:
+        """Get school configuration"""
+        school_type = self.db_manager.get_school_type() or "Lise"
+        time_slots_count = self.SCHOOL_TIME_SLOTS.get(school_type, 8)
+        return {
+            "school_type": school_type,
+            "time_slots_count": time_slots_count
+        }
+    
     def _advanced_gap_filling(self) -> int:
         """
         Advanced gap filling strategy to improve coverage
@@ -486,15 +501,159 @@ class SimplePerfectScheduler:
         
         return remaining_needs
 
+    def _decompose_into_blocks(self, weekly_hours: int) -> List[int]:
+        """Haftalık saati bloklara ayır: 6→[2,2,2], 5→[2,2,1], vb."""
+        blocks = []
+        while weekly_hours >= 2:
+            blocks.append(2)
+            weekly_hours -= 2
+        if weekly_hours == 1:
+            blocks.append(1)
+        return blocks
+    
+    def _find_consecutive_windows(self, class_id: int, teacher_id: int, lesson_id: int,
+                                  day: int, length: int, time_slots_count: int) -> List[int]:
+        """Belirli bir günde ardışık 'length' uzunluğunda uygun pencereleri bul"""
+        windows = []
+        for start_slot in range(time_slots_count - length + 1):
+            slots = list(range(start_slot, start_slot + length))
+            if self._can_place_all(class_id, teacher_id, day, slots, lesson_id):
+                # 3 ardışık aynı ders oluşmasın kontrolü
+                ok = True
+                for s in slots:
+                    if self._would_create_three_consecutive_lessons(class_id, lesson_id, day, s):
+                        ok = False
+                        break
+                if ok:
+                    windows.append(start_slot)
+        return windows
+    
+    def _remove_entry(self, class_id: int, teacher_id: int, lesson_id: int, day: int, slot: int):
+        """Bir kaydı geri al (rollback için)"""
+        for i in range(len(self.schedule_entries) - 1, -1, -1):
+            e = self.schedule_entries[i]
+            if (e["class_id"] == class_id and e["teacher_id"] == teacher_id and
+                e["lesson_id"] == lesson_id and e["day"] == day and e["time_slot"] == slot):
+                self.schedule_entries.pop(i)
+                self.class_slots[class_id].discard((day, slot))
+                self.teacher_slots[teacher_id].discard((day, slot))
+                return
+    
     def _schedule_lesson(self, need: Dict, time_slots_count: int, classrooms: List, max_attempts: int = 5) -> int:
         """
-        Bir dersi yerleştir - Optimal dağılım stratejisi:
-        6 saat: 2+2+2 (3 gün)
-        5 saat: 2+2+1 (3 gün)
-        4 saat: 2+2 (2 gün)
-        3 saat: 2+1 (2 gün)
-        2 saat: 2 (1 gün) veya 1+1 (2 gün)
-        1 saat: 1 (1 gün)
+        BLOK SISTEMİ (KATI - BACKTRACKING): Blokları AYRI günlerde ve ARDIŞIK slotlarda yerleştir.
+        Fallback olarak tekli yerleştirme YOK (strict mode).
+        Örnek: 5 saat → [2+2+1] üç ayrı günde, her blok ardışık
+        """
+        class_id = need["class_id"]
+        teacher_id = need["teacher_id"]
+        lesson_id = need["lesson_id"]
+        weekly_hours = need["weekly_hours"]
+
+        # Bloklara ayır ve büyükten küçüğe sırala
+        blocks = self._decompose_into_blocks(weekly_hours)
+        blocks.sort(reverse=True)  # 2'ler önce
+        
+        classroom = classrooms[0] if classrooms else None
+        classroom_id = classroom.classroom_id if classroom else 1
+        
+        used_days = set()
+        
+        def backtrack(i: int) -> bool:
+            """Backtracking ile blokları yerleştir"""
+            if i == len(blocks):
+                return True  # Tüm bloklar yerleşti
+            
+            size = blocks[i]
+            
+            # Günleri, o gün için mevcut pencere sayısına göre sırala (az pencere önce)
+            day_candidates = []
+            for day in range(5):
+                if day in used_days:
+                    continue
+                wins = self._find_consecutive_windows(class_id, teacher_id, lesson_id, day, size, time_slots_count)
+                if wins:
+                    day_candidates.append((day, wins))
+            
+            # En az penceresi olan günler önce (zorları önce çöz)
+            day_candidates.sort(key=lambda x: len(x[1]))
+            
+            # Her uygun günü dene
+            for day, windows in day_candidates:
+                for start in windows:
+                    slots = list(range(start, start + size))
+                    
+                    # Yerleştir
+                    for s in slots:
+                        self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, s)
+                    used_days.add(day)
+                    
+                    # Recursive - sonraki bloğu yerleştir
+                    if backtrack(i + 1):
+                        return True
+                    
+                    # Başarısız - geri al (rollback)
+                    for s in slots:
+                        self._remove_entry(class_id, teacher_id, lesson_id, day, s)
+                    used_days.remove(day)
+            
+            return False  # Bu blok yerleştirilemedi
+        
+        # Backtracking başlat
+        success = backtrack(0)
+        
+        if success:
+            self.logger.debug(f"        ✓ {need['class_name']} - {need['lesson_name']}: {weekly_hours} saat blok olarak yerleştirildi")
+            return weekly_hours
+        
+        # Tam yerleşemedi - kısmi başarı için sadece 2'li blokları dene
+        two_blocks = [b for b in blocks if b == 2]
+        if len(two_blocks) > 0 and len(two_blocks) != len(blocks):
+            used_days.clear()
+            
+            def backtrack_twos(i: int) -> bool:
+                if i == len(two_blocks):
+                    return True
+                size = 2
+                day_candidates = []
+                for day in range(5):
+                    if day in used_days:
+                        continue
+                    wins = self._find_consecutive_windows(class_id, teacher_id, lesson_id, day, size, time_slots_count)
+                    if wins:
+                        day_candidates.append((day, wins))
+                day_candidates.sort(key=lambda x: len(x[1]))
+                
+                for day, windows in day_candidates:
+                    for start in windows:
+                        slots = [start, start + 1]
+                        for s in slots:
+                            self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, s)
+                        used_days.add(day)
+                        
+                        if backtrack_twos(i + 1):
+                            return True
+                        
+                        for s in slots:
+                            self._remove_entry(class_id, teacher_id, lesson_id, day, s)
+                        used_days.remove(day)
+                return False
+            
+            if backtrack_twos(0):
+                partial = len(two_blocks) * 2
+                self.logger.warning(f"        ⚠️  {need['class_name']} - {need['lesson_name']}: Kısmi yerleştirme {partial}/{weekly_hours}")
+                return partial
+        
+        # Hiçbir şey yerleştirilemedi
+        self.logger.error(f"        ❌ {need['class_name']} - {need['lesson_name']}: Yerleştirilemedi!")
+        return 0
+    
+    def _schedule_lesson_OLD_BROKEN(self, need: Dict, time_slots_count: int, classrooms: List, max_attempts: int = 5) -> int:
+        """
+        ESKİ VE BOZUK VERSİYON - KULLANMAYIN!
+        BLOK SISTEMİ - TÜM DERSLER İÇİN 2+2+1 HAFTALIK DAĞILIM
+        Her ders haftalık olarak belirlenen günlere bloklar halinde dağıtılır
+        Hafta içi günlerde denge sağlanır
         """
         class_id = need["class_id"]
         teacher_id = need["teacher_id"]
@@ -503,104 +662,58 @@ class SimplePerfectScheduler:
 
         scheduled = 0
 
-        # Haftalık saat sayısına göre optimal dağılım planı
-        used_days = set()  # Blok yerleştirmede kullanılan günler
+        # BLOK SISTEMİ: Tüm dersler için haftalık 3 gün kullanılır
+        # Gün seçimi: Pazartesi, Salı, Perşembe (2+2+1 dağılım için)
+        block_days = self._select_block_days(weekly_hours)
 
-        if weekly_hours >= 6:
-            # 6+ saat: Önce 2'li bloklar yerleştir (2+2+2+...)
-            num_double_blocks = weekly_hours // 2
-            scheduled, used_days = self._try_blocks_strict(
-                class_id, teacher_id, lesson_id, num_double_blocks, time_slots_count, classrooms, 2
-            )
-            # Kalan tek saatler varsa (FARKLI günlere yerleştir)
-            if scheduled < weekly_hours:
-                remaining = weekly_hours - scheduled
-                scheduled += self._try_singles(
-                    class_id,
-                    teacher_id,
-                    lesson_id,
-                    remaining,
-                    time_slots_count,
-                    classrooms,
-                    exclude_days=used_days,
-                )
-        elif weekly_hours == 5:
-            # 5 saat: 2+2+1 stratejisi (3 FARKLI gün)
-            # Önce 2 adet 2'li blok
-            scheduled, used_days = self._try_blocks_strict(
-                class_id, teacher_id, lesson_id, 2, time_slots_count, classrooms, 2
-            )
-            # Sonra 1 tekli (FARKLI bir güne)
-            if scheduled == 4:  # İlk iki blok başarılıysa
-                scheduled += self._try_singles(
-                    class_id,
-                    teacher_id,
-                    lesson_id,
-                    1,
-                    time_slots_count,
-                    classrooms,
-                    exclude_days=used_days,
-                )
-            else:  # Bloklar tam yerleştirilemediyse, kalanı yerleştir
-                remaining = weekly_hours - scheduled
-                scheduled += self._try_any_available(
-                    class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms
-                )
-        elif weekly_hours == 4:
-            # 4 saat: 2+2 stratejisi (2 FARKLI gün)
-            scheduled, used_days = self._try_blocks_strict(
-                class_id, teacher_id, lesson_id, 2, time_slots_count, classrooms, 2
-            )
-            # Eksik kaldıysa tamamla
-            if scheduled < weekly_hours:
-                remaining = weekly_hours - scheduled
-                scheduled += self._try_any_available(
-                    class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms
-                )
-        elif weekly_hours == 3:
-            # 3 saat: 2+1 stratejisi (2 FARKLI gün)
-            scheduled, used_days = self._try_blocks_strict(
-                class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms, 2
-            )
-            # Sonra 1 tekli (FARKLI bir güne)
-            if scheduled == 2:
-                scheduled += self._try_singles(
-                    class_id,
-                    teacher_id,
-                    lesson_id,
-                    1,
-                    time_slots_count,
-                    classrooms,
-                    exclude_days=used_days,
-                )
-            else:
-                remaining = weekly_hours - scheduled
-                scheduled += self._try_any_available(
-                    class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms
-                )
-        elif weekly_hours == 2:
-            # 2 saat: MUTLAKA tek blok (ardışık 2 saat) olarak yerleştir
-            # Fallback YOK - ya blok olarak yerleşir ya hiç yerleşmez
-            scheduled, used_days = self._try_blocks_strict(
-                class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms, 2
-            )
-        elif weekly_hours == 1:
-            # 1 saat: Tekli yerleştir
-            scheduled += self._try_singles(class_id, teacher_id, lesson_id, 1, time_slots_count, classrooms)
+        if len(block_days) >= 1:
+            # Her gün için blok boyutu hesapla
+            block_sizes = self._calculate_block_sizes_for_days(weekly_hours, block_days)
 
-        # Son çare: Kalan saatler için esnek yerleştirme
-        # ÖNEMLİ: 2 saatlik dersler için fallback yok (yukarıda zaten blok olarak yerleştirildi)
-        if scheduled < weekly_hours and weekly_hours != 2:
+            self.logger.info(
+                f"    📅 BLOK SISTEMİ: {weekly_hours} saat -> {len(block_days)} güne dağıtım: {block_sizes}"
+            )
+
+            # Her gün için blok yerleştir (ardışık saatler)
+            for block_size in block_sizes:
+                placed = False
+                for day in block_days:
+                    block_scheduled = self._try_single_block_on_day(
+                        class_id, teacher_id, lesson_id, day, block_size, time_slots_count, classrooms
+                    )
+                    if block_scheduled:
+                        scheduled += block_size
+                        placed = True
+                        break
+                if not placed:
+                    break
+        else:
+            # Blok sistem başarısız, esnek yerleştirme
+            scheduled, used_days = self._try_blocks_strict(
+                class_id, teacher_id, lesson_id, weekly_hours // 2 or 1, time_slots_count, classrooms, 2
+            )
+
+        # KALAN SAATLER İÇİN BLOK SISTEMİ DEVAM
+        if scheduled < weekly_hours:
+            remaining = weekly_hours - scheduled
+            # Kalan saatleri küçük bloklar olarak dağıt
+            while remaining > 0 and remaining >= 1:
+                block_size = min(remaining, 2)  # Maksimum 2 saat blok
+                block_placed = self._try_place_remaining_block(
+                    class_id, teacher_id, lesson_id, block_size, time_slots_count, classrooms, set(block_days) if 'block_days' in locals() else set()
+                )
+                if block_placed:
+                    scheduled += block_size
+                    remaining -= block_size
+                else:
+                    remaining -= 1  # Azaltarak dene
+
+        # ESKİ UYARILAR
+        if scheduled < weekly_hours:
             remaining = weekly_hours - scheduled
             scheduled += self._try_any_available(
                 class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms
             )
-
-        # Kritik dersler için öğretmen uygunluğunu esnet
-        # ÖNEMLİ: 2 saatlik dersler için fallback yok
-        if scheduled < weekly_hours and weekly_hours >= 4:
-            remaining = weekly_hours - scheduled
-            scheduled += self._try_relaxed(class_id, teacher_id, lesson_id, remaining, time_slots_count, classrooms)
 
         return scheduled
 
@@ -806,13 +919,77 @@ class SimplePerfectScheduler:
                     scheduled += 1
 
         return scheduled
-
+    
+    def _ultra_aggressive_gap_filling(self) -> int:
+        """
+        ULTRA AGRESİF BOŞLUK DOLDURMA
+        Son çare: Tüm eksiklikleri yerleştir
+        Öğretmen uygunluk kontrolü YAPILMAZ (sadece çakışma kontrolü)
+        """
+        filled_count = 0
+        
+        classes = self.db_manager.get_all_classes()
+        lessons = self.db_manager.get_all_lessons()
+        assignments = self.db_manager.get_schedule_by_school_type()
+        
+        assignment_map = {(a.class_id, a.lesson_id): a.teacher_id for a in assignments}
+        
+        for class_obj in classes:
+            for lesson in lessons:
+                key = (class_obj.class_id, lesson.lesson_id)
+                if key in assignment_map:
+                    # Haftalık gereksinim
+                    weekly_hours = self.db_manager.get_weekly_hours_for_lesson(
+                        lesson.lesson_id, class_obj.grade
+                    )
+                    
+                    if not weekly_hours:
+                        continue
+                    
+                    # Mevcut yerleşme
+                    current_count = sum(
+                        1 for entry in self.schedule_entries 
+                        if entry["class_id"] == class_obj.class_id 
+                        and entry["lesson_id"] == lesson.lesson_id
+                    )
+                    
+                    # Eksik varsa
+                    if current_count < weekly_hours:
+                        remaining = weekly_hours - current_count
+                        teacher_id = assignment_map[key]
+                        
+                        self.logger.info(f"   📌 {class_obj.name} - {lesson.name}: {remaining} saat eksik")
+                        
+                        # Her gün, her slotu dene (öğretmen uygunluk kontrolü YOK)
+                        for day in range(5):
+                            if remaining <= 0:
+                                break
+                            for slot in range(7):
+                                if remaining <= 0:
+                                    break
+                                    
+                                # SADECE çakışma kontrolü (availability kontrolü yok)
+                                class_free = (day, slot) not in self.class_slots[class_obj.class_id]
+                                teacher_free = (day, slot) not in self.teacher_slots[teacher_id]
+                                
+                                if class_free and teacher_free:
+                                    # Yerleştir
+                                    self._add_entry(
+                                        class_obj.class_id,
+                                        teacher_id,
+                                        lesson.lesson_id,
+                                        1,  # classroom_id
+                                        day,
+                                        slot
+                                    )
+                                    remaining -= 1
+                                    filled_count += 1
+                                    self.logger.debug(f"      ✅ Yerleştirildi: Gün {day+1}, Slot {slot+1}")
+        
+        return filled_count
+    
     def _can_place_all(self, class_id: int, teacher_id: int, day: int, slots: List[int], lesson_id: int = None) -> bool:
-        """Tüm slotlara yerleştirilebilir mi?"""
-        # ÖNEMLİ: Aynı güne aynı dersi BÖLÜNMÜŞ şekilde yerleştirme
-        # Bu kural KALDIRILDI - Boş hücre sorununu önlemek için
-        # Artık aynı güne bölünmüş ders yerleştirilebilir (örn: 1. saat ve 5. saat)
-        pass  # Eski kural kaldırıldı
+        """Tüm slotlara yerleştirilebilir mi? - BLOK SISTEMİ için güncellenmiş"""
 
         for slot in slots:
             # Sınıf çakışması
@@ -823,22 +1000,13 @@ class SimplePerfectScheduler:
             if (day, slot) in self.teacher_slots[teacher_id]:
                 return False
 
-            # Öğretmen uygunluğu - KALDIRILDI (Boş hücre sorununu önlemek için)
-            # Sadece çakışma kontrolü yapılıyor, uygunluk kontrolü YOK
-            # try:
-            #     if not self.db_manager.is_teacher_available(teacher_id, day, slot):
-            #         return False
-            # except Exception as e:
-            #     logging.warning(f"Error checking teacher availability in SimplePerfectScheduler: {e}")
-            pass  # Öğretmen uygunluk kontrolü devre dışı
-
-            # ÖNEMLİ: 3 saat üst üste aynı ders kontrolü (ESNEK - sadece 1-2 saatlik dersler için)
-            # 3+ saatlik dersler için bu kural uygulanmıyor (boş hücre sorununu önlemek için)
-            if lesson_id is not None:
-                # Haftalık saat sayısını kontrol et
-                # Eğer ders 3+ saatse, 3 üst üste olabilir
-                # Sadece 1-2 saatlik dersler için engelle
-                pass  # Bu kuralı geçici olarak devre dışı bırak
+            # Öğretmen uygunluğu kontrolü - Relaxed mode'da atlanır
+            if not self.relaxed_mode:
+                try:
+                    if not self.db_manager.is_teacher_available(teacher_id, day, slot):
+                        return False
+                except Exception:
+                    pass  # Uygunluk kontrolü başarısız olursa devam
 
         return True
 
@@ -902,6 +1070,82 @@ class SimplePerfectScheduler:
             return False
 
         return True
+
+    def _select_block_days(self, weekly_hours: int) -> List[int]:
+        """
+        Blok sistemi için gerek günleri seç - 2+2+1 dağılımı
+        """
+        if weekly_hours <= 1:
+            return [0]  # Sadece Pazartesi
+        elif weekly_hours <= 2:
+            return [0]  # Pazartesi (2 saat blok)
+        elif weekly_hours <= 3:
+            return [0, 1]  # Pazartesi+Salı
+        elif weekly_hours <= 5:
+            return [0, 1, 3]  # Pazartesi+Salı+Perşembe (2+2+1)
+        else:
+            # Daha fazla saat için tüm günleri kullan
+            return [0, 1, 2, 3, 4]  # Pazartesi-Cuma
+
+    def _calculate_block_sizes_for_days(self, weekly_hours: int, block_days: List[int]) -> List[int]:
+        """
+        Haftalık saati günlere göre blok boyutlarına böl - 2+2+1 sistemi
+        """
+        num_days = len(block_days)
+
+        if weekly_hours <= 2:
+            return [weekly_hours]
+        elif weekly_hours <= 4:
+            if num_days >= 2:
+                return [2] * (weekly_hours // 2) + [weekly_hours % 2]
+            else:
+                return [weekly_hours]
+        else:  # 5+ saat
+            if num_days >= 3:
+                # 2+2+1 şeklinde dağıt
+                if weekly_hours >= 5:
+                    remaining = weekly_hours - 4  # İlk günlerin 2+2'si
+                    return [2, 2] + [remaining if remaining >= 1 else 1]
+                else:
+                    return [2] * (weekly_hours // 2) + [weekly_hours % 2]
+            else:
+                return [2] * (weekly_hours // 2) + [weekly_hours % 2]
+
+    def _try_single_block_on_day(self, class_id: int, teacher_id: int, lesson_id: int,
+                                day: int, block_size: int, time_slots_count: int, classrooms: List) -> bool:
+        """
+        Belirli bir güne ardışık blok yerleştir
+        """
+        for start_slot in range(time_slots_count - block_size + 1):
+            slots = list(range(start_slot, start_slot + block_size))
+
+            if self._can_place_all(class_id, teacher_id, day, slots, lesson_id):
+                classroom = classrooms[0] if classrooms else None
+                classroom_id = classroom.classroom_id if classroom else 1
+
+                for slot in slots:
+                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
+
+                self.logger.debug(f"        ✓ BLOK yerleştirildi: Gün {day+1}, Saat {start_slot+1}-{start_slot+
+
+block_size}")
+                return True
+
+        return False
+
+    def _try_place_remaining_block(self, class_id: int, teacher_id: int, lesson_id: int, block_size: int,
+                                  time_slots_count: int, classrooms: List, used_days: set) -> bool:
+        """
+        Kalan blok için kullanılmamış bir gün bul
+        """
+        for day in range(5):
+            if day in used_days:
+                continue
+
+            if self._try_single_block_on_day(class_id, teacher_id, lesson_id, day, block_size, time_slots_count, classrooms):
+                return True
+
+        return False
 
     def _add_entry(self, class_id: int, teacher_id: int, lesson_id: int, classroom_id: int, day: int, slot: int):
         """Kayıt ekle"""
