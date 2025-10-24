@@ -80,7 +80,7 @@ class BaseRepository(ABC, Generic[T]):
             params: Query parameters tuple
 
         Returns:
-            Last row ID for INSERT operations, None for others
+            Last row ID for INSERT operations, rowcount for UPDATE/DELETE operations
         """
         try:
             conn = self._get_connection()
@@ -88,7 +88,13 @@ class BaseRepository(ABC, Generic[T]):
             cursor.execute(query, params)
             if not self._safe_commit():
                 return None
-            return cursor.lastrowid if cursor.lastrowid else None
+            
+            # INSERT işlemleri için lastrowid döndür
+            if query.strip().upper().startswith('INSERT'):
+                return cursor.lastrowid
+            # UPDATE/DELETE işlemleri için rowcount döndür
+            else:
+                return cursor.rowcount
         except Exception as e:
             self.logger.error(f"Error executing write query '{query}': {e}")
             return None

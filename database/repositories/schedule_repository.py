@@ -35,11 +35,11 @@ class ScheduleRepository(BaseRepository[ScheduleEntry]):
 
     def get_schedule_entries_by_school_type(self, school_type: str) -> List[ScheduleEntry]:
         """Get all schedule entries (assignments) for school type."""
-        # DÜZELTME: Ders atamaları schedule tablosunda, schedule_entries değil!
-        query = "SELECT * FROM schedule WHERE school_type = ?"
+        # DÜZELTME: Ders atamaları schedule_entries tablosunda!
+        query = "SELECT * FROM schedule_entries WHERE school_type = ?"
         rows = self._execute_query(query, (school_type,))
         return [ScheduleEntry(
-            entry_id=row.get("schedule_id"),
+            entry_id=row.get("entry_id"),
             class_id=row["class_id"],
             teacher_id=row["teacher_id"],
             lesson_id=row["lesson_id"],
@@ -79,16 +79,12 @@ class ScheduleRepository(BaseRepository[ScheduleEntry]):
         result = self._execute_write(query, (class_id, teacher_id, lesson_id, classroom_id, day, time_slot, entry_id))
         return result is not None
 
-    def delete_schedule_entry(self, entry_id: int, school_type: str) -> int:
+    def delete_schedule_entry(self, entry_id: int, school_type: str) -> bool:
         """Delete a schedule entry by ID."""
-        # First delete from schedule_entries
-        query1 = "DELETE FROM schedule_entries WHERE entry_id = ?"
-        self._execute_write(query1, (entry_id,))
-
-        # Also delete from schedule if exists
-        query2 = "DELETE FROM schedule WHERE schedule_id = ? AND school_type = ?"
-        result = self._execute_write(query2, (entry_id, school_type))
-        return result or 0
+        # Delete from schedule_entries table (school_type kontrolü olmadan)
+        query = "DELETE FROM schedule_entries WHERE entry_id = ?"
+        result = self._execute_write(query, (entry_id,))
+        return result is not None and result > 0
 
     def delete_all_schedule_entries(self, school_type: str) -> int:
         """Delete all schedule entries for school type."""

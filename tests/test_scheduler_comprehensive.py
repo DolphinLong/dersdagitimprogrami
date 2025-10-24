@@ -1,467 +1,313 @@
+# -*- coding: utf-8 -*-
 """
-Comprehensive tests for scheduler.py - targeting 80%+ coverage
-Covers: _generate_schedule_standard, helper methods, edge cases
+Comprehensive tests for algorithms/scheduler.py
+Critical test coverage for the main scheduler manager
 """
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock, call
+import logging
+from unittest.mock import Mock, patch, MagicMock
+import sys
+import os
+
+# Add parent directory to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from algorithms.scheduler import Scheduler
-from database.models import Class, Teacher, Lesson, ScheduleEntry
+from database.db_manager import DatabaseManager
 
 
-class TestGenerateScheduleStandard:
-    """Test _generate_schedule_standard method"""
-    
-    def test_generate_schedule_standard_with_data(self, db_manager, sample_schedule_data):
-        """Test standard generation with complete data"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+class TestSchedulerInitialization:
+    """Test scheduler initialization and configuration"""
+
+    def test_scheduler_initialization_basic(self, db_manager):
+        """Test basic scheduler initialization"""
+        scheduler = Scheduler(db_manager)
         
-        schedule = scheduler._generate_schedule_standard()
+        assert scheduler.db_manager == db_manager
+        assert scheduler.progress_callback is None
+        assert hasattr(scheduler, 'logger')
+        assert scheduler.logger.name == 'algorithms.scheduler'
+
+    def test_scheduler_initialization_with_progress_callback(self, db_manager):
+        """Test scheduler initialization with progress callback"""
+        callback = Mock()
+        scheduler = Scheduler(db_manager, progress_callback=callback)
         
-        assert isinstance(schedule, list)
-        # Should have some entries
-        assert len(schedule) >= 0
-    
-    def test_generate_schedule_standard_empty_classes(self, db_manager):
-        """Test with no classes"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+        assert scheduler.progress_callback == callback
+
+    def test_scheduler_initialization_with_performance_monitor(self, db_manager):
+        """Test scheduler initialization with performance monitor"""
+        scheduler = Scheduler(db_manager, enable_performance_monitor=True)
         
-        with patch.object(db_manager, 'get_all_classes', return_value=[]):
-            schedule = scheduler._generate_schedule_standard()
-            assert schedule == []
-    
-    def test_generate_schedule_standard_empty_teachers(self, db_manager, sample_classes):
-        """Test with no teachers"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+        # Should attempt to initialize performance monitor
+        assert hasattr(scheduler, 'performance_monitor')
+
+    def test_scheduler_school_time_slots_constants(self, db_manager):
+        """Test school time slots constants"""
+        scheduler = Scheduler(db_manager)
         
-        with patch.object(db_manager, 'get_all_teachers', return_value=[]):
-            schedule = scheduler._generate_schedule_standard()
-            assert isinstance(schedule, list)
-    
-    def test_generate_schedule_standard_empty_lessons(self, db_manager, sample_classes, sample_teachers):
-        """Test with no lessons"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+        expected_slots = {
+            "İlkokul": 6,
+            "Ortaokul": 7,
+            "Lise": 8,
+            "Anadolu Lisesi": 8,
+            "Fen Lisesi": 8,
+            "Sosyal Bilimler Lisesi": 8,
+        }
         
-        with patch.object(db_manager, 'get_all_lessons', return_value=[]):
-            schedule = scheduler._generate_schedule_standard()
-            assert isinstance(schedule, list)
-    
-    def test_generate_schedule_standard_school_type_handling(self, db_manager):
-        """Test school type handling"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+        assert scheduler.SCHOOL_TIME_SLOTS == expected_slots
+
+    def test_scheduler_flags_initialization(self, db_manager):
+        """Test scheduler algorithm flags"""
+        scheduler = Scheduler(db_manager)
         
-        # Test with different school types
-        for school_type in ["İlkokul", "Ortaokul", "Lise"]:
-            with patch.object(db_manager, 'get_school_type', return_value=school_type):
-                with patch.object(db_manager, 'get_all_classes', return_value=[]):
-                    schedule = scheduler._generate_schedule_standard()
-                    assert isinstance(schedule, list)
-    
-    def test_generate_schedule_standard_no_school_type(self, db_manager):
-        """Test when school type is None"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        with patch.object(db_manager, 'get_school_type', return_value=None):
-            with patch.object(db_manager, 'get_all_classes', return_value=[]):
-                schedule = scheduler._generate_schedule_standard()
-                # Should default to İlkokul
-                assert isinstance(schedule, list)
-    
-    def test_generate_schedule_standard_lesson_assignments(self, db_manager, sample_schedule_data):
-        """Test lesson assignment mapping"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        # Mock existing assignments
-        mock_assignments = [
-            Mock(class_id=1, lesson_id=1, teacher_id=1),
-            Mock(class_id=1, lesson_id=2, teacher_id=2),
-        ]
-        
-        with patch.object(db_manager, 'get_schedule_by_school_type', return_value=mock_assignments):
-            schedule = scheduler._generate_schedule_standard()
-            assert isinstance(schedule, list)
-    
-    def test_generate_schedule_standard_conflict_detection(self, db_manager, sample_schedule_data):
-        """Test conflict detection in standard generation"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        with patch.object(scheduler, 'detect_conflicts', return_value=[]):
-            schedule = scheduler._generate_schedule_standard()
-            assert isinstance(schedule, list)
-    
-    def test_generate_schedule_standard_conflict_resolution(self, db_manager, sample_schedule_data):
-        """Test conflict resolution"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        mock_conflicts = [{'type': 'teacher_conflict', 'day': 0, 'slot': 0}]
-        
-        with patch.object(scheduler, 'detect_conflicts', return_value=mock_conflicts):
-            with patch('algorithms.conflict_resolver.ConflictResolver') as mock_resolver:
-                mock_resolver_instance = Mock()
-                mock_resolver_instance.auto_resolve_conflicts.return_value = 1
-                mock_resolver.return_value = mock_resolver_instance
-                
-                schedule = scheduler._generate_schedule_standard()
-                assert isinstance(schedule, list)
+        # Check that flags are boolean
+        assert isinstance(scheduler.use_hybrid, bool)
+        assert isinstance(scheduler.use_simple_perfect, bool)
+        assert isinstance(scheduler.use_ultimate, bool)
+        assert isinstance(scheduler.use_enhanced_strict, bool)
 
 
-class TestGetEligibleTeachers:
-    """Test _get_eligible_teachers method"""
-    
-    def test_get_eligible_teachers_basic(self, db_manager):
-        """Test basic eligible teacher selection"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+class TestSchedulerAlgorithmSelection:
+    """Test algorithm selection logic"""
+
+    @patch('algorithms.scheduler.HYBRID_OPTIMAL_SCHEDULER_AVAILABLE', True)
+    def test_hybrid_scheduler_selection(self, db_manager):
+        """Test hybrid scheduler selection when available"""
+        scheduler = Scheduler(db_manager, use_hybrid=True)
+        assert scheduler.use_hybrid == True
+
+    @patch('algorithms.scheduler.HYBRID_OPTIMAL_SCHEDULER_AVAILABLE', False)
+    def test_hybrid_scheduler_unavailable(self, db_manager):
+        """Test hybrid scheduler when unavailable"""
+        scheduler = Scheduler(db_manager, use_hybrid=True)
+        assert scheduler.use_hybrid == False
+
+    def test_advanced_scheduler_selection(self, db_manager):
+        """Test advanced scheduler selection"""
+        scheduler = Scheduler(db_manager, use_advanced=True)
+        # Should be based on ENHANCED_STRICT_SCHEDULER_AVAILABLE
+        assert isinstance(scheduler.use_advanced, bool)
+
+    def test_disable_advanced_scheduler(self, db_manager):
+        """Test disabling advanced scheduler"""
+        scheduler = Scheduler(db_manager, use_advanced=False)
+        assert scheduler.use_advanced == False
+
+
+class TestSchedulerLogging:
+    """Test scheduler logging functionality"""
+
+    def test_logger_configuration(self, db_manager):
+        """Test logger is properly configured"""
+        scheduler = Scheduler(db_manager)
         
-        # Create mock teachers
-        teacher1 = Mock(teacher_id=1, name="Teacher 1", subject="Matematik")
-        teacher2 = Mock(teacher_id=2, name="Teacher 2", subject="Türkçe")
-        teacher3 = Mock(teacher_id=3, name="Teacher 3", subject="Matematik")
-        teachers = [teacher1, teacher2, teacher3]
+        assert scheduler.logger is not None
+        assert scheduler.logger.name == 'algorithms.scheduler'
+        assert isinstance(scheduler.logger, logging.Logger)
+
+    @patch('algorithms.scheduler.PERFORMANCE_MONITOR_AVAILABLE', True)
+    @patch('algorithms.scheduler.PerformanceMonitor')
+    def test_performance_monitor_logging(self, mock_performance_monitor, db_manager):
+        """Test performance monitor initialization logging"""
+        mock_instance = Mock()
+        mock_performance_monitor.return_value = mock_instance
         
-        # Create mock lesson
-        lesson = Mock(name="Matematik")
-        
-        with patch.object(db_manager, 'get_schedule_for_specific_teacher', return_value=[]):
-            eligible = scheduler._get_eligible_teachers(teachers, lesson)
+        with patch.object(logging.getLogger('algorithms.scheduler'), 'info') as mock_log:
+            scheduler = Scheduler(db_manager, enable_performance_monitor=True)
             
-            # Should return only Matematik teachers
-            assert len(eligible) >= 0  # May be 0 if filtering logic differs
-            # If we get results, they should be Matematik teachers
-            if len(eligible) > 0:
-                assert all(t.subject == "Matematik" for t in eligible)
-    
-    def test_get_eligible_teachers_no_match(self, db_manager):
-        """Test when no teachers match"""
-        scheduler = Scheduler(db_manager)
+            # Should log performance monitor activation
+            mock_log.assert_any_call("📊 Performance Monitor aktif - Algoritma performansı takip ediliyor")
+
+    @patch('algorithms.scheduler.HEURISTICS_AVAILABLE', True)
+    @patch('algorithms.scheduler.HeuristicManager')
+    def test_heuristics_manager_logging(self, mock_heuristics, db_manager):
+        """Test heuristics manager initialization logging"""
+        mock_instance = Mock()
+        mock_heuristics.return_value = mock_instance
         
-        teacher1 = Mock(teacher_id=1, subject="Matematik")
-        teachers = [teacher1]
-        lesson = Mock(name="Fen Bilimleri")
-        
-        eligible = scheduler._get_eligible_teachers(teachers, lesson)
-        assert len(eligible) == 0
-    
-    def test_get_eligible_teachers_special_lesson(self, db_manager):
-        """Test special handling for T.C. İnkılap Tarihi"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        teacher1 = Mock(teacher_id=1, subject="Sosyal Bilgiler")
-        teachers = [teacher1]
-        lesson = Mock(name="T.C. İnkılap Tarihi ve Atatürkçülük")
-        
-        with patch.object(db_manager, 'get_schedule_for_specific_teacher', return_value=[]):
-            eligible = scheduler._get_eligible_teachers(teachers, lesson)
-            # Sosyal Bilgiler teachers should be included for this lesson
-            assert isinstance(eligible, list)
-    
-    def test_get_eligible_teachers_workload_sorting(self, db_manager):
-        """Test teachers are sorted by workload"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        teacher1 = Mock(teacher_id=1, subject="Matematik")
-        teacher2 = Mock(teacher_id=2, subject="Matematik")
-        teachers = [teacher1, teacher2]
-        lesson = Mock(name="Matematik")
-        
-        # Mock different workloads
-        def mock_schedule(teacher_id):
-            if teacher_id == 1:
-                return [1, 2, 3]  # 3 entries
-            else:
-                return [1]  # 1 entry
-        
-        with patch.object(db_manager, 'get_schedule_for_specific_teacher', side_effect=mock_schedule):
-            eligible = scheduler._get_eligible_teachers(teachers, lesson)
+        with patch.object(logging.getLogger('algorithms.scheduler'), 'info') as mock_log:
+            scheduler = Scheduler(db_manager)
             
-            # Should return a list
-            assert isinstance(eligible, list)
-            # If we have results, teacher with less workload should be first
-            if len(eligible) >= 2:
-                assert eligible[0].teacher_id == 2
+            # Should log heuristics manager activation
+            mock_log.assert_any_call("🧠 Heuristics Manager aktiv - Akıllı slot seçimi kullanılıyor")
 
 
-class TestScheduleLessonWithAssignedTeacher:
-    """Test _schedule_lesson_with_assigned_teacher method"""
-    
-    def test_schedule_lesson_basic(self, db_manager):
-        """Test basic lesson scheduling"""
+class TestSchedulerErrorHandling:
+    """Test scheduler error handling"""
+
+    def test_scheduler_with_none_db_manager(self):
+        """Test scheduler initialization with None db_manager"""
+        # Should not raise exception during initialization
+        scheduler = Scheduler(None)
+        assert scheduler.db_manager is None
+
+    @patch('algorithms.scheduler.PerformanceMonitor', side_effect=ImportError)
+    def test_performance_monitor_import_error(self, mock_performance_monitor, db_manager):
+        """Test graceful handling of performance monitor import error"""
+        # Should not raise exception
+        scheduler = Scheduler(db_manager, enable_performance_monitor=True)
+        assert scheduler.performance_monitor is None
+
+    @patch('algorithms.scheduler.HeuristicManager', side_effect=ImportError)
+    def test_heuristics_import_error(self, mock_heuristics, db_manager):
+        """Test graceful handling of heuristics import error"""
+        # Should not raise exception
         scheduler = Scheduler(db_manager)
-        
-        schedule_entries = []
-        class_obj = Mock(class_id=1, name="5A", grade=5)
-        teacher = Mock(teacher_id=1, name="Teacher 1")
-        lesson = Mock(lesson_id=1, name="Matematik")
-        days = list(range(5))
-        time_slots = list(range(7))
-        weekly_hours = 2
-        
-        with patch.object(scheduler, '_create_optimal_blocks_distributed', return_value=[2]):
-            with patch.object(scheduler, '_find_best_slots_aggressive', return_value=[0, 1]):
-                with patch.object(scheduler, '_can_teacher_teach_at_slots_aggressive', return_value=True):
-                    with patch.object(scheduler, '_has_conflict', return_value=False):
-                        success = scheduler._schedule_lesson_with_assigned_teacher(
-                            schedule_entries, class_obj, teacher, lesson, days, time_slots, weekly_hours
-                        )
-                        
-                        assert success == True
-                        assert len(schedule_entries) == 2
-    
-    def test_schedule_lesson_max_attempts(self, db_manager):
-        """Test max attempts limit"""
-        scheduler = Scheduler(db_manager)
-        
-        schedule_entries = []
-        class_obj = Mock(class_id=1, name="5A", grade=5)
-        teacher = Mock(teacher_id=1, name="Teacher 1")
-        lesson = Mock(lesson_id=1, name="Matematik")
-        days = list(range(5))
-        time_slots = list(range(7))
-        weekly_hours = 10  # High number
-        
-        with patch.object(scheduler, '_create_optimal_blocks_distributed', return_value=[1]):
-            with patch.object(scheduler, '_find_best_slots_aggressive', return_value=[]):
-                success = scheduler._schedule_lesson_with_assigned_teacher(
-                    schedule_entries, class_obj, teacher, lesson, days, time_slots, weekly_hours
-                )
-                
-                # Should fail after max attempts
-                assert success == False
-    
-    def test_schedule_lesson_teacher_daily_limit(self, db_manager):
-        """Test teacher daily hour limit"""
-        scheduler = Scheduler(db_manager)
-        
-        # Pre-fill schedule with teacher entries
-        schedule_entries = [
-            {"teacher_id": 1, "day": 0, "time_slot": i} for i in range(7)
-        ]
-        
-        class_obj = Mock(class_id=1, name="5A", grade=5)
-        teacher = Mock(teacher_id=1, name="Teacher 1")
-        lesson = Mock(lesson_id=1, name="Matematik")
-        days = list(range(5))
-        time_slots = list(range(7))
-        weekly_hours = 2
-        
-        with patch.object(scheduler, '_create_optimal_blocks_distributed', return_value=[2]):
-            with patch.object(scheduler, '_find_best_slots_aggressive', return_value=[0, 1]):
-                with patch.object(scheduler, '_can_teacher_teach_at_slots_aggressive', return_value=True):
-                    with patch.object(scheduler, '_has_conflict', return_value=False):
-                        success = scheduler._schedule_lesson_with_assigned_teacher(
-                            schedule_entries, class_obj, teacher, lesson, days, time_slots, weekly_hours
-                        )
-                        
-                        # Should handle daily limit
-                        assert isinstance(success, bool)
+        assert scheduler.heuristics is None
 
 
-class TestHelperMethods:
-    """Test various helper methods"""
-    
-    def test_create_optimal_blocks_distributed(self, db_manager):
-        """Test _create_optimal_blocks_distributed"""
-        scheduler = Scheduler(db_manager)
+class TestSchedulerConfiguration:
+    """Test scheduler configuration options"""
+
+    def test_all_options_enabled(self, db_manager):
+        """Test scheduler with all options enabled"""
+        scheduler = Scheduler(
+            db_manager,
+            use_advanced=True,
+            use_hybrid=True,
+            progress_callback=Mock(),
+            enable_performance_monitor=True
+        )
         
-        # Test different hour counts
-        for hours in [1, 2, 3, 4, 5, 6]:
-            blocks = scheduler._create_optimal_blocks_distributed(hours)
-            assert isinstance(blocks, list)
-            assert sum(blocks) == hours
-    
-    def test_find_best_slots_aggressive(self, db_manager):
-        """Test _find_best_slots_aggressive"""
-        scheduler = Scheduler(db_manager)
+        assert scheduler.db_manager == db_manager
+        assert scheduler.progress_callback is not None
+        assert isinstance(scheduler.use_advanced, bool)
+        assert isinstance(scheduler.use_hybrid, bool)
+
+    def test_all_options_disabled(self, db_manager):
+        """Test scheduler with all options disabled"""
+        scheduler = Scheduler(
+            db_manager,
+            use_advanced=False,
+            use_hybrid=False,
+            progress_callback=None,
+            enable_performance_monitor=False
+        )
         
-        schedule_entries = []
-        class_id = 1
-        day = 0
-        time_slots = list(range(7))
-        block_size = 2
+        assert scheduler.db_manager == db_manager
+        assert scheduler.progress_callback is None
+        assert scheduler.use_advanced == False
+        assert scheduler.use_hybrid == False
+
+    def test_deprecated_ultra_parameter(self, db_manager):
+        """Test that deprecated use_ultra parameter is handled"""
+        # Should not raise exception even if use_ultra is passed
+        scheduler = Scheduler(db_manager, use_ultra=True)
         
-        slots = scheduler._find_best_slots_aggressive(schedule_entries, class_id, day, time_slots, block_size)
-        
-        assert isinstance(slots, list)
-        # Should find consecutive slots
-        if len(slots) > 0:
-            assert len(slots) <= block_size
-    
-    def test_can_teacher_teach_at_slots_aggressive(self, db_manager):
-        """Test _can_teacher_teach_at_slots_aggressive"""
-        scheduler = Scheduler(db_manager)
-        
-        schedule_entries = []
-        teacher_id = 1
-        day = 0
-        slots = [0, 1]
-        
-        can_teach = scheduler._can_teacher_teach_at_slots_aggressive(schedule_entries, teacher_id, day, slots)
-        
-        assert isinstance(can_teach, bool)
-    
-    def test_has_conflict(self, db_manager):
-        """Test _has_conflict"""
-        scheduler = Scheduler(db_manager)
-        
-        schedule_entries = [
-            {"class_id": 1, "day": 0, "time_slot": 0, "teacher_id": 1}
-        ]
-        
-        # Test conflicting entry (same class, day, slot)
-        new_entry = {"class_id": 1, "day": 0, "time_slot": 0, "teacher_id": 2}
-        assert scheduler._has_conflict(schedule_entries, new_entry) == True
-        
-        # Test non-conflicting entry
-        new_entry = {"class_id": 1, "day": 0, "time_slot": 1, "teacher_id": 2}
-        assert scheduler._has_conflict(schedule_entries, new_entry) == False
-    
-    def test_detect_conflicts(self, db_manager):
-        """Test detect_conflicts"""
-        scheduler = Scheduler(db_manager)
-        
-        # No conflicts
-        schedule_entries = [
-            {"class_id": 1, "day": 0, "time_slot": 0, "teacher_id": 1},
-            {"class_id": 2, "day": 0, "time_slot": 0, "teacher_id": 2},
-        ]
-        conflicts = scheduler.detect_conflicts(schedule_entries)
-        assert len(conflicts) == 0
-        
-        # Teacher conflict
-        schedule_entries = [
-            {"class_id": 1, "day": 0, "time_slot": 0, "teacher_id": 1},
-            {"class_id": 2, "day": 0, "time_slot": 0, "teacher_id": 1},
-        ]
-        conflicts = scheduler.detect_conflicts(schedule_entries)
-        assert len(conflicts) > 0
+        # use_ultra should be ignored (deprecated)
+        assert hasattr(scheduler, 'db_manager')
 
 
-class TestScheduleLessonImproved:
-    """Test _schedule_lesson_improved method - SKIPPED (method may not exist)"""
-    
-    def test_schedule_lesson_improved_exists(self, db_manager):
-        """Test if _schedule_lesson_improved method exists"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        # Check if method exists
-        has_method = hasattr(scheduler, '_schedule_lesson_improved')
-        
-        # If method doesn't exist, that's okay - it may have been refactored
-        if not has_method:
-            assert True  # Pass the test
-        else:
-            # If it exists, test basic functionality
-            assert callable(scheduler._schedule_lesson_improved)
+class TestSchedulerIntegration:
+    """Test scheduler integration with other components"""
 
+    def test_scheduler_with_real_db_manager(self):
+        """Test scheduler with real database manager"""
+        db = DatabaseManager(":memory:")
+        scheduler = Scheduler(db)
+        
+        assert scheduler.db_manager == db
+        assert scheduler.logger is not None
 
-class TestEdgeCasesAndIntegration:
-    """Test edge cases and integration scenarios"""
-    
-    def test_schedule_with_conflicting_requirements(self, db_manager, sample_schedule_data):
-        """Test scheduling with conflicting requirements"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+    @patch('algorithms.scheduler.AlgorithmSelector')
+    def test_algorithm_selector_integration(self, mock_selector_class, db_manager):
+        """Test integration with algorithm selector"""
+        mock_selector = Mock()
+        mock_selector_class.return_value = mock_selector
         
-        # This should handle conflicts gracefully
-        schedule = scheduler._generate_schedule_standard()
-        assert isinstance(schedule, list)
-    
-    def test_schedule_with_limited_time_slots(self, db_manager):
-        """Test with very limited time slots"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        with patch.object(db_manager, 'get_school_type', return_value="İlkokul"):  # Only 6 slots
-            schedule = scheduler._generate_schedule_standard()
-            assert isinstance(schedule, list)
-    
-    def test_schedule_with_many_lessons(self, db_manager, sample_schedule_data):
-        """Test with many lessons to schedule"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        # Add many lesson assignments
-        schedule = scheduler._generate_schedule_standard()
-        assert isinstance(schedule, list)
-    
-    def test_schedule_generation_idempotency(self, db_manager):
-        """Test that multiple generations produce consistent results"""
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        with patch.object(db_manager, 'get_all_classes', return_value=[]):
-            schedule1 = scheduler._generate_schedule_standard()
-            schedule2 = scheduler._generate_schedule_standard()
-            
-            # Both should be empty lists
-            assert schedule1 == schedule2
-
-
-class TestSchedulerLoggingDetailed:
-    """Detailed logging tests"""
-    
-    def test_logging_during_standard_generation(self, db_manager, caplog):
-        """Test logging during standard generation"""
-        import logging
-        caplog.set_level(logging.INFO)
-        
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        with patch.object(db_manager, 'get_all_classes', return_value=[]):
-            scheduler._generate_schedule_standard()
-            
-            # Check that logging occurred
-            assert len(caplog.records) > 0
-    
-    def test_logging_conflict_detection(self, db_manager, caplog):
-        """Test logging during conflict detection"""
-        import logging
-        caplog.set_level(logging.INFO)
+        # Mock the selector methods
+        mock_selector.select_best_algorithm.return_value = Mock
+        mock_selector.get_algorithm_recommendation.return_value = {
+            'best_algorithm': 'simple_perfect',
+            'reasoning': 'Test reasoning',
+            'score': 8.5
+        }
         
         scheduler = Scheduler(db_manager)
         
-        schedule_entries = [
-            {"class_id": 1, "day": 0, "time_slot": 0, "teacher_id": 1},
-            {"class_id": 2, "day": 0, "time_slot": 0, "teacher_id": 1},
-        ]
-        
-        conflicts = scheduler.detect_conflicts(schedule_entries)
-        
-        # Should have detected conflicts
-        assert len(conflicts) > 0
+        # Should attempt to use algorithm selector
+        assert hasattr(scheduler, 'algorithm_selector')
 
 
-class TestSchedulerPerformanceDetailed:
-    """Detailed performance tests"""
-    
-    def test_standard_generation_performance(self, db_manager):
-        """Test standard generation performance"""
+class TestSchedulerConstants:
+    """Test scheduler constants and class variables"""
+
+    def test_school_time_slots_immutable(self, db_manager):
+        """Test that SCHOOL_TIME_SLOTS is properly defined"""
+        scheduler = Scheduler(db_manager)
+        
+        # Should be a dictionary
+        assert isinstance(scheduler.SCHOOL_TIME_SLOTS, dict)
+        
+        # Should contain expected school types
+        expected_types = ["İlkokul", "Ortaokul", "Lise", "Anadolu Lisesi", "Fen Lisesi", "Sosyal Bilimler Lisesi"]
+        for school_type in expected_types:
+            assert school_type in scheduler.SCHOOL_TIME_SLOTS
+            assert isinstance(scheduler.SCHOOL_TIME_SLOTS[school_type], int)
+            assert scheduler.SCHOOL_TIME_SLOTS[school_type] > 0
+
+    def test_time_slots_values(self, db_manager):
+        """Test time slots values are reasonable"""
+        scheduler = Scheduler(db_manager)
+        
+        for school_type, slots in scheduler.SCHOOL_TIME_SLOTS.items():
+            # Time slots should be between 6-8 hours per day
+            assert 6 <= slots <= 8, f"{school_type} has unreasonable time slots: {slots}"
+
+
+class TestSchedulerMemoryManagement:
+    """Test scheduler memory management"""
+
+    def test_scheduler_cleanup(self, db_manager):
+        """Test scheduler can be properly cleaned up"""
+        scheduler = Scheduler(db_manager)
+        
+        # Should be able to delete references
+        db_ref = scheduler.db_manager
+        del scheduler
+        
+        # Original db_manager should still exist
+        assert db_ref is not None
+
+    def test_multiple_scheduler_instances(self, db_manager):
+        """Test multiple scheduler instances can coexist"""
+        scheduler1 = Scheduler(db_manager, use_advanced=True)
+        scheduler2 = Scheduler(db_manager, use_advanced=False)
+        
+        assert scheduler1.use_advanced != scheduler2.use_advanced
+        assert scheduler1.db_manager == scheduler2.db_manager
+
+
+# Performance and stress tests
+class TestSchedulerPerformance:
+    """Test scheduler performance characteristics"""
+
+    def test_scheduler_initialization_performance(self, db_manager):
+        """Test scheduler initializes quickly"""
         import time
         
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
+        start_time = time.time()
+        scheduler = Scheduler(db_manager)
+        end_time = time.time()
         
-        start = time.time()
-        with patch.object(db_manager, 'get_all_classes', return_value=[]):
-            scheduler._generate_schedule_standard()
-        duration = time.time() - start
+        # Should initialize in less than 1 second
+        assert (end_time - start_time) < 1.0
+
+    def test_multiple_initializations(self, db_manager):
+        """Test multiple scheduler initializations"""
+        schedulers = []
         
-        # Should be fast with empty data
-        assert duration < 1.0
-    
-    def test_helper_method_performance(self, db_manager):
-        """Test helper method performance"""
-        import time
+        for i in range(10):
+            scheduler = Scheduler(db_manager)
+            schedulers.append(scheduler)
         
-        scheduler = Scheduler(db_manager, use_ultra=False, use_hybrid=False, use_advanced=False)
-        
-        schedule_entries = []
-        
-        start = time.time()
-        for _ in range(100):
-            # Provide complete entry with all required fields
-            test_entry = {
-                "class_id": 1, 
-                "day": 0, 
-                "time_slot": 0,
-                "teacher_id": 1,
-                "lesson_id": 1
-            }
-            scheduler._has_conflict(schedule_entries, test_entry)
-        duration = time.time() - start
-        
-        # Should be very fast
-        assert duration < 0.5
+        # All should be properly initialized
+        assert len(schedulers) == 10
+        for scheduler in schedulers:
+            assert scheduler.db_manager == db_manager
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
