@@ -38,35 +38,22 @@ class EnhancedScheduleGenerator(BaseScheduler):
         
     def generate_schedule(self) -> List[Dict[str, Any]]:
         """
-        Generate enhanced schedule with improved filling strategies
+        Generate enhanced schedule with BLOCK RULES enforcement
+        Uses Curriculum-Based scheduler with mandatory block rules
         """
-        print("=" * 80)
-        print("ENHANCED SCHEDULE GENERATOR")
-        print("=" * 80)
-        print("Building upon proven algorithms with enhanced strategies")
+        self.logger.info("🚀 ENHANCED CURRICULUM-BASED SCHEDULER Aktif - Tam müfredat planlaması!")
+        self.logger.info("   ✅ Addresses core issue: schedules 280 hours instead of 112 assignments")
         
-        start_time = time.time()
+        # Use the curriculum-based scheduler with block rules
+        from algorithms.curriculum_based_scheduler import CurriculumBasedFullScheduleGenerator
         
-        # Step 1: Use existing working algorithm as base
-        base_schedule = self._generate_base_schedule()
-        print(f"Base schedule created: {len(base_schedule)} entries")
+        curriculum_scheduler = CurriculumBasedFullScheduleGenerator(self.db_manager)
+        schedule_entries = curriculum_scheduler.generate_full_schedule()
         
-        # Step 2: Apply enhanced filling strategies
-        enhanced_schedule = self._apply_enhanced_strategies(base_schedule)
-        print(f"Enhanced schedule: {len(enhanced_schedule)} entries")
+        # Store the schedule
+        self.schedule_entries = schedule_entries
         
-        # Step 3: Final optimization pass
-        final_schedule = self._final_optimization_pass(enhanced_schedule)
-        print(f"Final schedule: {len(final_schedule)} entries")
-        
-        total_time = time.time() - start_time
-        print(f"Schedule generation completed in {total_time:.2f} seconds")
-        
-        # Convert to expected format and validate
-        validated_schedule = self._validate_and_convert_schedule(final_schedule)
-        self.schedule_entries = validated_schedule
-        
-        return validated_schedule
+        return schedule_entries
     
     def _generate_base_schedule(self) -> List[Dict[str, Any]]:
         """

@@ -128,48 +128,176 @@ class CurriculumBasedFullScheduleGenerator:
     def _schedule_lesson_for_class(self, class_id: int, lesson_id: int, teacher_id: int, 
                                  weekly_hours: int, time_slots_count: int) -> int:
         """
-        Schedule a lesson for a specific class for its required weekly hours
+        Schedule a lesson for a specific class using BLOCK RULES
+        
+        BLOCK RULES (MANDATORY):
+        - 1 hour: [1] - single slot
+        - 2 hours: [2] - consecutive slots on same day
+        - 3 hours: [2+1] - 2 consecutive + 1 single, different days
+        - 4 hours: [2+2] - two 2-hour blocks, different days
+        - 5 hours: [2+2+1] - two 2-hour blocks + 1 single, different days
+        - 6 hours: [2+2+2] - three 2-hour blocks, different days
         """
-        scheduled_count = 0
-        max_attempts = weekly_hours * 20  # More attempts for better coverage
-        attempts = 0
+        # Decompose weekly hours into blocks
+        blocks = self._decompose_into_blocks(weekly_hours)
+        self.logger.debug(f"         📦 {weekly_hours} hours → blocks: {blocks}")
         
-        # Try to schedule all required hours
-        while scheduled_count < weekly_hours and attempts < max_attempts:
-            attempts += 1
+        # Try to place all blocks using backtracking
+        placed_blocks = []
+        used_days = set()
+        
+        if self._place_blocks_with_backtracking(class_id, lesson_id, teacher_id, blocks, 
+                                               placed_blocks, used_days, time_slots_count):
+            scheduled_count = sum(blocks)
+            self.logger.debug(f"         ✅ All blocks placed successfully")
+            return scheduled_count
+        else:
+            # Rollback any partial placements
+            self._rollback_placed_blocks(placed_blocks)
             
-            # Try different strategies for placement
-            for day in range(5):  # 5 days per week
-                if scheduled_count >= weekly_hours:
+            # Try placing only 2-hour blocks (partial success)
+            two_hour_blocks = [b for b in blocks if b == 2]
+            if two_hour_blocks:
+                placed_blocks = []
+                used_days = set()
+                if self._place_blocks_with_backtracking(class_id, lesson_id, teacher_id, two_hour_blocks,
+                                                      placed_blocks, used_days, time_slots_count):
+                    scheduled_count = sum(two_hour_blocks)
+                    self.logger.warning(f"      ⚠️  Partial placement: {scheduled_count}/{weekly_hours} hours (only 2-hour blocks)")
+                    return scheduled_count
+                else:
+                    self._rollback_placed_blocks(placed_blocks)
+            
+            # Complete failure
+            self.logger.error(f"      ❌ Could not place any blocks for {weekly_hours} hours")
+            return 0
+    
+    def _decompose_into_blocks(self, weekly_hours: int) -> List[int]:
+        """
+        Decompose weekly hours into blocks according to MEB rules
+        
+        Examples:
+        - 1 hour: [1]
+        - 2 hours: [2] 
+        - 3 hours: [2, 1]
+        - 4 hours: [2, 2]
+        - 5 hours: [2, 2, 1]
+        - 6 hours: [2, 2, 2]
+        """
+        if weekly_hours <= 0:
+            return []
+        elif weekly_hours == 1:
+            return [1]
+        elif weekly_hours == 2:
+            return [2]
+        elif weekly_hours == 3:
+            return [2, 1]
+        elif weekly_hours == 4:
+            return [2, 2]
+        elif weekly_hours == 5:
+            return [2, 2, 1]
+        elif weekly_hours == 6:
+            return [2, 2, 2]
+        else:
+            # For more than 6 hours, use 2-hour blocks + remainder
+            blocks = []
+            remaining = weekly_hours
+            while remaining >= 2:
+                blocks.append(2)
+                remaining -= 2
+            if remaining == 1:
+                blocks.append(1)
+            return blocks
+    
+    def _place_blocks_with_backtracking(self, class_id: int, lesson_id: int, teacher_id: int,
+                                       blocks: List[int], placed_blocks: List, used_days: set,
+                                       time_slots_count: int) -> bool:
+        """
+        Place blocks using backtracking algorithm
+        Each block must be on a different day and consecutive slots
+        """
+        if not blocks:
+            return True  # All blocks placed successfully
+        
+        current_block_size = blocks[0]
+        remaining_blocks = blocks[1:]
+        
+        # Try each day
+        for day in range(5):
+            if day in used_days:
+                continue  # This day already used
+            
+            # Find consecutive slots for this block
+            consecutive_slots = self._find_consecutive_slots(class_id, teacher_id, day, 
+                                                           current_block_size, time_slots_count)
+            
+            for start_slot in consecutive_slots:
+                slots = list(range(start_slot, start_slot + current_block_size))
+                
+                # Place this block
+                block_entries = []
+                for slot in slots:
+                    classroom_id = 1  # Default classroom
+                    entry = self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, slot)
+                    block_entries.append((day, slot))
+                
+                placed_blocks.append(block_entries)
+                used_days.add(day)
+                
+                # Recursively place remaining blocks
+                if self._place_blocks_with_backtracking(class_id, lesson_id, teacher_id,
+                                                       remaining_blocks, placed_blocks, 
+                                                       used_days, time_slots_count):
+                    return True
+                
+                # Backtrack: remove this block
+                for day_slot, slot in block_entries:
+                    self._remove_entry(class_id, teacher_id, lesson_id, day_slot, slot)
+                placed_blocks.pop()
+                used_days.remove(day)
+        
+        return False  # Could not place this block
+    
+    def _find_consecutive_slots(self, class_id: int, teacher_id: int, day: int, 
+                               block_size: int, time_slots_count: int) -> List[int]:
+        """
+        Find all possible starting positions for consecutive slots of given size
+        """
+        possible_starts = []
+        
+        for start_slot in range(time_slots_count - block_size + 1):
+            # Check if all slots in this block are available
+            all_available = True
+            for slot in range(start_slot, start_slot + block_size):
+                if not self._can_place_lesson_strict(class_id, teacher_id, day, slot):
+                    all_available = False
                     break
-                    
-                for time_slot in range(time_slots_count):
-                    if scheduled_count >= weekly_hours:
-                        break
-                        
-                    # Check if we can place this lesson here (relaxed constraints)
-                    can_place = self._can_place_lesson_relaxed(
-                        class_id, teacher_id, day, time_slot
-                    )
-                    
-                    if can_place:
-                        # Place the lesson
-                        classroom_id = 1  # Default classroom
-                        self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
-                        scheduled_count += 1
-                        self.logger.debug(f"         ✓ Placed: Day {day+1}, Slot {time_slot+1}")
-                        break  # Move to next hour needed
-        
-        # If we couldn't place all hours, try aggressive placement
-        if scheduled_count < weekly_hours:
-            remaining = weekly_hours - scheduled_count
-            self.logger.warning(f"      ⚠️  {remaining} hours missing, trying aggressive placement...")
-            aggressive_placed = self._aggressive_placement_for_remaining_hours(
-                class_id, lesson_id, teacher_id, remaining, time_slots_count
-            )
-            scheduled_count += aggressive_placed
             
-        return scheduled_count
+            if all_available:
+                possible_starts.append(start_slot)
+        
+        return possible_starts
+    
+    def _rollback_placed_blocks(self, placed_blocks: List):
+        """
+        Remove all entries from placed blocks (rollback)
+        """
+        for block_entries in placed_blocks:
+            for day, slot in block_entries:
+                # Find and remove the entry
+                for i, entry in enumerate(self.schedule_entries):
+                    if entry['day'] == day and entry['time_slot'] == slot:
+                        # Remove from schedule
+                        removed_entry = self.schedule_entries.pop(i)
+                        
+                        # Remove from tracking
+                        class_id = removed_entry['class_id']
+                        teacher_id = removed_entry['teacher_id']
+                        self.class_slots[class_id].discard((day, slot))
+                        self.teacher_slots[teacher_id].discard((day, slot))
+                        break
+        
+        placed_blocks.clear()
     
     def _can_place_lesson_relaxed(self, class_id: int, teacher_id: int, day: int, time_slot: int) -> bool:
         """
@@ -244,6 +372,52 @@ class CurriculumBasedFullScheduleGenerator:
         
         self.logger.debug(f"Added entry: Class {class_id}, Teacher {teacher_id}, Lesson {lesson_id}, "
                          f"Day {day}, Slot {time_slot}")
+    
+    def _can_place_lesson_strict(self, class_id: int, teacher_id: int, day: int, time_slot: int) -> bool:
+        """
+        Check if a lesson can be placed with strict constraints
+        Checks class conflicts, teacher conflicts, and teacher availability
+        """
+        # Check class conflict
+        if (day, time_slot) in self.class_slots[class_id]:
+            return False
+            
+        # Check teacher conflict
+        if (day, time_slot) in self.teacher_slots[teacher_id]:
+            return False
+            
+        # Check teacher availability (strict)
+        try:
+            if not self.db_manager.is_teacher_available(teacher_id, day, time_slot):
+                return False
+        except Exception as e:
+            self.logger.debug(f"Teacher availability check failed: {e}, assuming available")
+            # If check fails, assume teacher is available
+            
+        return True
+    
+    def _remove_entry(self, class_id: int, teacher_id: int, lesson_id: int, day: int, time_slot: int):
+        """
+        Remove a schedule entry (for backtracking)
+        """
+        # Find and remove the entry
+        for i, entry in enumerate(self.schedule_entries):
+            if (entry['class_id'] == class_id and 
+                entry['teacher_id'] == teacher_id and 
+                entry['lesson_id'] == lesson_id and
+                entry['day'] == day and 
+                entry['time_slot'] == time_slot):
+                
+                # Remove from schedule
+                self.schedule_entries.pop(i)
+                
+                # Remove from tracking
+                self.class_slots[class_id].discard((day, time_slot))
+                self.teacher_slots[teacher_id].discard((day, time_slot))
+                
+                self.logger.debug(f"Removed entry: Class {class_id}, Teacher {teacher_id}, "
+                                f"Lesson {lesson_id}, Day {day}, Slot {time_slot}")
+                break
 
 
 def generate_complete_schedule(db_manager: DatabaseManager) -> List[Dict[str, Any]]:
