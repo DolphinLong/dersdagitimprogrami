@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from database.db_manager import DatabaseManager
-from algorithms.curriculum_based_scheduler import CurriculumBasedFullScheduleGenerator
+from algorithms.optimized_curriculum_scheduler import OptimizedCurriculumScheduler
 
 def test_block_rules():
     """Blok kurallarını test et"""
@@ -19,8 +19,8 @@ def test_block_rules():
     
     db = DatabaseManager()
     
-    # Curriculum-based scheduler'ı test et
-    scheduler = CurriculumBasedFullScheduleGenerator(db)
+    # Optimized curriculum scheduler'ı test et
+    scheduler = OptimizedCurriculumScheduler(db)
     
     print("📋 Test ders dağılımları:")
     
@@ -41,7 +41,7 @@ def test_block_rules():
     print("\n🔍 Gerçek program oluşturma testi...")
     
     # Generate actual schedule
-    schedule = scheduler.generate_full_schedule()
+    schedule = scheduler.generate_schedule()
     
     print(f"\n📊 Sonuçlar:")
     print(f"   • Toplam slot: {len(schedule)}")

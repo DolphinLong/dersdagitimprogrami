@@ -3,7 +3,7 @@ Curriculum-Based Full Schedule Generator
 Generates complete schedule based on curriculum requirements instead of just existing assignments
 """
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from database.db_manager import DatabaseManager
 
 
@@ -123,7 +123,284 @@ class CurriculumBasedFullScheduleGenerator:
             self.logger.info(f"Fill rate: {fill_rate:.1f}%")
         self.logger.info(f"Schedule entries: {len(self.schedule_entries)}")
         
+        # Final step: Apply teacher workload balancing rule
+        self._apply_teacher_workload_balancing()
+        
         return self.schedule_entries
+    
+    def _apply_teacher_workload_balancing(self):
+        """
+        Apply teacher workload balancing rule:
+        No teacher should have more than 1 empty day per week (max 1 day off)
+        """
+        self.logger.info("\n🎯 Applying teacher workload balancing rule...")
+        self.logger.info("   📋 Rule: Maximum 1 empty day per teacher per week")
+        
+        teachers = self.db_manager.get_all_teachers()
+        violations = 0
+        
+        for teacher in teachers:
+            teacher_days = self._get_teacher_working_days(teacher.teacher_id)
+            empty_days = 5 - len(teacher_days)  # 5 days - working days = empty days
+            
+            if empty_days > 1:
+                violations += 1
+                self.logger.warning(f"   ⚠️  {teacher.name}: {empty_days} empty days (violation)")
+                
+                # Try to redistribute lessons to fill empty days
+                self._redistribute_teacher_lessons(teacher.teacher_id, empty_days - 1)
+            else:
+                self.logger.info(f"   ✅ {teacher.name}: {empty_days} empty days (compliant)")
+        
+        if violations == 0:
+            self.logger.info("   🎉 All teachers comply with workload balancing rule!")
+        else:
+            self.logger.warning(f"   ⚠️  {violations} teachers need workload redistribution")
+    
+    def _get_teacher_working_days(self, teacher_id: int) -> set:
+        """Get the set of days a teacher is working"""
+        working_days = set()
+        for entry in self.schedule_entries:
+            if entry['teacher_id'] == teacher_id:
+                working_days.add(entry['day'])
+        return working_days
+    
+    def _redistribute_teacher_lessons(self, teacher_id: int, days_to_fill: int):
+        """
+        Enhanced redistribution algorithm to fill empty days
+        Uses multiple strategies to ensure better workload distribution
+        """
+        if days_to_fill <= 0:
+            return
+        
+        teacher = self.db_manager.get_teacher_by_id(teacher_id)
+        if not teacher:
+            return
+        
+        self.logger.info(f"   🔄 Redistributing lessons for {teacher.name} to fill {days_to_fill} empty days")
+        
+        # Get empty days
+        working_days = self._get_teacher_working_days(teacher_id)
+        empty_days = [day for day in range(5) if day not in working_days]
+        
+        # Strategy 1: Try to move single lessons to empty days
+        moved_lessons = self._move_single_lessons_to_empty_days(teacher_id, empty_days[:days_to_fill])
+        
+        # Strategy 2: If not enough moved, try to split blocks
+        if moved_lessons < days_to_fill:
+            remaining_days = days_to_fill - moved_lessons
+            empty_days_remaining = empty_days[moved_lessons:moved_lessons + remaining_days]
+            moved_lessons += self._split_blocks_to_fill_days(teacher_id, empty_days_remaining)
+        
+        # Strategy 3: If still not enough, try aggressive redistribution
+        if moved_lessons < days_to_fill:
+            remaining_days = days_to_fill - moved_lessons
+            empty_days_remaining = empty_days[moved_lessons:moved_lessons + remaining_days]
+            moved_lessons += self._aggressive_lesson_redistribution(teacher_id, empty_days_remaining)
+        
+        if moved_lessons > 0:
+            self.logger.info(f"   ✅ Successfully redistributed {moved_lessons} lessons for {teacher.name}")
+        else:
+            self.logger.warning(f"   ⚠️  Could not redistribute lessons for {teacher.name}")
+    
+    def _move_single_lessons_to_empty_days(self, teacher_id: int, empty_days: List[int]) -> int:
+        """Move single lessons (not part of blocks) to empty days"""
+        moved_count = 0
+        teacher_entries = [e for e in self.schedule_entries if e['teacher_id'] == teacher_id]
+        
+        for empty_day in empty_days:
+            # Find single lessons that can be moved
+            for entry in teacher_entries[:]:
+                if self._is_single_lesson(entry) and self._can_move_lesson_to_day(entry, empty_day):
+                    new_slot = self._find_available_slot_for_teacher_and_class(
+                        teacher_id, entry['class_id'], empty_day)
+                    
+                    if new_slot is not None:
+                        self._move_lesson_entry(entry, empty_day, new_slot)
+                        moved_count += 1
+                        self.logger.info(f"      ✅ Moved single lesson to Day {empty_day+1}")
+                        break
+        
+        return moved_count
+    
+    def _split_blocks_to_fill_days(self, teacher_id: int, empty_days: List[int]) -> int:
+        """Split lesson blocks to fill empty days while maintaining block rules"""
+        moved_count = 0
+        
+        for empty_day in empty_days:
+            # Find blocks that can be split
+            lesson_blocks = self._find_splittable_blocks(teacher_id)
+            
+            for class_id, lesson_id, block_entries in lesson_blocks:
+                if len(block_entries) >= 2:  # Can split blocks of 2+ hours
+                    # Take one hour from the block and move to empty day
+                    entry_to_move = block_entries[-1]  # Take last entry from block
+                    
+                    new_slot = self._find_available_slot_for_teacher_and_class(
+                        teacher_id, class_id, empty_day)
+                    
+                    if new_slot is not None:
+                        self._move_lesson_entry(entry_to_move, empty_day, new_slot)
+                        moved_count += 1
+                        self.logger.info(f"      ✅ Split block and moved 1 hour to Day {empty_day+1}")
+                        break
+        
+        return moved_count
+    
+    def _aggressive_lesson_redistribution(self, teacher_id: int, empty_days: List[int]) -> int:
+        """Aggressively redistribute lessons, even if it breaks some block rules"""
+        moved_count = 0
+        teacher_entries = [e for e in self.schedule_entries if e['teacher_id'] == teacher_id]
+        
+        for empty_day in empty_days:
+            # Find any lesson that can be moved (more relaxed rules)
+            for entry in teacher_entries[:]:
+                new_slot = self._find_available_slot_for_teacher_and_class(
+                    teacher_id, entry['class_id'], empty_day)
+                
+                if new_slot is not None:
+                    self._move_lesson_entry(entry, empty_day, new_slot)
+                    moved_count += 1
+                    self.logger.info(f"      ⚡ Aggressively moved lesson to Day {empty_day+1}")
+                    break
+        
+        return moved_count
+    
+    def _is_single_lesson(self, entry: Dict[str, Any]) -> bool:
+        """Check if this entry is a single lesson (not part of a block)"""
+        same_lesson_same_day = [
+            e for e in self.schedule_entries 
+            if (e['class_id'] == entry['class_id'] and 
+                e['lesson_id'] == entry['lesson_id'] and 
+                e['day'] == entry['day'])
+        ]
+        return len(same_lesson_same_day) == 1
+    
+    def _find_splittable_blocks(self, teacher_id: int) -> List[Tuple[int, int, List[Dict]]]:
+        """Find lesson blocks that can be split"""
+        teacher_entries = [e for e in self.schedule_entries if e['teacher_id'] == teacher_id]
+        
+        # Group by class and lesson
+        lesson_groups = {}
+        for entry in teacher_entries:
+            key = (entry['class_id'], entry['lesson_id'])
+            if key not in lesson_groups:
+                lesson_groups[key] = []
+            lesson_groups[key].append(entry)
+        
+        splittable_blocks = []
+        for (class_id, lesson_id), entries in lesson_groups.items():
+            # Group by day to find blocks
+            day_groups = {}
+            for entry in entries:
+                day = entry['day']
+                if day not in day_groups:
+                    day_groups[day] = []
+                day_groups[day].append(entry)
+            
+            # Find blocks with 2+ consecutive hours
+            for day, day_entries in day_groups.items():
+                if len(day_entries) >= 2:
+                    # Sort by time slot
+                    day_entries.sort(key=lambda x: x['time_slot'])
+                    
+                    # Check if consecutive
+                    is_consecutive = True
+                    for i in range(1, len(day_entries)):
+                        if day_entries[i]['time_slot'] != day_entries[i-1]['time_slot'] + 1:
+                            is_consecutive = False
+                            break
+                    
+                    if is_consecutive:
+                        splittable_blocks.append((class_id, lesson_id, day_entries))
+        
+        return splittable_blocks
+    
+    def _move_lesson_entry(self, entry: Dict[str, Any], new_day: int, new_slot: int):
+        """Move a lesson entry to a new day and slot"""
+        old_day = entry['day']
+        old_slot = entry['time_slot']
+        teacher_id = entry['teacher_id']
+        class_id = entry['class_id']
+        
+        # Update entry
+        entry['day'] = new_day
+        entry['time_slot'] = new_slot
+        
+        # Update tracking
+        self.teacher_slots[teacher_id].discard((old_day, old_slot))
+        self.teacher_slots[teacher_id].add((new_day, new_slot))
+        
+        self.class_slots[class_id].discard((old_day, old_slot))
+        self.class_slots[class_id].add((new_day, new_slot))
+    
+    def _find_available_slot_for_teacher_and_class(self, teacher_id: int, class_id: int, day: int) -> int:
+        """Find an available time slot for both teacher and class on given day"""
+        school_config = self.db_manager.get_school_type() or "Lise"
+        time_slots_count = {
+            "İlkokul": 7, "Ortaokul": 7, "Lise": 8,
+            "Anadolu Lisesi": 8, "Fen Lisesi": 8, "Sosyal Bilimler Lisesi": 8,
+        }.get(school_config, 8)
+        
+        for slot in range(time_slots_count):
+            # Check teacher availability
+            if (day, slot) in self.teacher_slots[teacher_id]:
+                continue
+            
+            # Check class availability
+            if (day, slot) in self.class_slots[class_id]:
+                continue
+            
+            return slot
+        
+        return None  # No available slot found
+    
+    def _can_move_lesson_to_day(self, entry: Dict[str, Any], target_day: int) -> bool:
+        """
+        Check if a lesson can be moved to a target day
+        Considers class conflicts and maintains block integrity
+        """
+        class_id = entry['class_id']
+        lesson_id = entry['lesson_id']
+        
+        # Check if class has any lessons on target day
+        class_lessons_on_day = [e for e in self.schedule_entries 
+                               if e['class_id'] == class_id and e['day'] == target_day]
+        
+        # Check if moving this lesson would break block rules
+        # For now, only move single-hour lessons or lessons that don't break blocks
+        same_lesson_entries = [e for e in self.schedule_entries 
+                              if e['class_id'] == class_id and e['lesson_id'] == lesson_id]
+        
+        # If this lesson has multiple entries (blocks), be more careful
+        if len(same_lesson_entries) > 1:
+            # Only move if it doesn't break consecutive blocks
+            current_day_entries = [e for e in same_lesson_entries if e['day'] == entry['day']]
+            if len(current_day_entries) > 1:
+                # This is part of a block, don't move
+                return False
+        
+        return True
+    
+    def _find_available_slot_for_teacher(self, teacher_id: int, day: int) -> int:
+        """Find an available time slot for teacher on given day"""
+        school_config = self.db_manager.get_school_type() or "Lise"
+        time_slots_count = {
+            "İlkokul": 7, "Ortaokul": 7, "Lise": 8,
+            "Anadolu Lisesi": 8, "Fen Lisesi": 8, "Sosyal Bilimler Lisesi": 8,
+        }.get(school_config, 8)
+        
+        for slot in range(time_slots_count):
+            if (day, slot) not in self.teacher_slots[teacher_id]:
+                # Check if any class is using this slot
+                slot_occupied = any(
+                    (day, slot) in class_slots 
+                    for class_slots in self.class_slots.values()
+                )
+                if not slot_occupied:
+                    return slot
+        
+        return None  # No available slot found
     
     def _schedule_lesson_for_class(self, class_id: int, lesson_id: int, teacher_id: int, 
                                  weekly_hours: int, time_slots_count: int) -> int:
@@ -422,7 +699,13 @@ class CurriculumBasedFullScheduleGenerator:
 
 def generate_complete_schedule(db_manager: DatabaseManager) -> List[Dict[str, Any]]:
     """
-    Convenience function to generate complete schedule
+    Convenience function to generate complete schedule using optimized scheduler
     """
-    generator = CurriculumBasedFullScheduleGenerator(db_manager)
-    return generator.generate_full_schedule()
+    try:
+        from algorithms.optimized_curriculum_scheduler import OptimizedCurriculumScheduler
+        scheduler = OptimizedCurriculumScheduler(db_manager)
+        return scheduler.generate_schedule()
+    except ImportError:
+        # Fallback to original implementation
+        generator = CurriculumBasedFullScheduleGenerator(db_manager)
+        return generator.generate_full_schedule()

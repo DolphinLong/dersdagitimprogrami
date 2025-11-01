@@ -108,6 +108,14 @@ try:
     ENHANCED_SIMPLE_PERFECT_AVAILABLE = True
 except ImportError:
     ENHANCED_SIMPLE_PERFECT_AVAILABLE = False
+
+# Import optimized curriculum scheduler (LATEST - 100% completion target)
+try:
+    from algorithms.optimized_curriculum_scheduler import OptimizedCurriculumScheduler
+
+    OPTIMIZED_CURRICULUM_SCHEDULER_AVAILABLE = True
+except ImportError:
+    OPTIMIZED_CURRICULUM_SCHEDULER_AVAILABLE = False
     
 
 
@@ -148,141 +156,154 @@ class Scheduler:
             self.heuristics = HeuristicManager()
             self.logger.info("🧠 Heuristics Manager aktif - Akıllı slot seçimi kullanılıyor")
 
-        # Use automatic algorithm selection if available
-        self.algorithm_selector = None
-        try:
-            from algorithms.algorithm_selector import AlgorithmSelector
-            self.algorithm_selector = AlgorithmSelector()
-            selected_algorithm_class = self.algorithm_selector.select_best_algorithm(db_manager)
-            self.active_scheduler = selected_algorithm_class(db_manager)
-            
-            # Get detailed recommendation
-            recommendation = self.algorithm_selector.get_algorithm_recommendation(db_manager)
-            self.logger.info(f"🤖 AUTO ALGORITHM SELECTION: {recommendation['best_algorithm']}")
-            self.logger.info(f"   📊 Reasoning: {recommendation['reasoning']}")
-            self.logger.info(f"   📈 Score: {recommendation['score']:.2f}")
-            
-            # For maximum filling, consider using enhanced approaches if needed
-            # Check if we need higher filling rate
-            if recommendation['best_algorithm'] not in ['ultra_aggressive', 'advanced_metaheuristic', 
-                                                       'genetic_algorithm', 'simulated_annealing', 'ant_colony',
-                                                       'enhanced_schedule_generator', 'enhanced_simple_perfect']:
-                # Try enhanced schedule generator first (improves existing working algorithms)
+        # Use OptimizedCurriculumScheduler as primary scheduler if available
+        self.active_scheduler = None
+        if OPTIMIZED_CURRICULUM_SCHEDULER_AVAILABLE:
+            try:
+                self.active_scheduler = OptimizedCurriculumScheduler(db_manager, progress_callback)
+                self.logger.info("🚀 OPTIMIZED CURRICULUM SCHEDULER Aktif - 100% Completion Target!")
+                self.logger.info("   ✅ Intelligent backtracking + Flexible constraints + Graduated relaxation")
+                self.logger.info("   ✅ Enhanced with 60-second time limit and comprehensive diagnostics")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize OptimizedCurriculumScheduler: {e}")
+                self.active_scheduler = None
+
+        # Use automatic algorithm selection as fallback if OptimizedCurriculumScheduler fails
+        if self.active_scheduler is None:
+            self.algorithm_selector = None
+            try:
+                from algorithms.algorithm_selector import AlgorithmSelector
+                self.algorithm_selector = AlgorithmSelector()
+                selected_algorithm_class = self.algorithm_selector.select_best_algorithm(db_manager)
+                self.active_scheduler = selected_algorithm_class(db_manager)
+                
+                # Get detailed recommendation
+                recommendation = self.algorithm_selector.get_algorithm_recommendation(db_manager)
+                self.logger.info(f"🤖 AUTO ALGORITHM SELECTION (Fallback): {recommendation['best_algorithm']}")
+                self.logger.info(f"   📊 Reasoning: {recommendation['reasoning']}")
+                self.logger.info(f"   📈 Score: {recommendation['score']:.2f}")
+                
+                # For maximum filling, consider using enhanced approaches if needed
+                # Check if we need higher filling rate
+                if recommendation['best_algorithm'] not in ['ultra_aggressive', 'advanced_metaheuristic', 
+                                                           'genetic_algorithm', 'simulated_annealing', 'ant_colony',
+                                                           'enhanced_schedule_generator', 'enhanced_simple_perfect']:
+                    # Try enhanced schedule generator first (improves existing working algorithms)
+                    if 'ENHANCED_SCHEDULE_GENERATOR_AVAILABLE' in globals() and ENHANCED_SCHEDULE_GENERATOR_AVAILABLE:
+                        try:
+                            self.active_scheduler = EnhancedScheduleGenerator(db_manager)
+                            self.logger.info("🔧 ENHANCED SCHEDULE GENERATOR Aktif - Mevcut algoritmaları geliştirir!")
+                            self.logger.info("   ✅ Gap filling + Improved placement strategies")
+                        except:
+                            pass
+                    
+                    # Try enhanced simple perfect scheduler (builds on proven working algorithm)
+                    if self.active_scheduler is None and 'ENHANCED_SIMPLE_PERFECT_AVAILABLE' in globals() and ENHANCED_SIMPLE_PERFECT_AVAILABLE:
+                        try:
+                            self.active_scheduler = EnhancedSimplePerfectScheduler(db_manager, heuristics=self.heuristics)
+                            self.logger.info("⚡ ENHANCED SIMPLE PERFECT SCHEDULER Aktif - Kanıtlanmış algoritmayı geliştirir!")
+                            self.logger.info("   ✅ Improved filling + Gap filling strategies")
+                        except:
+                            pass
+                            
+            except ImportError:
+                # Fallback to manual selection with addition of enhanced approaches
+                # Try enhanced approaches first (builds on proven working algorithms)
+                scheduler_tried = False
+                
                 if 'ENHANCED_SCHEDULE_GENERATOR_AVAILABLE' in globals() and ENHANCED_SCHEDULE_GENERATOR_AVAILABLE:
                     try:
                         self.active_scheduler = EnhancedScheduleGenerator(db_manager)
                         self.logger.info("🔧 ENHANCED SCHEDULE GENERATOR Aktif - Mevcut algoritmaları geliştirir!")
                         self.logger.info("   ✅ Gap filling + Improved placement strategies")
+                        scheduler_tried = True
                     except:
                         pass
                 
-                # Try enhanced simple perfect scheduler (builds on proven working algorithm)
-                if self.active_scheduler is None and 'ENHANCED_SIMPLE_PERFECT_AVAILABLE' in globals() and ENHANCED_SIMPLE_PERFECT_AVAILABLE:
+                if not scheduler_tried and 'ENHANCED_SIMPLE_PERFECT_AVAILABLE' in globals() and ENHANCED_SIMPLE_PERFECT_AVAILABLE:
                     try:
                         self.active_scheduler = EnhancedSimplePerfectScheduler(db_manager, heuristics=self.heuristics)
                         self.logger.info("⚡ ENHANCED SIMPLE PERFECT SCHEDULER Aktif - Kanıtlanmış algoritmayı geliştirir!")
                         self.logger.info("   ✅ Improved filling + Gap filling strategies")
-                    except:
-                        pass
-            
-        except ImportError:
-            # Fallback to manual selection with addition of enhanced approaches
-            # Try enhanced approaches first (builds on proven working algorithms)
-            scheduler_tried = False
-            
-            if 'ENHANCED_SCHEDULE_GENERATOR_AVAILABLE' in globals() and ENHANCED_SCHEDULE_GENERATOR_AVAILABLE:
-                try:
-                    self.active_scheduler = EnhancedScheduleGenerator(db_manager)
-                    self.logger.info("🔧 ENHANCED SCHEDULE GENERATOR Aktif - Mevcut algoritmaları geliştirir!")
-                    self.logger.info("   ✅ Gap filling + Improved placement strategies")
-                    scheduler_tried = True
-                except:
-                    pass
-            
-            if not scheduler_tried and 'ENHANCED_SIMPLE_PERFECT_AVAILABLE' in globals() and ENHANCED_SIMPLE_PERFECT_AVAILABLE:
-                try:
-                    self.active_scheduler = EnhancedSimplePerfectScheduler(db_manager, heuristics=self.heuristics)
-                    self.logger.info("⚡ ENHANCED SIMPLE PERFECT SCHEDULER Aktif - Kanıtlanmış algoritmayı geliştirir!")
-                    self.logger.info("   ✅ Improved filling + Gap filling strategies")
-                    scheduler_tried = True
-                except:
-                    pass
-            
-            # Try other advanced algorithms if enhanced approaches fail
-            if not scheduler_tried:
-                scheduler_tried = False
-                
-                if 'ANT_COLONY_AVAILABLE' in globals() and ANT_COLONY_AVAILABLE:
-                    try:
-                        self.active_scheduler = AntColonyOptimizationScheduler(db_manager)
-                        self.logger.info("🐜 ANT COLONY OPTIMIZATION SCHEDULER Aktif - Maksimum dolum hedefli!")
-                        self.logger.info("   ✅ Uses collective intelligence of artificial ants")
                         scheduler_tried = True
                     except:
                         pass
                 
-                if not scheduler_tried and 'SIMULATED_ANNEALING_AVAILABLE' in globals() and SIMULATED_ANNEALING_AVAILABLE:
-                    try:
-                        self.active_scheduler = SimulatedAnnealingScheduler(db_manager)
-                        self.logger.info("🌡️  SIMULATED ANNEALING SCHEDULER Aktif - Thermodynamic optimization!")
-                        self.logger.info("   ✅ Escapes local optima using thermal cooling")
-                        scheduler_tried = True
-                    except:
-                        pass
+                # Try other advanced algorithms if enhanced approaches fail
+                if not scheduler_tried:
+                    scheduler_tried = False
+                    
+                    if 'ANT_COLONY_AVAILABLE' in globals() and ANT_COLONY_AVAILABLE:
+                        try:
+                            self.active_scheduler = AntColonyOptimizationScheduler(db_manager)
+                            self.logger.info("🐜 ANT COLONY OPTIMIZATION SCHEDULER Aktif - Maksimum dolum hedefli!")
+                            self.logger.info("   ✅ Uses collective intelligence of artificial ants")
+                            scheduler_tried = True
+                        except:
+                            pass
+                    
+                    if not scheduler_tried and 'SIMULATED_ANNEALING_AVAILABLE' in globals() and SIMULATED_ANNEALING_AVAILABLE:
+                        try:
+                            self.active_scheduler = SimulatedAnnealingScheduler(db_manager)
+                            self.logger.info("🌡️  SIMULATED ANNEALING SCHEDULER Aktif - Thermodynamic optimization!")
+                            self.logger.info("   ✅ Escapes local optima using thermal cooling")
+                            scheduler_tried = True
+                        except:
+                            pass
+                    
+                    if not scheduler_tried and 'GENETIC_ALGORITHM_AVAILABLE' in globals() and GENETIC_ALGORITHM_AVAILABLE:
+                        try:
+                            self.active_scheduler = GeneticAlgorithmScheduler(db_manager)
+                            self.logger.info("🧬 GENETIC ALGORITHM SCHEDULER Aktif - Evolutionary optimization!")
+                            self.logger.info("   ✅ Uses natural selection principles")
+                            scheduler_tried = True
+                        except:
+                            pass
+                    
+                    if not scheduler_tried and 'ADVANCED_METAHEURISTIC_AVAILABLE' in globals() and ADVANCED_METAHEURISTIC_AVAILABLE:
+                        try:
+                            self.active_scheduler = AdvancedMetaheuristicScheduler(db_manager)
+                            self.logger.info("🔍 ADVANCED METAHEURISTIC SCHEDULER Aktif - Maksimum dolum hedefli!")
+                            self.logger.info("   ✅ Large Neighborhood Search + Local Search")
+                            scheduler_tried = True
+                        except:
+                            pass
                 
-                if not scheduler_tried and 'GENETIC_ALGORITHM_AVAILABLE' in globals() and GENETIC_ALGORITHM_AVAILABLE:
-                    try:
-                        self.active_scheduler = GeneticAlgorithmScheduler(db_manager)
-                        self.logger.info("🧬 GENETIC ALGORITHM SCHEDULER Aktif - Evolutionary optimization!")
-                        self.logger.info("   ✅ Uses natural selection principles")
-                        scheduler_tried = True
-                    except:
-                        pass
-                
-                if not scheduler_tried and 'ADVANCED_METAHEURISTIC_AVAILABLE' in globals() and ADVANCED_METAHEURISTIC_AVAILABLE:
-                    try:
-                        self.active_scheduler = AdvancedMetaheuristicScheduler(db_manager)
-                        self.logger.info("🔍 ADVANCED METAHEURISTIC SCHEDULER Aktif - Maksimum dolum hedefli!")
-                        self.logger.info("   ✅ Large Neighborhood Search + Local Search")
-                        scheduler_tried = True
-                    except:
-                        pass
-            
-            # Continue with existing fallback chain if no enhanced scheduler worked
-            if not scheduler_tried:
-                # Primary scheduler is Hybrid Optimal
-                if self.use_hybrid:
-                    self.active_scheduler = HybridOptimalScheduler(db_manager)
-                    self.logger.info("🚀 HYBRID OPTIMAL SCHEDULER Aktif - En Güçlü Algoritma!")
-                    self.logger.info("   ✅ Arc Consistency + Soft Constraints")
-                # Fallback to Simple Perfect (now enhanced version)
-                elif self.use_simple_perfect and 'ENHANCED_SIMPLE_PERFECT_AVAILABLE' in globals() and ENHANCED_SIMPLE_PERFECT_AVAILABLE:
-                    try:
-                        self.active_scheduler = EnhancedSimplePerfectScheduler(db_manager, heuristics=self.heuristics)
-                        self.logger.info("⚡ ENHANCED SIMPLE PERFECT SCHEDULER Aktif - Kanıtlanmış algoritmayı geliştirir!")
-                        self.logger.info("   ✅ Improved filling + Gap filling strategies")
-                    except:
+                # Continue with existing fallback chain if no enhanced scheduler worked
+                if not scheduler_tried:
+                    # Primary scheduler is Hybrid Optimal
+                    if self.use_hybrid:
+                        self.active_scheduler = HybridOptimalScheduler(db_manager)
+                        self.logger.info("🚀 HYBRID OPTIMAL SCHEDULER Aktif - En Güçlü Algoritma!")
+                        self.logger.info("   ✅ Arc Consistency + Soft Constraints")
+                    # Fallback to Simple Perfect (now enhanced version)
+                    elif self.use_simple_perfect and 'ENHANCED_SIMPLE_PERFECT_AVAILABLE' in globals() and ENHANCED_SIMPLE_PERFECT_AVAILABLE:
+                        try:
+                            self.active_scheduler = EnhancedSimplePerfectScheduler(db_manager, heuristics=self.heuristics)
+                            self.logger.info("⚡ ENHANCED SIMPLE PERFECT SCHEDULER Aktif - Kanıtlanmış algoritmayı geliştirir!")
+                            self.logger.info("   ✅ Improved filling + Gap filling strategies")
+                        except:
+                            self.active_scheduler = SimplePerfectScheduler(db_manager, heuristics=self.heuristics)
+                            self.logger.info("🎯 SIMPLE PERFECT SCHEDULER Aktif - Pragmatik ve %100 Etkili")
+                    elif self.use_simple_perfect:
                         self.active_scheduler = SimplePerfectScheduler(db_manager, heuristics=self.heuristics)
                         self.logger.info("🎯 SIMPLE PERFECT SCHEDULER Aktif - Pragmatik ve %100 Etkili")
-                elif self.use_simple_perfect:
-                    self.active_scheduler = SimplePerfectScheduler(db_manager, heuristics=self.heuristics)
-                    self.logger.info("🎯 SIMPLE PERFECT SCHEDULER Aktif - Pragmatik ve %100 Etkili")
-                # Fallback to Ultimate
-                elif self.use_ultimate:
-                    self.active_scheduler = UltimateScheduler(db_manager)
-                    self.logger.info("🎯 ULTIMATE SCHEDULER Aktif - Gerçek Backtracking + CSP + Forward Checking")
-                # Fallback to Enhanced Strict
-                elif self.use_enhanced_strict:
-                    self.active_scheduler = EnhancedStrictScheduler(db_manager)
-                    self.logger.info("🚀 ENHANCED STRICT SCHEDULER Aktif - Backtracking + %100 Kapsama Hedefi")
-                # Fallback to Strict
-                elif self.use_strict:
-                    self.active_scheduler = StrictScheduler(db_manager)
-                    self.logger.info("🎯 STRICT SCHEDULER Aktif - Tam Kapsama ve Öğretmen Uygunluğu Garantili")
-                # Final fallback to standard
-                else:
-                    self.active_scheduler = None
-                    self.logger.info("📋 Using Standard Scheduler")
+                    # Fallback to Ultimate
+                    elif self.use_ultimate:
+                        self.active_scheduler = UltimateScheduler(db_manager)
+                        self.logger.info("🎯 ULTIMATE SCHEDULER Aktif - Gerçek Backtracking + CSP + Forward Checking")
+                    # Fallback to Enhanced Strict
+                    elif self.use_enhanced_strict:
+                        self.active_scheduler = EnhancedStrictScheduler(db_manager)
+                        self.logger.info("🚀 ENHANCED STRICT SCHEDULER Aktif - Backtracking + %100 Kapsama Hedefi")
+                    # Fallback to Strict
+                    elif self.use_strict:
+                        self.active_scheduler = StrictScheduler(db_manager)
+                        self.logger.info("🎯 STRICT SCHEDULER Aktif - Tam Kapsama ve Öğretmen Uygunluğu Garantili")
+                    # Final fallback to standard
+                    else:
+                        self.active_scheduler = None
+                        self.logger.info("📋 Using Standard Scheduler")
 
     def generate_schedule(self):
         """

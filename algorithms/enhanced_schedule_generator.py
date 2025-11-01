@@ -44,11 +44,11 @@ class EnhancedScheduleGenerator(BaseScheduler):
         self.logger.info("🚀 ENHANCED CURRICULUM-BASED SCHEDULER Aktif - Tam müfredat planlaması!")
         self.logger.info("   ✅ Addresses core issue: schedules 280 hours instead of 112 assignments")
         
-        # Use the curriculum-based scheduler with block rules
-        from algorithms.curriculum_based_scheduler import CurriculumBasedFullScheduleGenerator
+        # Use the optimized curriculum scheduler with enhanced features
+        from algorithms.optimized_curriculum_scheduler import OptimizedCurriculumScheduler
         
-        curriculum_scheduler = CurriculumBasedFullScheduleGenerator(self.db_manager)
-        schedule_entries = curriculum_scheduler.generate_full_schedule()
+        optimized_scheduler = OptimizedCurriculumScheduler(self.db_manager)
+        schedule_entries = optimized_scheduler.generate_schedule()
         
         # Store the schedule
         self.schedule_entries = schedule_entries

@@ -72,22 +72,39 @@ class ScheduleGenerationThread(QThread):
 
             self.progress.emit(40, "🎯 Akıllı algoritma çalışıyor...")
             
-            # Try enhanced curriculum-based scheduler first (addresses core issue)
+            # Try optimized curriculum scheduler first (100% completion target)
             try:
-                # Check if we have the enhanced curriculum-based scheduler available
-                from algorithms.curriculum_based_scheduler import CurriculumBasedFullScheduleGenerator
-                self.progress.emit(45, "📚 Geliştirilmiş müfredat tabanlı algoritma yükleniyor...")
+                # Check if we have the optimized curriculum scheduler available
+                from algorithms.optimized_curriculum_scheduler import OptimizedCurriculumScheduler
+                self.progress.emit(45, "🚀 Optimize edilmiş müfredat tabanlı algoritma yükleniyor...")
                 
-                # Create enhanced scheduler instance
-                enhanced_scheduler = CurriculumBasedFullScheduleGenerator(self.scheduler.db_manager)
-                schedule_entries = enhanced_scheduler.generate_full_schedule()
-                self.progress.emit(50, f"✅ Geliştirilmiş algoritma çalıştı: {len(schedule_entries)} ders")
+                # Create optimized scheduler instance with progress callback
+                def progress_callback(message, percentage):
+                    self.progress.emit(45 + int(percentage * 0.35), message)  # Scale to 45-80% range
                 
-                self.logger.info("🚀 ENHANCED CURRICULUM-BASED SCHEDULER Aktif - Tam müfredat planlaması!")
-                self.logger.info("   ✅ Addresses core issue: schedules 280 hours instead of 112 assignments")
+                optimized_scheduler = OptimizedCurriculumScheduler(self.scheduler.db_manager, progress_callback)
+                schedule_entries = optimized_scheduler.generate_schedule()
+                self.progress.emit(80, f"✅ Optimize edilmiş algoritma çalıştı: {len(schedule_entries)} ders")
+                
+                self.logger.info("🚀 OPTIMIZED CURRICULUM SCHEDULER Aktif - %100 tamamlama hedefi!")
+                self.logger.info("   ✅ Enhanced with backtracking, flexible blocks, and constraint relaxation")
                 
             except ImportError as ie:
-                self.logger.warning(f"Enhanced curriculum-based scheduler not available: {ie}")
+                self.logger.warning(f"Optimized curriculum scheduler not available: {ie}")
+                # Fallback to enhanced curriculum-based scheduler
+                try:
+                    from algorithms.curriculum_based_scheduler import CurriculumBasedFullScheduleGenerator
+                    self.progress.emit(45, "📚 Geliştirilmiş müfredat tabanlı algoritma yükleniyor...")
+                    
+                    enhanced_scheduler = CurriculumBasedFullScheduleGenerator(self.scheduler.db_manager)
+                    schedule_entries = enhanced_scheduler.generate_full_schedule()
+                    self.progress.emit(50, f"✅ Geliştirilmiş algoritma çalıştı: {len(schedule_entries)} ders")
+                    
+                    self.logger.info("🚀 ENHANCED CURRICULUM-BASED SCHEDULER Aktif - Tam müfredat planlaması!")
+                    self.logger.info("   ✅ Addresses core issue: schedules 280 hours instead of 112 assignments")
+                    
+                except ImportError as ie2:
+                    self.logger.warning(f"Enhanced curriculum-based scheduler not available: {ie2}")
                 # Fall back to standard scheduler
                 self.progress.emit(45, "🔧 Standart algoritma yükleniyor...")
                 schedule_entries = self.scheduler.generate_schedule()
