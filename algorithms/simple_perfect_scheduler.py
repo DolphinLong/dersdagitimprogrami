@@ -148,21 +148,15 @@ class SimplePerfectScheduler:
                 saved += 1
         self.logger.info(f"✅ {saved} kayıt tamamlandı")
         
-        # GAP FILLING - DEVRE DIŞI (Strict mode - blok kurallarını bozuyor)
-        if self.relaxed_mode:
-            # Sadece relaxed mode'da gap filling yap
-            self.logger.info("\n🔧 RELAXED MODE: Gap filling aktif")
-            self.logger.info("\n🔧 FULL CURRICULUM SCHEDULING:")
-            curriculum_filled = self._schedule_full_curriculum(classes, teachers, lessons, assignments, time_slots_count)
-            self.logger.info(f"   • {curriculum_filled} saat tam müfredat programı oluşturuldu")
-            
-            if curriculum_filled > 0:
-                self.logger.info("   • Gelişmiş boşluk doldurma stratejisi uygulanıyor...")
-                gap_filled = self._advanced_gap_filling()
-                self.logger.info(f"   • {gap_filled} ek saat dolduruldu")
-        else:
-            # Strict mode - gap filling devre dışı
-            self.logger.info("\n🔒 STRICT MODE: Gap filling devre dışı (blok kuralları korunur)")
+        # GAP FILLING - Her iki modda da aktif (teacher availability ile uyumlu)
+        self.logger.info("\n🔧 FULL CURRICULUM SCHEDULING:")
+        curriculum_filled = self._schedule_full_curriculum(classes, teachers, lessons, assignments, time_slots_count)
+        self.logger.info(f"   • {curriculum_filled} saat tam müfredat programı oluşturuldu")
+
+        if curriculum_filled > 0:
+            self.logger.info("   • Gelişmiş boşluk doldurma stratejisi uygulanıyor...")
+            gap_filled = self._advanced_gap_filling()
+            self.logger.info(f"   • {gap_filled} ek saat dolduruldu")
 
         return self.schedule_entries
 
@@ -253,8 +247,11 @@ class SimplePerfectScheduler:
                     if scheduled_count >= weekly_hours:
                         break
                         
-                    # Check if we can place this lesson here (relaxed constraints)
-                    can_place = self._can_place_relaxed(class_id, teacher_id, day, time_slot)
+                    # Check if we can place this lesson here (STRICT - with teacher availability)
+                    if self._can_place_all(class_id, teacher_id, day, [time_slot], lesson_id):
+                        can_place = True
+                    else:
+                        can_place = False
                     
                     if can_place:
                         # Place the lesson
@@ -275,33 +272,38 @@ class SimplePerfectScheduler:
             
         return scheduled_count
 
-    def _aggressive_placement_for_remaining_hours(self, class_id: int, lesson_id: int, teacher_id: int, 
+    def _aggressive_placement_for_remaining_hours(self, class_id: int, lesson_id: int, teacher_id: int,
                                                remaining_hours: int, time_slots_count: int) -> int:
         """
-        Aggressively place remaining hours with relaxed constraints
+        Aggressively place remaining hours with STRICT teacher availability
         """
         placed_count = 0
-        
-        # Try each day and time slot with very relaxed constraints
+
+        # Try each day and time slot with teacher availability check
         for day in range(5):
             if placed_count >= remaining_hours:
                 break
-                
+
             for time_slot in range(time_slots_count):
                 if placed_count >= remaining_hours:
                     break
-                    
-                # Very relaxed check - only hard constraints (class/teacher conflicts)
+
+                # STRICT check - teacher availability is OBLIGATORY
                 class_conflict = (day, time_slot) in self.class_slots[class_id]
                 teacher_conflict = (day, time_slot) in self.teacher_slots[teacher_id]
-                
+
                 if not class_conflict and not teacher_conflict:
-                    # Place the lesson
-                    classroom_id = 1  # Default classroom
-                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
-                    placed_count += 1
-                    self.logger.debug(f"         ⚡ Agresif yerleştirme: Gün {day+1}, Slot {time_slot+1}")
-        
+                    # Check teacher availability (OBLIGATORY)
+                    try:
+                        if self.db_manager.is_teacher_available(teacher_id, day, time_slot):
+                            # Place the lesson
+                            classroom_id = 1  # Default classroom
+                            self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
+                            placed_count += 1
+                            self.logger.debug(f"         ⚡ Agresif yerleştirme: Gün {day+1}, Slot {time_slot+1}")
+                    except Exception:
+                        pass  # Skip if availability check fails
+
         return placed_count
 
     def _get_school_config(self) -> dict:
@@ -362,9 +364,9 @@ class SimplePerfectScheduler:
                     # Try to place this assignment in the empty slot
                     teacher_id = assignment.teacher_id
                     lesson_id = assignment.lesson_id
-                    
-                    # Relaxed check
-                    can_place = self._can_place_relaxed(class_id, teacher_id, day, time_slot)
+
+                    # STRICT check - teacher availability is OBLIGATORY
+                    can_place = self._can_place_all(class_id, teacher_id, day, [time_slot], lesson_id)
                     
                     if can_place:
                         # Place the assignment
@@ -419,9 +421,9 @@ class SimplePerfectScheduler:
                 if filled_count >= remaining_hours:
                     break
                     
-                # Try to place with relaxed constraints
-                can_place = self._can_place_relaxed(
-                    class_id, teacher_id, day, time_slot
+                # Try to place with STRICT constraints (teacher availability OBLIGATORY)
+                can_place = self._can_place_all(
+                    class_id, teacher_id, day, [time_slot], lesson_id
                 )
                 
                 if can_place:
@@ -1000,13 +1002,13 @@ class SimplePerfectScheduler:
             if (day, slot) in self.teacher_slots[teacher_id]:
                 return False
 
-            # Öğretmen uygunluğu kontrolü - Relaxed mode'da atlanır
-            if not self.relaxed_mode:
-                try:
-                    if not self.db_manager.is_teacher_available(teacher_id, day, slot):
-                        return False
-                except Exception:
-                    pass  # Uygunluk kontrolü başarısız olursa devam
+            # Öğretmen uygunluğu kontrolü - HER ZAMAN KONTROL EDİLİR
+            try:
+                if not self.db_manager.is_teacher_available(teacher_id, day, slot):
+                    return False
+            except Exception as e:
+                self.logger.warning(f"Teacher availability check failed: {e}")
+                return False  # Kontrol başarısız olursa güvenli tarafta kal
 
         return True
 
@@ -1211,9 +1213,9 @@ block_size}")
                     # Try to place this assignment in the empty slot
                     teacher_id = assignment.teacher_id
                     lesson_id = assignment.lesson_id
-                    
-                    # Check if we can place (relaxed constraints)
-                    if self._can_place_relaxed(class_id, teacher_id, day, time_slot):
+
+                    # Check if we can place (STRICT - teacher availability OBLIGATORY)
+                    if self._can_place_all(class_id, teacher_id, day, [time_slot], lesson_id):
                         # Place the assignment
                         classroom_id = 1  # Default classroom
                         self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
@@ -1287,18 +1289,23 @@ block_size}")
     
     def _try_aggressive_placement(self, class_id: int, lesson_id: int, teacher_id: int, day: int, time_slot: int) -> bool:
         """
-        Try aggressive placement with relaxed constraints
+        Try aggressive placement with STRICT teacher availability
         """
         # Check basic hard constraints (no class/teacher conflicts)
         class_conflict = (day, time_slot) in self.class_slots[class_id]
         teacher_conflict = (day, time_slot) in self.teacher_slots[teacher_id]
-        
+
         if not class_conflict and not teacher_conflict:
-            # Place the assignment (ignoring some soft constraints)
-            classroom_id = 1  # Default classroom
-            self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
-            return True
-        
+            # Check teacher availability (OBLIGATORY)
+            try:
+                if self.db_manager.is_teacher_available(teacher_id, day, time_slot):
+                    # Place the assignment
+                    classroom_id = 1  # Default classroom
+                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
+                    return True
+            except Exception:
+                pass  # Skip if availability check fails
+
         return False
 
     def _schedule_full_curriculum(self, classes, teachers, lessons, assignments, time_slots_count: int) -> int:
@@ -1388,8 +1395,11 @@ block_size}")
                     if scheduled_count >= weekly_hours:
                         break
                         
-                    # Check if we can place this lesson here (relaxed constraints)
-                    can_place = self._can_place_relaxed(class_id, teacher_id, day, time_slot)
+                    # Check if we can place this lesson here (STRICT - with teacher availability)
+                    if self._can_place_all(class_id, teacher_id, day, [time_slot], lesson_id):
+                        can_place = True
+                    else:
+                        can_place = False
                     
                     if can_place:
                         # Place the lesson
@@ -1410,33 +1420,38 @@ block_size}")
             
         return scheduled_count
 
-    def _aggressive_placement_for_remaining_hours(self, class_id: int, lesson_id: int, teacher_id: int, 
+    def _aggressive_placement_for_remaining_hours(self, class_id: int, lesson_id: int, teacher_id: int,
                                                remaining_hours: int, time_slots_count: int) -> int:
         """
-        Aggressively place remaining hours with relaxed constraints
+        Aggressively place remaining hours with STRICT teacher availability
         """
         placed_count = 0
-        
-        # Try each day and time slot with very relaxed constraints
+
+        # Try each day and time slot with teacher availability check
         for day in range(5):
             if placed_count >= remaining_hours:
                 break
-                
+
             for time_slot in range(time_slots_count):
                 if placed_count >= remaining_hours:
                     break
-                    
-                # Very relaxed check - only hard constraints (class/teacher conflicts)
+
+                # STRICT check - teacher availability is OBLIGATORY
                 class_conflict = (day, time_slot) in self.class_slots[class_id]
                 teacher_conflict = (day, time_slot) in self.teacher_slots[teacher_id]
-                
+
                 if not class_conflict and not teacher_conflict:
-                    # Place the lesson
-                    classroom_id = 1  # Default classroom
-                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
-                    placed_count += 1
-                    self.logger.debug(f"         ⚡ Agresif yerleştirme: Gün {day+1}, Slot {time_slot+1}")
-        
+                    # Check teacher availability (OBLIGATORY)
+                    try:
+                        if self.db_manager.is_teacher_available(teacher_id, day, time_slot):
+                            # Place the lesson
+                            classroom_id = 1  # Default classroom
+                            self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
+                            placed_count += 1
+                            self.logger.debug(f"         ⚡ Agresif yerleştirme: Gün {day+1}, Slot {time_slot+1}")
+                    except Exception:
+                        pass  # Skip if availability check fails
+
         return placed_count
         return placed_count
 
@@ -1480,9 +1495,9 @@ block_size}")
                 if filled_count >= remaining_hours:
                     break
                     
-                # Try to place with relaxed constraints
-                can_place = self._can_place_relaxed(
-                    class_id, teacher_id, day, time_slot
+                # Try to place with STRICT constraints (teacher availability OBLIGATORY)
+                can_place = self._can_place_all(
+                    class_id, teacher_id, day, [time_slot], lesson_id
                 )
                 
                 if can_place:
