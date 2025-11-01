@@ -1495,3 +1495,22 @@ block_size}")
                     self.logger.info(f"       ✓ Aggressively placed: Day {day+1}, Slot {time_slot+1}")
         
         return filled_count
+
+
+def _can_place_relaxed(self, class_id: int, teacher_id: int, day: int, time_slot: int) -> bool:
+    """Relaxed placement check - ignores teacher availability"""
+    for entry in self.schedule_entries:
+        if (entry["class_id"] == class_id and entry["day"] == day and entry["time_slot"] == time_slot):
+            return False
+        if (entry["teacher_id"] == teacher_id and entry["day"] == day and entry["time_slot"] == time_slot):
+            return False
+    return True
+
+
+def _add_entry(self, class_id: int, teacher_id: int, lesson_id: int, classroom_id: int, day: int, time_slot: int):
+    """Add a new entry to schedule"""
+    entry = {"class_id": class_id, "teacher_id": teacher_id, "lesson_id": lesson_id,
+             "classroom_id": classroom_id, "day": day, "time_slot": time_slot}
+    self.schedule_entries.append(entry)
+    self.class_slots[class_id].add((day, time_slot))
+    self.teacher_slots[teacher_id].add((day, time_slot))
