@@ -7,7 +7,13 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nchore: Comprehensive project analysis and critical fixes\n\n✅ Added:\n- Comprehensive project analysis report (KAPSAMLI_PROJE_ANALIZ_RAPORU.md)\n- 48-page detailed analysis covering architecture, algorithms, tests, performance\n- Critical issues identification and prioritization\n- Roadmap for improvements (short, medium, long term)\n\n🔧 Analysis Scope:\n- 26 algorithm files (~6,000 LOC)\n- 40+ test files (~17,000 LOC)\n- UI components (26 files, ~3,500 LOC)\n- Database schema and configuration\n- Technology stack evaluation\n- Security and performance analysis\n\n📊 Key Findings:\n- Overall score: B+ (85/100)\n- 850+ tests with 98% success rate\n- Test coverage: 45% (Target: 80%)\n- 14 scheduler algorithms (needs consolidation)\n- Critical: scheduler.py has 0% test coverage (618 lines)\n\n🎯 Next Steps:\n1. Add tests for scheduler.py (CRITICAL)\n2. UI test coverage implementation\n3. Database refactoring (Repository pattern)\n4. Scheduler consolidation (Strategy pattern)\n\n🤖 Generated with Claude Code\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(flake8:*)",
       "Bash(python -m pylint algorithms/scheduler.py --disable=C0114,C0115,C0116 --reports=y)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "Bash(python:*)",
+      "Bash(black --line-length=100 algorithms/scheduler.py --check)",
+      "Bash(mypy:*)",
+      "Bash(black:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
