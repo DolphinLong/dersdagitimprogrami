@@ -148,15 +148,8 @@ class SimplePerfectScheduler:
                 saved += 1
         self.logger.info(f"✅ {saved} kayıt tamamlandı")
         
-        # GAP FILLING - Her iki modda da aktif (teacher availability ile uyumlu)
-        self.logger.info("\n🔧 FULL CURRICULUM SCHEDULING:")
-        curriculum_filled = self._schedule_full_curriculum(classes, teachers, lessons, assignments, time_slots_count)
-        self.logger.info(f"   • {curriculum_filled} saat tam müfredat programı oluşturuldu")
-
-        if curriculum_filled > 0:
-            self.logger.info("   • Gelişmiş boşluk doldurma stratejisi uygulanıyor...")
-            gap_filled = self._advanced_gap_filling()
-            self.logger.info(f"   • {gap_filled} ek saat dolduruldu")
+        # GAP FILLING - BLOK SİSTEMİNİ KORUMAK İÇİN DEVRE DIŞI
+        self.logger.info("\n🔒 GAP FILLING DEVRE DISI - BLOK SİSTEMİ KORUNUYOR")
 
         return self.schedule_entries
 
@@ -646,8 +639,26 @@ class SimplePerfectScheduler:
                 self.logger.warning(f"        ⚠️  {need['class_name']} - {need['lesson_name']}: Kısmi yerleştirme {partial}/{weekly_hours}")
                 return partial
         
-        # Hiçbir şey yerleştirilemedi
-        self.logger.error(f"        ❌ {need['class_name']} - {need['lesson_name']}: Yerleştirilemedi!")
+        # Hiçbir şey yerleştirilemedi - FALLBACK: Farklı günlere dağıtma kuralı
+        self.logger.warning(f"        ⚠️  {need['class_name']} - {need['lesson_name']}: Blok sistemi başarısız, fallback deneniyor...")
+        fallback_scheduled = self._try_distribute_across_days(
+            need, time_slots_count, classrooms
+        )
+        if fallback_scheduled > 0:
+            self.logger.info(f"        ✓ Fallback ile {fallback_scheduled}/{weekly_hours} saat yerleştirildi (farklı günlere dağıtıldı)")
+            return fallback_scheduled
+
+        # SON ÇARE: Çok kısıtlı durumlarda relaxed mode kullan (SADECE bu ders için)
+        if self.relaxed_mode:
+            self.logger.warning(f"        ⚠️  SON ÇARE: Relaxed mode ile {weekly_hours} saat yerleştiriliyor...")
+            relaxed_scheduled = self._try_relaxed_placement(
+                need, time_slots_count, classrooms
+            )
+            if relaxed_scheduled > 0:
+                self.logger.info(f"        ✓ Relaxed mode ile {relaxed_scheduled}/{weekly_hours} saat yerleştirildi")
+                return relaxed_scheduled
+
+        self.logger.error(f"        ❌ {need['class_name']} - {need['lesson_name']}: Hiç yerleştirilemedi! (Teacher availability kısıtlı)")
         return 0
     
     def _schedule_lesson_OLD_BROKEN(self, need: Dict, time_slots_count: int, classrooms: List, max_attempts: int = 5) -> int:
@@ -1072,6 +1083,76 @@ class SimplePerfectScheduler:
             return False
 
         return True
+
+    def _try_distribute_across_days(self, need: Dict, time_slots_count: int, classrooms: List) -> int:
+        """
+        FALLBACK: Blok sistemi başarısız olursa, dersleri farklı günlere dağıt
+        Her günde sadece 1 saat olacak şekilde
+        """
+        class_id = need["class_id"]
+        teacher_id = need["teacher_id"]
+        lesson_id = need["lesson_id"]
+        weekly_hours = need["weekly_hours"]
+
+        classroom = classrooms[0] if classrooms else None
+        classroom_id = classroom.classroom_id if classroom else 1
+
+        scheduled = 0
+        used_days = set()
+
+        # Her gün için en fazla 1 saat yerleştir
+        for day in range(5):
+            if scheduled >= weekly_hours:
+                break
+
+            # Bu günü daha önce kullandık mı?
+            if day in used_days:
+                continue
+
+            # Bu günde uygun bir slot bul
+            for time_slot in range(time_slots_count):
+                if scheduled >= weekly_hours:
+                    break
+
+                # Teacher availability kontrol et
+                if self._can_place_all(class_id, teacher_id, day, [time_slot], lesson_id):
+                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
+                    scheduled += 1
+                    used_days.add(day)
+                    break
+
+        return scheduled
+
+    def _try_relaxed_placement(self, need: Dict, time_slots_count: int, classrooms: List) -> int:
+        """
+        SON ÇARE: Teacher availability'yi ignore ederek yerleştir
+        SADECE çok kısıtlı durumlarda kullanılır
+        """
+        class_id = need["class_id"]
+        teacher_id = need["teacher_id"]
+        lesson_id = need["lesson_id"]
+        weekly_hours = need["weekly_hours"]
+
+        classroom = classrooms[0] if classrooms else None
+        classroom_id = classroom.classroom_id if classroom else 1
+
+        scheduled = 0
+
+        # Her gün, her slotu dene (teacher availability YOK)
+        for day in range(5):
+            if scheduled >= weekly_hours:
+                break
+
+            for time_slot in range(time_slots_count):
+                if scheduled >= weekly_hours:
+                    break
+
+                # SADECE çakışma kontrolü (teacher availability YOK)
+                if (day, time_slot) not in self.class_slots[class_id] and (day, time_slot) not in self.teacher_slots[teacher_id]:
+                    self._add_entry(class_id, teacher_id, lesson_id, classroom_id, day, time_slot)
+                    scheduled += 1
+
+        return scheduled
 
     def _select_block_days(self, weekly_hours: int) -> List[int]:
         """
